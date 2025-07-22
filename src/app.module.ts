@@ -4,7 +4,7 @@ import { AppService } from "./app.service";
 import { FhirController } from "./fhir/fhir.controller";
 import { FhirService } from "./services/fhir/fhir.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { FhirResource, FhirResourceSchema } from './schema/fhir-resource-schema';
+import { FhirResource, fhirResourceSchema } from './schema/fhir-resource-schema';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { FhirResource, FhirResourceSchema } from './schema/fhir-resource-schema'
       bufferCommands: false,
     }),
     MongooseModule.forFeature([
-      { name: FhirResource.name, schema: FhirResourceSchema }
+      { name: FhirResource.name, schema: fhirResourceSchema }
     ]),
   
   ],

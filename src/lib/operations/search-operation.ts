@@ -35,7 +35,7 @@ export class SearchOperation extends Operation {
     return FhirResponse.format(resource);
   }
   
-  async find(resourceType: string, searchParams: any){
+  async find(resourceType: string, searchParams: any): Promise<any>{
     
     const query: any = {
       resourceType,

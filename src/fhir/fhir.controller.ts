@@ -9,32 +9,32 @@ export class FhirController {
   }
   
   @Get('metadata')
-  getCapabilityStatement() {
+  getCapabilityStatement(): any {
     return (new Metadata()).get()
   }
   
   @Get(':resourceType')
-  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any) {
+  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any): Promise<any> {
     return this._service.find(resourceType, searchParams);
   }
   
   @Get(':resourceType/:id')
-  async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string) {
+  async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string): Promise<any> {
     return this._service.findById(resourceType, id);
   }
   
   @Post(':resourceType')
-  async createResource(@Param('resourceType') resourceType: string, @Body() resource: any) {
+  async createResource(@Param('resourceType') resourceType: string, @Body() resource: any): Promise<any> {
     return this._service.create(resourceType, resource);
   }
   
   @Put(':resourceType/:id')
-  update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any) {
+  update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any): Promise<any> {
     return this._service.update(resourceType, id, resource)
   }
   
   @Delete(':resourceType/:id')
-  delete(@Param('resourceType') resourceType: string, @Param('id') id: string) {
+  delete(@Param('resourceType') resourceType: string, @Param('id') id: string): Promise<any> {
     return this._service.delete(resourceType, id);
   }
   

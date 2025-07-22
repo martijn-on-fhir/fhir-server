@@ -3,7 +3,7 @@ export class Metadata {
   constructor() {
   }
   
-  get() {
+  get(): object {
     
     return {
       resourceType: 'CapabilityStatement',

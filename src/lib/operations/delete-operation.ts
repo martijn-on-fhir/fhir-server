@@ -71,7 +71,6 @@ export class DeleteOperation extends Operation {
     }
   }
   
-  
   /**
    * Updates the resource status to implement soft delete.
    * Marks the resource as 'inactive', increments version, updates timestamp and adds 'deleted' tag.
@@ -80,7 +79,7 @@ export class DeleteOperation extends Operation {
    * @param entity - The existing resource entity
    * @returns Promise resolving to the updated resource or null if update fails
    */
-  private async updateResource(resourceType: string, id: string, entity: any) {
+  private async updateResource(resourceType: string, id: string, entity: any): Promise<any> {
     
     return this.fhirResourceModel.findOneAndUpdate(
       { resourceType, id, status: 'active' },

@@ -3,7 +3,7 @@ import { Model } from 'mongoose';
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { FhirResponse } from '../fhir-response';
-import { NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { NotAcceptableException } from '@nestjs/common';
 
 export class CreateOperation extends Operation {
   

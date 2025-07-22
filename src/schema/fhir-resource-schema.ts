@@ -50,9 +50,9 @@ export class FhirResource {
   searchParams: Record<string, any>;
 }
 
-export const FhirResourceSchema = SchemaFactory.createForClass(FhirResource);
+export const fhirResourceSchema = SchemaFactory.createForClass(FhirResource);
 
 // Indexes voor performance
-FhirResourceSchema.index({ resourceType: 1, id: 1 });
-FhirResourceSchema.index({ resourceType: 1, status: 1 });
-FhirResourceSchema.index({ 'meta.lastUpdated': -1 });
+fhirResourceSchema.index({ resourceType: 1, id: 1 });
+fhirResourceSchema.index({ resourceType: 1, status: 1 });
+fhirResourceSchema.index({ 'meta.lastUpdated': -1 });

@@ -12,7 +12,7 @@ export class UpdateOperation extends Operation {
     this.fhirResourceModel = fhirResourceModel;
   }
   
-  async execute(resourceType: string, id: string, resourceData: any) {
+  async execute(resourceType: string, id: string, resourceData: any): Promise<any> {
     
     const entity = await this.exists(resourceType, id);
     

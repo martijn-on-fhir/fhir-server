@@ -8,7 +8,6 @@ import { CreateOperation } from '../../lib/operations/create-operation';
 import { UpdateOperation } from '../../lib/operations/update-operation';
 import { SearchOperation } from '../../lib/operations/search-operation';
 
-
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
  * Implements FHIR REST API specifications for resource management with MongoDB storage.
@@ -23,7 +22,6 @@ export class FhirService {
   constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>) {
   }
   
-  
   /**
    * Retrieve a specific FHIR resource by its type and ID.
    * @param resourceType - The FHIR resource type (e.g., 'Patient', 'Observation')
@@ -31,7 +29,7 @@ export class FhirService {
    * @returns Promise containing the requested FHIR resource
    * @throws NotFoundException if the resource is not found
    */
-  async findById(resourceType: string, id: string) {
+  async findById(resourceType: string, id: string): Promise<any> {
     
     try {
       
@@ -43,6 +41,7 @@ export class FhirService {
       if (error instanceof NotFoundException) {
         throw error;
       }
+
       throw new Error(`Error retrieving ${resourceType}/${id}: ${error.message}`);
     }
   }
@@ -54,7 +53,7 @@ export class FhirService {
    * @param searchParams - Search parameters including _count, _offset, _sort, and resource-specific filters
    * @returns Promise containing a FHIR Bundle with matching resources
    */
-  async find(resourceType: string, searchParams: any) {
+  async find(resourceType: string, searchParams: any): Promise<any> {
     
     try {
      
@@ -98,7 +97,7 @@ export class FhirService {
    * @throws NotFoundException if resource doesn't exist
    * @throws ConflictException if version conflict occurs
    */
-  async update(resourceType: string, id: string, resourceData: any) {
+  async update(resourceType: string, id: string, resourceData: any): Promise<any> {
     
     try {
       

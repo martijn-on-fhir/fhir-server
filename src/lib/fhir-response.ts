@@ -12,7 +12,7 @@ export class FhirResponse {
    * @param resource - The FHIR resource document to format
    * @returns The formatted FHIR resource with combined metadata
    */
-  static format(resource) {
+  static format(resource): object {
     
     return {
       ...resource.resource,
@@ -20,7 +20,7 @@ export class FhirResponse {
     };
   }
   
-  static notFound(description) {
+  static notFound(description): object {
     
     return {
       resourceType: 'OperationOutcome',
@@ -34,7 +34,7 @@ export class FhirResponse {
     }
   }
   
-  static notAcceptatble(description){
+  static notAcceptatble(description): object{
     
     return {
       resourceType: 'OperationOutcome',
