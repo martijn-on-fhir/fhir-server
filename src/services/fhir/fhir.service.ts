@@ -1,9 +1,12 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { FhirResource, FhirResourceDocument } from '../../schema/fhir-resource-schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { FhirResponse } from '../../lib/fhir-response';
+import { DeleteOperation } from '../../lib/operations/delete-operation';
+import { CreateOperation } from '../../lib/operations/create-operation';
+import { UpdateOperation } from '../../lib/operations/update-operation';
 
 
 /**
@@ -119,60 +122,6 @@ export class FhirService {
   }
   
   /**
-   * Validates the input data for updating a FHIR resource.
-   * @param resourceType - The type of FHIR resource being updated
-   * @param id - The unique identifier of the resource
-   * @param resourceData - The resource data to validate
-   * @throws BadRequestException if resource data is invalid, missing, or inconsistent
-   */
-  private validateUpdateInput(resourceType: string, id: string, resourceData: any): void {
-    
-    if (!resourceData || typeof resourceData !== 'object') {
-      
-      throw new BadRequestException({
-        resourceType: 'OperationOutcome',
-        issue: [{
-          severity: 'error',
-          code: 'invalid',
-          details: {
-            text: 'Resource data is required and must be an object',
-          },
-        }],
-      });
-    }
-    
-    // Controleer of resourceType consistent is
-    if (resourceData.resourceType && resourceData.resourceType !== resourceType) {
-      
-      throw new BadRequestException({
-        resourceType: 'OperationOutcome',
-        issue: [{
-          severity: 'error',
-          code: 'invalid',
-          details: {
-            text: `Resource type mismatch. Expected ${resourceType}, got ${resourceData.resourceType}`,
-          },
-        }],
-      });
-    }
-    
-    // Controleer of ID consistent is
-    if (resourceData.id && resourceData.id !== id) {
-      
-      throw new BadRequestException({
-        resourceType: 'OperationOutcome',
-        issue: [{
-          severity: 'error',
-          code: 'invalid',
-          details: {
-            text: `Resource ID mismatch. Expected ${id}, got ${resourceData.id}`,
-          },
-        }],
-      });
-    }
-  }
-  
-  /**
    * Create a new FHIR resource.
    * @param resourceType - The type of FHIR resource to create
    * @param resourceData - The resource data to be stored
@@ -180,26 +129,18 @@ export class FhirService {
    */
   async create(resourceType: string, resourceData: any): Promise<any> {
     
-    const id = resourceData.id || uuidv4();
-    
-    const fhirResource = new this.fhirResourceModel({
-      resourceType,
-      id,
-      resource: {
-        resourceType,
-        id,
-        ...resourceData,
-      },
-      meta: {
-        versionId: '1',
-        lastUpdated: new Date(),
-      },
-      searchParams: this.extractSearchParams(resourceType, resourceData),
-    });
-    
-    const saved = await fhirResource.save();
-    
-    return FhirResponse.format(saved);
+    try {
+      const operation  = new CreateOperation(this.fhirResourceModel)
+      return operation.execute(resourceType, resourceData);
+    }
+    catch(error: any){
+      
+      if(error instanceof NotAcceptableException){
+        return FhirResponse.notAcceptatble(error.message);
+      }
+      
+      throw new Error(`Error creating ${resourceType}: ${error.message}`);
+    }
   }
   
   /**
@@ -216,108 +157,16 @@ export class FhirService {
     
     try {
       
-      this.validateUpdateInput(resourceType, id, resourceData);
-      
-      const existingResource = await this.fhirResourceModel.findOne({
-        resourceType,
-        id,
-        status: 'active',
-      });
-      
-      if (!existingResource) {
-        
-        throw new NotFoundException({
-          resourceType: 'OperationOutcome',
-          issue: [{
-            severity: 'error',
-            code: 'not-found',
-            details: {
-              text: `${resourceType}/${id} not found`,
-            },
-          }],
-        });
-      }
-      
-      if (resourceData.meta?.versionId && resourceData.meta.versionId !== existingResource.meta.versionId) {
-        
-        throw new ConflictException({
-          resourceType: 'OperationOutcome',
-          issue: [{
-            severity: 'error',
-            code: 'conflict',
-            details: {
-              text: `Version conflict. Expected version ${existingResource.meta.versionId}, but received ${resourceData.meta.versionId}`,
-            },
-          }],
-        });
-      }
-      
-      const newVersionId = String(parseInt(existingResource.meta.versionId) + 1);
-      const updatedResourceData = this.prepareResourceForUpdate(
-        resourceType,
-        id,
-        resourceData,
-        existingResource,
-        newVersionId,
-      );
-      
-      const searchParams = this.extractSearchParams(resourceType, updatedResourceData);
-      const updatedResource = await this.fhirResourceModel.findOneAndUpdate(
-        { resourceType, id, status: 'active' },
-        {
-          $set: {
-            resource: updatedResourceData,
-            'meta.versionId': newVersionId,
-            'meta.lastUpdated': new Date(),
-            searchParams: searchParams,
-          },
-        },
-        {
-          new: true,
-          runValidators: true,
-        },
-      );
-      
-      if (!updatedResource) {
-        throw new Error('Failed to update resource');
-      }
-      
-      return FhirResponse.format(updatedResource);
+      const operation = new UpdateOperation(this.fhirResourceModel)
+      return operation.execute(resourceType, id, resourceData)
       
     } catch (error) {
       
-      if (error instanceof NotFoundException ||
-        error instanceof BadRequestException ||
-        error instanceof ConflictException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ConflictException) {
         throw error;
       }
       
       throw new Error(`Error updating ${resourceType}/${id}: ${error.message}`);
-    }
-  }
-  
-  /**
-   * Prepares a FHIR resource for update by merging new data with existing metadata.
-   * @param resourceType - The type of FHIR resource being updated
-   * @param id - The unique identifier of the resource
-   * @param resourceData - The new resource data to be applied
-   * @param existingResource - The current version of the resource in the database
-   * @param newVersionId - The new version identifier to be assigned
-   * @returns The prepared resource object with merged metadata
-   */
-  private prepareResourceForUpdate(resourceType: string, id: string, resourceData: any, existingResource: FhirResourceDocument, newVersionId: string): any {
-    
-    return {
-      ...resourceData,
-      resourceType,
-      id,
-      meta: {
-        versionId: newVersionId,
-        lastUpdated: new Date().toISOString(),
-        profile: resourceData.meta?.profile || existingResource.meta.profile || [],
-        security: resourceData.meta?.security || existingResource.meta.security || [],
-        tag: resourceData.meta?.tag || existingResource.meta.tag || [],
-      },
     }
   }
   
@@ -330,94 +179,18 @@ export class FhirService {
    */
   async delete(resourceType: string, id: string): Promise<any> {
     
-    
     try {
       
-      const existingResource = await this.fhirResourceModel.findOne({
-        resourceType,
-        id,
-        status: 'active',
-      });
+      const operation = new DeleteOperation(this.fhirResourceModel)
+      return operation.execute(resourceType, id);
       
-      if (!existingResource) {
-        
-        throw new NotFoundException({
-          resourceType: 'OperationOutcome',
-          issue: [{
-            severity: 'error',
-            code: 'not-found',
-            details: {
-              text: `${resourceType}/${id} not found or already deleted`,
-            },
-          }],
-        })
-      }
+    } catch (error: any){
       
-      // Update de resource status naar 'inactive' en verhoog versie
-      const updatedResource = await this.fhirResourceModel.findOneAndUpdate(
-        { resourceType, id, status: 'active' },
-        {
-          $set: {
-            status: 'inactive',
-            'meta.versionId': String(parseInt(existingResource.meta.versionId) + 1),
-            'meta.lastUpdated': new Date(),
-          },
-          $push: {
-            tags: 'deleted',
-          },
-        },
-        { new: true },
-      );
-      
-      if (!updatedResource) {
-        throw new Error('Failed to delete resource');
-      }
-      
-      return {
-        resourceType: 'OperationOutcome',
-        issue: [{
-          severity: 'information',
-          code: 'deleted',
-          details: {
-            text: `${resourceType}/${id} has been deleted`,
-          },
-        }],
-      };
-      
-    } catch (error) {
-      
-      if (error instanceof NotFoundException) {
-        throw error;
+      if(error instanceof NotFoundException){
+        return FhirResponse.notFound(error.message);
       }
       
       throw new Error(`Error deleting ${resourceType}/${id}: ${error.message}`);
     }
-  }
-  
-  private extractSearchParams(resourceType: string, resource: any): Record<string, any> {
-    const searchParams: Record<string, any> = {};
-    
-    // Generieke extractie van zoekparameters per resource type
-    switch (resourceType) {
-      case 'Patient':
-        if (resource.name) searchParams.name = resource.name[0]?.family || resource.name[0]?.given?.join(' ');
-        if (resource.gender) searchParams.gender = resource.gender;
-        if (resource.birthDate) searchParams.birthdate = resource.birthDate;
-        break;
-      
-      case 'Observation':
-        if (resource.subject) searchParams.patient = resource.subject.reference;
-        if (resource.code) searchParams.code = resource.code.coding?.[0]?.code;
-        if (resource.effectiveDateTime) searchParams.date = resource.effectiveDateTime;
-        break;
-      
-      // Voeg meer resource types toe
-      default:
-        // Basis search parameters
-        if (resource.id) searchParams._id = resource.id;
-        break;
-    }
-    
-    return searchParams;
   }
 }
