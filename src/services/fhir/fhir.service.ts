@@ -13,6 +13,10 @@ import { FhirResponse } from '../../lib/fhir-response';
 @Injectable()
 export class FhirService {
   
+  /**
+   *
+   * @param fhirResourceModel
+   */
   constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>) {
   }
   
@@ -32,7 +36,6 @@ export class FhirService {
         resourceType, id, status: 'active',
       }).exec();
       
-      // Als resource niet gevonden
       if (!resource) {
         
         throw new NotFoundException({
@@ -97,7 +100,7 @@ export class FhirService {
     }
     
     try {
-      // Haal resources op met pagination
+      
       const resources = await this.fhirResourceModel
       .find(query)
       .skip(offset)
@@ -105,11 +108,9 @@ export class FhirService {
       .sort(sort)
       .exec();
       
-      // Tel totaal aantal resources voor pagination info
       const total = await this.fhirResourceModel.countDocuments(query);
       
-      // Return FHIR Bundle formaat
-      return FhirResponse.bundle (resources, total, resourceType, offset, count);
+      return FhirResponse.bundle(resources, total, resourceType, offset, count);
       
     } catch (error) {
       throw new Error(`Error searching ${resourceType}: ${error.message}`);
@@ -125,8 +126,9 @@ export class FhirService {
    * @throws BadRequestException if resource data is invalid, missing, or inconsistent
    */
   private validateUpdateInput(resourceType: string, id: string, resourceData: any): void {
-    // Controleer of resource data bestaat
+    
     if (!resourceData || typeof resourceData !== 'object') {
+      
       throw new BadRequestException({
         resourceType: 'OperationOutcome',
         issue: [{
@@ -141,6 +143,7 @@ export class FhirService {
     
     // Controleer of resourceType consistent is
     if (resourceData.resourceType && resourceData.resourceType !== resourceType) {
+      
       throw new BadRequestException({
         resourceType: 'OperationOutcome',
         issue: [{
@@ -155,6 +158,7 @@ export class FhirService {
     
     // Controleer of ID consistent is
     if (resourceData.id && resourceData.id !== id) {
+      
       throw new BadRequestException({
         resourceType: 'OperationOutcome',
         issue: [{
@@ -175,6 +179,7 @@ export class FhirService {
    * @returns Promise containing the created FHIR resource
    */
   async create(resourceType: string, resourceData: any): Promise<any> {
+    
     const id = resourceData.id || uuidv4();
     
     const fhirResource = new this.fhirResourceModel({
@@ -193,6 +198,7 @@ export class FhirService {
     });
     
     const saved = await fhirResource.save();
+    
     return FhirResponse.format(saved);
   }
   
@@ -209,10 +215,9 @@ export class FhirService {
   async update(resourceType: string, id: string, resourceData: any) {
     
     try {
-      // Valideer input
+      
       this.validateUpdateInput(resourceType, id, resourceData);
       
-      // Zoek bestaande resource
       const existingResource = await this.fhirResourceModel.findOne({
         resourceType,
         id,
@@ -233,7 +238,6 @@ export class FhirService {
         });
       }
       
-      // Controleer optimistic locking (als versionId meegegeven wordt)
       if (resourceData.meta?.versionId && resourceData.meta.versionId !== existingResource.meta.versionId) {
         
         throw new ConflictException({
@@ -248,7 +252,6 @@ export class FhirService {
         });
       }
       
-      // Bereid nieuwe resource data voor
       const newVersionId = String(parseInt(existingResource.meta.versionId) + 1);
       const updatedResourceData = this.prepareResourceForUpdate(
         resourceType,
@@ -258,10 +261,7 @@ export class FhirService {
         newVersionId,
       );
       
-      // Extract search parameters voor nieuwe data
       const searchParams = this.extractSearchParams(resourceType, updatedResourceData);
-      
-      // Update de resource in database
       const updatedResource = await this.fhirResourceModel.findOneAndUpdate(
         { resourceType, id, status: 'active' },
         {
@@ -285,6 +285,7 @@ export class FhirService {
       return FhirResponse.format(updatedResource);
       
     } catch (error) {
+      
       if (error instanceof NotFoundException ||
         error instanceof BadRequestException ||
         error instanceof ConflictException) {
@@ -293,36 +294,33 @@ export class FhirService {
       
       throw new Error(`Error updating ${resourceType}/${id}: ${error.message}`);
     }
-    
   }
   
-  private prepareResourceForUpdate(
-    resourceType: string,
-    id: string,
-    resourceData: any,
-    existingResource: FhirResourceDocument,
-    newVersionId: string,
-  ): any {
-    // Behoud kritieke velden en voeg meta-informatie toe
-    const updatedResource = {
+  /**
+   * Prepares a FHIR resource for update by merging new data with existing metadata.
+   * @param resourceType - The type of FHIR resource being updated
+   * @param id - The unique identifier of the resource
+   * @param resourceData - The new resource data to be applied
+   * @param existingResource - The current version of the resource in the database
+   * @param newVersionId - The new version identifier to be assigned
+   * @returns The prepared resource object with merged metadata
+   */
+  private prepareResourceForUpdate(resourceType: string, id: string, resourceData: any, existingResource: FhirResourceDocument, newVersionId: string): any {
+    
+    return {
       ...resourceData,
       resourceType,
       id,
       meta: {
         versionId: newVersionId,
         lastUpdated: new Date().toISOString(),
-        // Behoud bestaande meta velden indien gewenst
         profile: resourceData.meta?.profile || existingResource.meta.profile || [],
         security: resourceData.meta?.security || existingResource.meta.security || [],
         tag: resourceData.meta?.tag || existingResource.meta.tag || [],
       },
-    };
-    
-    return updatedResource;
+    }
   }
   
-  
-  // Soft delete - FHIR standaard approach (aanbevolen)
   /**
    * Soft delete a FHIR resource by marking it as inactive.
    * @param resourceType - The type of FHIR resource to delete
@@ -334,7 +332,7 @@ export class FhirService {
     
     
     try {
-      // Eerst controleren of resource bestaat en actief is
+      
       const existingResource = await this.fhirResourceModel.findOne({
         resourceType,
         id,
@@ -352,7 +350,7 @@ export class FhirService {
               text: `${resourceType}/${id} not found or already deleted`,
             },
           }],
-        });
+        })
       }
       
       // Update de resource status naar 'inactive' en verhoog versie
@@ -375,8 +373,6 @@ export class FhirService {
         throw new Error('Failed to delete resource');
       }
       
-      
-      // Return FHIR-compliant response
       return {
         resourceType: 'OperationOutcome',
         issue: [{
@@ -389,6 +385,7 @@ export class FhirService {
       };
       
     } catch (error) {
+      
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -423,7 +420,4 @@ export class FhirService {
     
     return searchParams;
   }
-  
-  
-  
 }
