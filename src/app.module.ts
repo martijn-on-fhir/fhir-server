@@ -4,6 +4,7 @@ import { AppService } from "./app.service";
 import { FhirController } from "./fhir/fhir.controller";
 import { FhirService } from "./services/fhir/fhir.service";
 import { MongooseModule } from "@nestjs/mongoose";
+import { FhirResource, FhirResourceSchema } from './schema/fhir-resource-schema';
 
 @Module({
   imports: [
@@ -13,6 +14,10 @@ import { MongooseModule } from "@nestjs/mongoose";
       socketTimeoutMS: 45000,
       bufferCommands: false,
     }),
+    MongooseModule.forFeature([
+      { name: FhirResource.name, schema: FhirResourceSchema }
+    ]),
+  
   ],
   controllers: [AppController, FhirController],
   providers: [AppService, FhirService],

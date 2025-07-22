@@ -1,32 +1,58 @@
-import { Schema } from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-interface FhirResource extends Document {
+export type FhirResourceDocument = FhirResource & Document;
+
+@Schema({
+  collection: 'resources',
+  timestamps: { createdAt: 'meta.lastUpdated', updatedAt: false },
+  strict: false, // Flexibiliteit voor verschillende FHIR resource types
+  versionKey: false
+})
+export class FhirResource {
+  @Prop({ required: true, index: true })
   resourceType: string;
+  
+  @Prop({
+    required: true,
+    unique: true,
+    index: true
+  })
   id: string;
-  meta?: {
-    versionId?: string;
-    lastUpdated?: Date;
+  
+  @Prop({
+    type: Object,
+    default: () => ({
+      versionId: '1',
+      lastUpdated: new Date(),
+      profile: []
+    })
+  })
+  meta: {
+    versionId: string;
+    lastUpdated: Date;
     profile?: string[];
     security?: any[];
     tag?: any[];
   };
-  implicitRules?: string;
-  language?: string;
-  text?: {
-    status: string;
-    div: string;
-  };
-  contained?: any[];
-  extension?: any[];
-  modifierExtension?: any[];
-  [key: string]: any; // Allow any FHIR resource properties
+  
+  @Prop({ type: Object }) // Flexibel voor alle FHIR data
+  resource: Record<string, any>;
+  
+  @Prop({ default: 'active', index: true })
+  status: string;
+  
+  @Prop({ type: [String], default: [] })
+  tags: string[];
+  
+  // Index voor zoeken
+  @Prop({ type: Object, default: {} })
+  searchParams: Record<string, any>;
 }
 
-export class FhirResourceSchema extends Schema {
-  constructor() {
-    super();
+export const FhirResourceSchema = SchemaFactory.createForClass(FhirResource);
 
-    this.index({ resourceType: 1, id: 1 }, { unique: true });
-    this.index({ "meta.lastUpdated": -1 });
-  }
-}
+// Indexes voor performance
+FhirResourceSchema.index({ resourceType: 1, id: 1 });
+FhirResourceSchema.index({ resourceType: 1, status: 1 });
+FhirResourceSchema.index({ 'meta.lastUpdated': -1 });
