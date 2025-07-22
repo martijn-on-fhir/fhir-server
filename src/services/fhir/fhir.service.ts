@@ -2,7 +2,6 @@ import { BadRequestException, ConflictException, Injectable, NotAcceptableExcept
 import { FhirResource, FhirResourceDocument } from '../../schema/fhir-resource-schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { v4 as uuidv4 } from 'uuid';
 import { FhirResponse } from '../../lib/fhir-response';
 import { DeleteOperation } from '../../lib/operations/delete-operation';
 import { CreateOperation } from '../../lib/operations/create-operation';

@@ -1,0 +1,120 @@
+body {
+  background-color: rgba(239, 239, 239, 0.1) !important;
+}
+
+.swagger-ui a {
+  color: #000;
+}
+.swagger-ui select {
+  border: 0;
+  font-weight: 500;
+}
+.swagger-ui h2 {
+  font-size: 16px !important;
+}
+.swagger-ui .servers-title {
+  font-weight: normal;
+}
+.swagger-ui .info {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.swagger-ui .info .title span {
+  display: none;
+}
+.swagger-ui .info a {
+  color: #222;
+}
+.swagger-ui .btn.authorize {
+  border-color: #999;
+  color: #666;
+}
+.swagger-ui .btn.authorize svg {
+  fill: #c80d0d;
+}
+.swagger-ui .opblock-control-arrow {
+  display: none;
+}
+.swagger-ui .expand-operation {
+  display: none;
+}
+
+.swagger-ui .topbar {
+  display: block;
+  background-color: rgba(226, 226, 226, 0.82);
+  border-bottom: 1px solid #555;
+}
+.swagger-ui .topbar svg {
+  display: none;
+}
+
+.swagger-ui .opblock {
+  border-radius: 2px;
+  border-width: 1px;
+}
+
+.swagger-ui .opblock.opblock-post {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: rgba(142, 139, 139, 0.47);
+}
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+  background: #0653a1;
+}
+.swagger-ui .opblock.opblock-post .opblock-summary {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: #0653a1;
+}
+.swagger-ui .opblock.opblock-post .tab-header .tab-item.active h4 span:after {
+  background: #0653a1;
+}
+
+.swagger-ui .opblock.opblock-get {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: rgba(142, 139, 139, 0.47);
+}
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+  background: #246547;
+}
+.swagger-ui .opblock.opblock-get .opblock-summary {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: #246547;
+}
+.swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span:after {
+  background: #246547;
+}
+
+.swagger-ui .opblock.opblock-delete {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: rgba(142, 139, 139, 0.47);
+}
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+  background: #c80d0d;
+}
+.swagger-ui .opblock.opblock-delete .opblock-summary {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: #c80d0d;
+}
+.swagger-ui .opblock.opblock-delete .tab-header .tab-item.active h4 span:after {
+  background: #c80d0d;
+}
+
+.swagger-ui .opblock.opblock-put {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: rgba(142, 139, 139, 0.47);
+}
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+  background: #ed8712;
+}
+.swagger-ui .opblock.opblock-put .opblock-summary {
+  background: rgba(239, 239, 239, 0.1);
+  border-color: #ed8712;
+}
+.swagger-ui .opblock.opblock-put .tab-header .tab-item.active h4 span:after {
+  background: #ed8712;
+}
+
+.swagger-ui .model-box-control:focus, .swagger-ui .models-control:focus, .swagger-ui .opblock-summary-control:focus {
+  outline: none;
+}
+
+/*# sourceMappingURL=theme.css.map */

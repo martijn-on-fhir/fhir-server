@@ -1,0 +1,152 @@
+$light: rgba(239, 239, 239, 0.1);
+$darkBlue: #0653a1;
+$darkGreen: #246547;
+$darkRed: #c80d0d;
+$darkOrange: #ed8712;
+
+body {
+  background-color: $light !important;
+}
+
+.swagger-ui {
+
+  a {
+    color: #000;
+  }
+
+  select {
+    border: 0;
+    font-weight: 500;
+  }
+
+  h2 {
+    font-size: 16px !important;
+  }
+
+  .servers-title {
+    font-weight: normal;
+  }
+
+  .info {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .info .title span {
+    display: none;
+  }
+
+  .info a {
+    color: #222
+  }
+
+  .btn.authorize {
+    border-color: #999;
+    color: #666;
+  }
+
+  .btn.authorize svg {
+    fill: $darkRed;
+  }
+
+  .opblock-control-arrow {
+    display: none;
+  }
+
+  .expand-operation {
+    display: none;
+  }
+}
+
+.swagger-ui .topbar {
+  display: block;
+  background-color: rgba(226, 226, 226, 0.82);
+  border-bottom: 1px solid #555;
+
+  svg {
+    display: none;
+  }
+}
+
+.swagger-ui .opblock {
+  border-radius: 2px;
+  border-width: 1px;
+}
+
+.swagger-ui .opblock.opblock-post {
+
+  background: $light;
+  border-color: rgba(142, 139, 139, 0.47);
+
+  .opblock-summary-method {
+    background: $darkBlue;
+  }
+
+  .opblock-summary {
+    background: $light;
+    border-color: $darkBlue;
+  }
+  .tab-header .tab-item.active h4 span:after {
+    background: $darkBlue;
+  }
+}
+
+.swagger-ui .opblock.opblock-get {
+
+  background: $light;
+  border-color: rgba(142, 139, 139, 0.47);
+
+  .opblock-summary-method {
+    background: $darkGreen;
+  }
+
+  .opblock-summary {
+    background: $light;
+    border-color: $darkGreen ;
+  }
+  .tab-header .tab-item.active h4 span:after {
+    background: $darkGreen;
+  }
+}
+
+.swagger-ui .opblock.opblock-delete {
+
+  background: $light;
+  border-color: rgba(142, 139, 139, 0.47);
+
+  .opblock-summary-method {
+    background: $darkRed;
+  }
+
+  .opblock-summary {
+    background: $light;
+    border-color:  $darkRed;
+  }
+
+  .tab-header .tab-item.active h4 span:after {
+    background: $darkRed;
+  }
+}
+
+.swagger-ui .opblock.opblock-put {
+
+  background: $light;
+  border-color: rgba(142, 139, 139, 0.47);
+
+  .opblock-summary-method {
+    background:$darkOrange;
+  }
+
+  .opblock-summary {
+    background: $light;
+    border-color: $darkOrange;
+  }
+
+  .tab-header .tab-item.active h4 span:after {
+    background: $darkOrange;
+  }
+}
+
+.swagger-ui .model-box-control:focus, .swagger-ui .models-control:focus, .swagger-ui .opblock-summary-control:focus {
+  outline: none;
+}
