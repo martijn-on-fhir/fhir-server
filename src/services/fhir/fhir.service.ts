@@ -57,52 +57,14 @@ export class FhirService {
    */
   async find(resourceType: string, searchParams: any) {
     
-    const query: any = {
-      resourceType,
-      status: 'active',
-    };
-    
-    // Voeg search parameters toe als ze bestaan
-    Object.keys(searchParams).forEach(key => {
-      if (key === '_count') return;
-      if (key === '_offset') return;
-      if (key === '_sort') return;
-      
-      // Zoek in searchParams field
-      query[`searchParams.${key}`] = searchParams[key];
-    });
-    
-    // Pagination parameters
-    const count = parseInt(searchParams._count) || 20;
-    const offset = parseInt(searchParams._offset) || 0;
-    
-    // Sorting
-    let sort: any = { 'meta.lastUpdated': -1 };
-    if (searchParams._sort) {
-      const sortField = searchParams._sort.startsWith('-')
-        ? searchParams._sort.substring(1)
-        : searchParams._sort;
-      const sortOrder = searchParams._sort.startsWith('-') ? -1 : 1;
-      sort = { [`searchParams.${sortField}`]: sortOrder };
-    }
-    
     try {
-      
-      const resources = await this.fhirResourceModel
-      .find(query)
-      .skip(offset)
-      .limit(count)
-      .sort(sort)
-      .exec();
-      
-      const total = await this.fhirResourceModel.countDocuments(query);
-      
-      return FhirResponse.bundle(resources, total, resourceType, offset, count);
+     
+     const operation = new SearchOperation(this.fhirResourceModel)
+      return operation.find(resourceType, searchParams)
       
     } catch (error) {
       throw new Error(`Error searching ${resourceType}: ${error.message}`);
     }
-    
   }
   
   /**
