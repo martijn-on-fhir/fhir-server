@@ -7,6 +7,7 @@ import { FhirResponse } from '../../lib/fhir-response';
 import { DeleteOperation } from '../../lib/operations/delete-operation';
 import { CreateOperation } from '../../lib/operations/create-operation';
 import { UpdateOperation } from '../../lib/operations/update-operation';
+import { SearchOperation } from '../../lib/operations/search-operation';
 
 
 /**
@@ -35,25 +36,8 @@ export class FhirService {
     
     try {
       
-      const resource = await this.fhirResourceModel.findOne({
-        resourceType, id, status: 'active',
-      }).exec();
-      
-      if (!resource) {
-        
-        throw new NotFoundException({
-          resourceType: 'OperationOutcome',
-          issue: [{
-            severity: 'error',
-            code: 'not-found',
-            details: {
-              text: `${resourceType}/${id} not found`,
-            },
-          }],
-        });
-      }
-      
-      return FhirResponse.format(resource);
+      const operation = new SearchOperation(this.fhirResourceModel);
+      return await operation.findById(resourceType, id)
       
     } catch (error) {
       
