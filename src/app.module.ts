@@ -5,6 +5,8 @@ import { FhirController } from "./fhir/fhir.controller";
 import { FhirService } from "./services/fhir/fhir.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { FhirResource, fhirResourceSchema } from './schema/fhir-resource-schema';
+import { StructureDefinition, structureDefinitionSchema } from './schema/structure-definition';
+import { ValidationService } from './services/validation/validation.service';
 
 @Module({
   imports: [
@@ -15,12 +17,13 @@ import { FhirResource, fhirResourceSchema } from './schema/fhir-resource-schema'
       bufferCommands: false,
     }),
     MongooseModule.forFeature([
-      { name: FhirResource.name, schema: fhirResourceSchema }
+      { name: FhirResource.name, schema: fhirResourceSchema },
+      { name: StructureDefinition.name, schema: structureDefinitionSchema }
     ]),
   
   ],
   controllers: [AppController, FhirController],
-  providers: [AppService, FhirService],
+  providers: [AppService, FhirService, ValidationService],
   exports: [MongooseModule],
 })
 export class AppModule {}

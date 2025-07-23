@@ -7,6 +7,7 @@ import { DeleteOperation } from '../../lib/operations/delete-operation';
 import { CreateOperation } from '../../lib/operations/create-operation';
 import { UpdateOperation } from '../../lib/operations/update-operation';
 import { SearchOperation } from '../../lib/operations/search-operation';
+import { ValidationService } from '../validation/validation.service';
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -18,8 +19,9 @@ export class FhirService {
   /**
    *
    * @param fhirResourceModel
+   * @param validationService
    */
-  constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>) {
+  constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>, private validationService: ValidationService) {
   }
   
   /**
@@ -72,6 +74,8 @@ export class FhirService {
    * @returns Promise containing the created FHIR resource
    */
   async create(resourceType: string, resourceData: any): Promise<any> {
+    
+    await this.validationService.validateResourceOrThrow(resourceData);
     
     try {
       const operation  = new CreateOperation(this.fhirResourceModel)
