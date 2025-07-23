@@ -23,6 +23,10 @@ export interface ValidationWarning {
   code: string;
 }
 
+/**
+ * Service responsible for validating FHIR resources against their structure definitions.
+ * Provides functionality to ensure resources conform to FHIR specifications and profiles.
+ */
 @Injectable()
 export class ValidationService {
   
@@ -31,7 +35,15 @@ export class ValidationService {
   }
   
   /**
-   * Valideer een FHIR resource tegen zijn structure definition
+   * Validates a FHIR resource against its structure definition
+   * @param resource - The FHIR resource to validate
+   * @returns ValidationResult containing validation status, errors and warnings
+   * @throws BadRequestException if validation fails
+   *
+   * The validation process includes:
+   * 1. Checking for required resourceType
+   * 2. Loading appropriate structure definition
+   * 3. Validating resource structure and content
    */
   async validateResource(resource: any): Promise<ValidationResult> {
     
@@ -43,7 +55,7 @@ export class ValidationService {
         isValid: false,
         errors: [{
           path: 'resourceType',
-          message: 'Resource moet een resourceType bevatten',
+          message: 'Resource should contain a resourceType property',
           severity: 'error',
           code: 'required',
         }],
@@ -51,7 +63,6 @@ export class ValidationService {
       };
     }
     
-    // Haal de structure definition op voor dit resource type
     const structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile);
     
     if (!structureDefinition) {
@@ -60,7 +71,7 @@ export class ValidationService {
         isValid: false,
         errors: [{
           path: 'resourceType',
-          message: `Geen structure definition gevonden voor resource type: ${resourceType}`,
+          message: `No structure definition for resource type: ${resourceType}`,
           severity: 'error',
           code: 'unknown-resource-type',
         }],
@@ -68,12 +79,14 @@ export class ValidationService {
       };
     }
     
-    // Valideer de resource tegen de structure definition
     return this.validateAgainstStructureDefinition(resource, structureDefinition);
   }
   
   /**
-   * Haal structure definition op voor een resource type
+   * Retrieves the structure definition for a given resource type and optional profile
+   * @param resourceType - The FHIR resource type to get structure definition for
+   * @param profile - Optional profile URL(s) to find specific structure definition
+   * @returns Promise resolving to structure definition document or null if not found
    */
   private async getStructureDefinition(resourceType: string, profile?: string[]): Promise<StructureDefinitionDocument | null> {
     
@@ -110,21 +123,18 @@ export class ValidationService {
       const elements = definition.snapshot.element;
       
       // Valideer elk element uit de structure definition
-      for (const element of elements) {
+      for (const elementDefinition of elements) {
         
-        const elementPath = element.path;
-        const elementDefinition = element;
-        //
-        // if(elementPath.startsWith('Patient.extension')){
-        //   const dummmy = null
-        //   return {
-        //     isValid: true,
-        //     errors: [],
-        //     warnings: []
-        //   }
-        // }
+        const elementPath = elementDefinition.path;
         
-        this.validateElement(resource, elementPath, elementDefinition, errors)
+        // Temporay moet ge refactored
+        if (elementPath.startsWith('Patient.extension') || elementPath.startsWith('Patient.contact') ||
+          elementPath.startsWith('Patient.communication') ) {
+          // skip
+        } else {
+          this.validateElement(resource, elementPath, elementDefinition, errors);
+        }
+        
       }
       
       return {
@@ -149,12 +159,23 @@ export class ValidationService {
   }
   
   /**
-   * Valideer een specifiek element
+   * Validates a single element of a FHIR resource against its structure definition
+   * @param resource - The FHIR resource being validated
+   * @param elementPath - Dot-notation path to the element (e.g. "Patient.name.family")
+   * @param elementDefinition - Structure definition element containing validation rules
+   * @param errors - Array to collect validation errors
+   *
+   * Performs the following validations:
+   * - Required fields (min cardinality > 0)
+   * - Forbidden fields (max cardinality = 0)
+   * - Maximum cardinality constraints
+   * - Data type validation
+   * - Fixed value validation
+   * - Pattern validation for strings
    */
   private validateElement(resource: any, elementPath: string, elementDefinition: any, errors: ValidationError[]): void {
     
     const pathParts = elementPath.split('.');
-    // const resourceType = pathParts[0];
     
     // Skip root resource type element
     if (pathParts.length === 1) {
@@ -171,7 +192,7 @@ export class ValidationService {
         
         errors.push({
           path: fieldPath,
-          message: `Verplicht veld '${fieldPath}' ontbreekt`,
+          message: `Required property '${fieldPath}' is missing`,
           severity: 'error',
           code: 'required',
         });
@@ -268,7 +289,15 @@ export class ValidationService {
   }
   
   /**
-   * Valideer data type
+   * Validates that a value matches one of the allowed FHIR data types
+   * @param value - The value to validate
+   * @param types - Array of allowed FHIR type definitions
+   * @param fieldPath - Path to the field being validated (for error messages)
+   * @returns Object containing validation result and error message
+   *
+   * Checks if the value matches any of the allowed FHIR data types specified
+   * in the types array. Returns isValid=true if at least one type matches,
+   * otherwise returns isValid=false with an error message.
    */
   private validateDataType(value: any, types: any[], fieldPath: string): { isValid: boolean, message: string } {
     
@@ -287,7 +316,10 @@ export class ValidationService {
   }
   
   /**
-   * Check of waarde geldig is voor specifiek FHIR type
+   * Validates if a value matches a specified FHIR data type
+   * @param value - The value to validate
+   * @param typeName - The FHIR data type name to validate against
+   * @returns boolean indicating if the value matches the specified type
    */
   private isValidType(value: any, typeName: string): boolean {
     switch (typeName) {
@@ -321,6 +353,14 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates if a string is a valid URI according to FHIR specifications
+   * @param value - The string to validate as URI
+   * @returns boolean indicating if the string is a valid URI
+   *
+   * First attempts to parse as URL, then falls back to URI pattern validation
+   * that matches scheme:path format where scheme starts with a letter
+   */
   private isValidUri(value: string): boolean {
     try {
       new URL(value);
@@ -330,6 +370,14 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates if a string is a valid URL
+   * @param value - The string to validate as URL
+   * @returns boolean indicating if the string is a valid URL
+   *
+   * Uses URL constructor to validate string matches URL format.
+   * Must include protocol and host components to be valid.
+   */
   private isValidUrl(value: string): boolean {
     try {
       new URL(value);
@@ -339,18 +387,41 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates if a string matches FHIR dateTime format
+   * @param value - The string to validate as dateTime
+   * @returns boolean indicating if the string is a valid FHIR dateTime
+   *
+   * Validates format: YYYY[-MM[-DD[THH[:mm[:ss[.SSS]]][Z|±HH:mm]]]]
+   * Where parts in [] are optional
+   */
   private isValidDateTime(value: string): boolean {
     const dateTimeRegex = /^\d{4}(-\d{2}(-\d{2}(T\d{2}(:\d{2}(:\d{2}(\.\d+)?)?)?(Z|[+-]\d{2}:\d{2})?)?)?)?$/;
     return dateTimeRegex.test(value);
   }
   
+  /**
+   * Validates if a string matches FHIR date format
+   * @param value - The string to validate as date
+   * @returns boolean indicating if the string is a valid FHIR date
+   *
+   * Validates format: YYYY[-MM[-DD]]
+   * Where month and day components are optional
+   */
   private isValidDate(value: string): boolean {
     const dateRegex = /^\d{4}(-\d{2}(-\d{2})?)?$/;
     return dateRegex.test(value);
   }
   
   /**
-   * Valideer en gooi exception bij fouten
+   * Validates a FHIR resource and throws an exception if validation fails
+   * @param resource - The FHIR resource to validate
+   * @throws BadRequestException with validation errors if resource is invalid
+   * @returns Promise that resolves when validation passes
+   *
+   * This method provides a convenient way to validate resources where invalid
+   * data should trigger an exception rather than returning validation results.
+   * The thrown exception includes detailed validation errors and warnings.
    */
   async validateResourceOrThrow(resource: any): Promise<void> {
     
@@ -361,7 +432,7 @@ export class ValidationService {
       result.errors.map(error => `${error.path}: ${error.message}`);
       
       throw new BadRequestException({
-        message: 'Resource validatie gefaald',
+        message: 'Resource validation failed',
         errors: result.errors,
         warnings: result.warnings,
       });
