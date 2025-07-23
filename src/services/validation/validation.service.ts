@@ -124,7 +124,7 @@ export class ValidationService {
         //   }
         // }
         
-        this.validateElement(resource, elementPath, elementDefinition, errors, warnings);
+        this.validateElement(resource, elementPath, elementDefinition, errors)
       }
       
       return {
