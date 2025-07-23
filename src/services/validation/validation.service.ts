@@ -117,7 +117,7 @@ export class ValidationService {
       const definition = structureDefinition.definition;
       
       if (!definition || !definition.snapshot || !definition.snapshot.element) {
-        throw new Error('Ongeldige structure definition format');
+        throw new Error('Illegal structure definition format');
       }
       
       const elements = definition.snapshot.element;
@@ -149,7 +149,7 @@ export class ValidationService {
         isValid: false,
         errors: [{
           path: 'root',
-          message: `Validatie fout: ${error.message}`,
+          message: `Validatie errer: ${error.message}`,
           severity: 'error',
           code: 'validation-error',
         }],
@@ -206,7 +206,7 @@ export class ValidationService {
       
       errors.push({
         path: fieldPath,
-        message: `Veld '${fieldPath}' is niet toegestaan`,
+        message: `property '${fieldPath}' is not allowed`,
         severity: 'error',
         code: 'forbidden',
       });
@@ -228,7 +228,7 @@ export class ValidationService {
         
         errors.push({
           path: fieldPath,
-          message: `Te veel waarden voor '${fieldPath}'. Maximum: ${maxCount}, gevonden: ${value.length}`,
+          message: `To many values for '${fieldPath}'. Maximum: ${maxCount}, found: ${value.length}`,
           severity: 'error',
           code: 'cardinality',
         });
@@ -256,7 +256,7 @@ export class ValidationService {
       
       errors.push({
         path: fieldPath,
-        message: `Veld '${fieldPath}' moet de waarde '${elementDefinition.fixedString}' hebben`,
+        message: `property '${fieldPath}' must have the value of '${elementDefinition.fixedString}'`,
         severity: 'error',
         code: 'fixed-value',
       });
@@ -270,7 +270,7 @@ export class ValidationService {
       if (!pattern.test(value)) {
         errors.push({
           path: fieldPath,
-          message: `Veld '${fieldPath}' voldoet niet aan het verwachte patroon`,
+          message: `Property '${fieldPath}' does not match the expected pattern`,
           severity: 'error',
           code: 'pattern',
         });
@@ -311,7 +311,7 @@ export class ValidationService {
     
     return {
       isValid: false,
-      message: `Veld '${fieldPath}' heeft een ongeldig type. Verwacht: ${typeNames.join(' of ')}`,
+      message: `Property '${fieldPath}' has an invalid type. Expected: ${typeNames.join(' or ')}`,
     };
   }
   
