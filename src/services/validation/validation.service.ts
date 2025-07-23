@@ -1,26 +1,26 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
-import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition'
-import { Model } from 'mongoose'
-import { InjectModel } from '@nestjs/mongoose'
-import {first} from 'lodash-es'
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { first } from 'lodash-es';
 
 export interface ValidationResult {
-  isValid: boolean
-  errors: ValidationError[]
-  warnings: ValidationWarning[]
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
 }
 
 export interface ValidationError {
-  path: string
-  message: string
-  severity: 'error' | 'warning'
-  code: string
+  path: string;
+  message: string;
+  severity: 'error' | 'warning';
+  code: string;
 }
 
 export interface ValidationWarning {
-  path: string
-  message: string
-  code: string
+  path: string;
+  message: string;
+  code: string;
 }
 
 @Injectable()
@@ -35,7 +35,7 @@ export class ValidationService {
    */
   async validateResource(resource: any): Promise<ValidationResult> {
     
-    const resourceType = resource.resourceType
+    const resourceType = resource.resourceType;
     
     if (!resourceType) {
       
@@ -48,11 +48,11 @@ export class ValidationService {
           code: 'required',
         }],
         warnings: [],
-      }
+      };
     }
     
     // Haal de structure definition op voor dit resource type
-    const structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile)
+    const structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile);
     
     if (!structureDefinition) {
       
@@ -65,11 +65,11 @@ export class ValidationService {
           code: 'unknown-resource-type',
         }],
         warnings: [],
-      }
+      };
     }
     
     // Valideer de resource tegen de structure definition
-    return this.validateAgainstStructureDefinition(resource, structureDefinition)
+    return this.validateAgainstStructureDefinition(resource, structureDefinition);
   }
   
   /**
@@ -78,17 +78,17 @@ export class ValidationService {
   private async getStructureDefinition(resourceType: string, profile?: string[]): Promise<StructureDefinitionDocument | null> {
     
     const filter = {
-      resourceType: resourceType
+      resourceType: resourceType,
+    };
+    
+    if (profile) {
+      
+      Object.assign(filter, {
+        url: Array.isArray(profile) ? first(profile) : profile,
+      });
     }
     
-    if(profile){
-     
-      Object.assign(filter, {
-       url: Array.isArray(profile) ? first(profile) : profile
-     })
-    }
-
-    return this.structureDefinitionModel.findOne(filter).exec()
+    return this.structureDefinitionModel.findOne(filter).exec();
   }
   
   /**
@@ -96,24 +96,24 @@ export class ValidationService {
    */
   private validateAgainstStructureDefinition(resource: any, structureDefinition: StructureDefinitionDocument): ValidationResult {
     
-    const errors: ValidationError[] = []
-    const warnings: ValidationWarning[] = []
+    const errors: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
     
     try {
       
-      const definition = structureDefinition.definition
+      const definition = structureDefinition.definition;
       
       if (!definition || !definition.snapshot || !definition.snapshot.element) {
-        throw new Error('Ongeldige structure definition format')
+        throw new Error('Ongeldige structure definition format');
       }
       
-      const elements = definition.snapshot.element
+      const elements = definition.snapshot.element;
       
       // Valideer elk element uit de structure definition
       for (const element of elements) {
         
-        const elementPath = element.path
-        const elementDefinition = element
+        const elementPath = element.path;
+        const elementDefinition = element;
         //
         // if(elementPath.startsWith('Patient.extension')){
         //   const dummmy = null
@@ -123,15 +123,15 @@ export class ValidationService {
         //     warnings: []
         //   }
         // }
-
-        this.validateElement(resource, elementPath, elementDefinition, errors, warnings)
+        
+        this.validateElement(resource, elementPath, elementDefinition, errors, warnings);
       }
       
       return {
         isValid: errors.length === 0,
         errors,
         warnings,
-      }
+      };
       
     } catch (error) {
       
@@ -144,25 +144,25 @@ export class ValidationService {
           code: 'validation-error',
         }],
         warnings,
-      }
+      };
     }
   }
   
   /**
    * Valideer een specifiek element
    */
-  private validateElement(resource: any, elementPath: string, elementDefinition: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
+  private validateElement(resource: any, elementPath: string, elementDefinition: any, errors: ValidationError[]): void {
     
-    const pathParts = elementPath.split('.')
-    const resourceType = pathParts[0]
+    const pathParts = elementPath.split('.');
+    // const resourceType = pathParts[0];
     
     // Skip root resource type element
     if (pathParts.length === 1) {
-      return
+      return;
     }
     
-    const fieldPath = pathParts.slice(1).join('.')
-    const value = this.getValueByPath(resource, fieldPath)
+    const fieldPath = pathParts.slice(1).join('.');
+    const value = this.getValueByPath(resource, fieldPath);
     
     // Check required fields (min cardinality > 0)
     if (elementDefinition.min && elementDefinition.min > 0) {
@@ -174,9 +174,9 @@ export class ValidationService {
           message: `Verplicht veld '${fieldPath}' ontbreekt`,
           severity: 'error',
           code: 'required',
-        })
+        });
         
-        return
+        return;
       }
     }
     
@@ -188,20 +188,20 @@ export class ValidationService {
         message: `Veld '${fieldPath}' is niet toegestaan`,
         severity: 'error',
         code: 'forbidden',
-      })
+      });
       
-      return
+      return;
     }
     
     // Skip further validation if value doesn't exist
     if (value === undefined || value === null) {
-      return
+      return;
     }
     
     // Check cardinality (max)
     if (elementDefinition.max && elementDefinition.max !== '*') {
       
-      const maxCount = parseInt(elementDefinition.max)
+      const maxCount = parseInt(elementDefinition.max);
       
       if (Array.isArray(value) && value.length > maxCount) {
         
@@ -210,14 +210,14 @@ export class ValidationService {
           message: `Te veel waarden voor '${fieldPath}'. Maximum: ${maxCount}, gevonden: ${value.length}`,
           severity: 'error',
           code: 'cardinality',
-        })
+        });
       }
     }
     
     // Check data type validation
     if (elementDefinition.type && elementDefinition.type.length > 0) {
       
-      const validType = this.validateDataType(value, elementDefinition.type, fieldPath)
+      const validType = this.validateDataType(value, elementDefinition.type, fieldPath);
       
       if (!validType.isValid) {
         
@@ -226,7 +226,7 @@ export class ValidationService {
           message: validType.message,
           severity: 'error',
           code: 'type-mismatch',
-        })
+        });
       }
     }
     
@@ -238,13 +238,13 @@ export class ValidationService {
         message: `Veld '${fieldPath}' moet de waarde '${elementDefinition.fixedString}' hebben`,
         severity: 'error',
         code: 'fixed-value',
-      })
+      });
     }
     
     // Check pattern validation
     if (elementDefinition.patternString && typeof value === 'string') {
       
-      const pattern = new RegExp(elementDefinition.patternString)
+      const pattern = new RegExp(elementDefinition.patternString);
       
       if (!pattern.test(value)) {
         errors.push({
@@ -252,7 +252,7 @@ export class ValidationService {
           message: `Veld '${fieldPath}' voldoet niet aan het verwachte patroon`,
           severity: 'error',
           code: 'pattern',
-        })
+        });
       }
     }
   }
@@ -263,8 +263,8 @@ export class ValidationService {
   private getValueByPath(object: any, path: string): any {
     
     return path.split('.').reduce((current, key) => {
-      return current && current[key] !== undefined ? current[key] : undefined
-    }, object)
+      return current && current[key] !== undefined ? current[key] : undefined;
+    }, object);
   }
   
   /**
@@ -272,18 +272,18 @@ export class ValidationService {
    */
   private validateDataType(value: any, types: any[], fieldPath: string): { isValid: boolean, message: string } {
     
-    const typeNames = types.map(t => t.code)
+    const typeNames = types.map(t => t.code);
     
     for (const typeName of typeNames) {
       if (this.isValidType(value, typeName)) {
-        return { isValid: true, message: '' }
+        return { isValid: true, message: '' };
       }
     }
     
     return {
       isValid: false,
       message: `Veld '${fieldPath}' heeft een ongeldig type. Verwacht: ${typeNames.join(' of ')}`,
-    }
+    };
   }
   
   /**
@@ -293,60 +293,60 @@ export class ValidationService {
     switch (typeName) {
       case 'string':
       case 'http://hl7.org/fhirpath/System.String':
-        return typeof value === 'string'
+        return typeof value === 'string';
       case 'boolean':
-        return typeof value === 'boolean'
+        return typeof value === 'boolean';
       case 'integer':
-        return Number.isInteger(value)
+        return Number.isInteger(value);
       case 'decimal':
-        return typeof value === 'number'
+        return typeof value === 'number';
       case 'uri':
-        return typeof value === 'string' && this.isValidUri(value)
+        return typeof value === 'string' && this.isValidUri(value);
       case 'url':
-        return typeof value === 'string' && this.isValidUrl(value)
+        return typeof value === 'string' && this.isValidUrl(value);
       case 'code':
-        return typeof value === 'string' && value.length > 0
+        return typeof value === 'string' && value.length > 0;
       case 'id':
-        return typeof value === 'string' && /^[A-Za-z0-9\-\.]{1,64}$/.test(value)
+        return typeof value === 'string' && /^[A-Za-z0-9\-.]{1,64}$/.test(value);
       case 'dateTime':
-        return typeof value === 'string' && this.isValidDateTime(value)
+        return typeof value === 'string' && this.isValidDateTime(value);
       case 'date':
-        return typeof value === 'string' && this.isValidDate(value)
+        return typeof value === 'string' && this.isValidDate(value);
       case 'BackboneElement':
       case 'Element':
-        return typeof value === 'object' && value !== null
+        return typeof value === 'object' && value !== null;
       default:
         // Voor complexe types of onbekende types, accepteer object
-        return typeof value === 'object' && value !== null
+        return typeof value === 'object' && value !== null;
     }
   }
   
   private isValidUri(value: string): boolean {
     try {
-      new URL(value)
-      return true
+      new URL(value);
+      return true;
     } catch {
-      return /^[a-zA-Z][a-zA-Z0-9+.-]*:.+/.test(value)
+      return /^[a-zA-Z][a-zA-Z0-9+.-]*:.+/.test(value);
     }
   }
   
   private isValidUrl(value: string): boolean {
     try {
-      new URL(value)
-      return true
+      new URL(value);
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
   
   private isValidDateTime(value: string): boolean {
-    const dateTimeRegex = /^\d{4}(-\d{2}(-\d{2}(T\d{2}(:\d{2}(:\d{2}(\.\d+)?)?)?(Z|[+-]\d{2}:\d{2})?)?)?)?$/
-    return dateTimeRegex.test(value)
+    const dateTimeRegex = /^\d{4}(-\d{2}(-\d{2}(T\d{2}(:\d{2}(:\d{2}(\.\d+)?)?)?(Z|[+-]\d{2}:\d{2})?)?)?)?$/;
+    return dateTimeRegex.test(value);
   }
   
   private isValidDate(value: string): boolean {
-    const dateRegex = /^\d{4}(-\d{2}(-\d{2})?)?$/
-    return dateRegex.test(value)
+    const dateRegex = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+    return dateRegex.test(value);
   }
   
   /**
@@ -354,17 +354,17 @@ export class ValidationService {
    */
   async validateResourceOrThrow(resource: any): Promise<void> {
     
-    const result = await this.validateResource(resource)
+    const result = await this.validateResource(resource);
     
     if (!result.isValid) {
       
-      const errorMessages = result.errors.map(error => `${error.path}: ${error.message}`)
+      result.errors.map(error => `${error.path}: ${error.message}`);
       
       throw new BadRequestException({
         message: 'Resource validatie gefaald',
         errors: result.errors,
         warnings: result.warnings,
-      })
+      });
     }
   }
 }
