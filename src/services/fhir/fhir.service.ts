@@ -8,6 +8,8 @@ import { CreateOperation } from '../../lib/operations/create-operation';
 import { UpdateOperation } from '../../lib/operations/update-operation';
 import { SearchOperation } from '../../lib/operations/search-operation';
 import { ValidationService } from '../validation/validation.service';
+import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition';
+import { Metadata } from '../../lib/metadata';
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -19,9 +21,12 @@ export class FhirService {
   /**
    *
    * @param fhirResourceModel
+   * @param structureDefinitonModel
    * @param validationService
    */
-  constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>, private validationService: ValidationService) {
+  constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>,
+              @InjectModel(StructureDefinition.name) private structureDefinitonModel: Model<StructureDefinitionDocument>,
+              private validationService: ValidationService) {
   }
   
   /**
@@ -36,14 +41,14 @@ export class FhirService {
     try {
       
       const operation = new SearchOperation(this.fhirResourceModel);
-      return await operation.findById(resourceType, id)
+      return await operation.findById(resourceType, id);
       
     } catch (error) {
       
       if (error instanceof NotFoundException) {
         throw error;
       }
-
+      
       throw new Error(`Error retrieving ${resourceType}/${id}: ${error.message}`);
     }
   }
@@ -58,9 +63,9 @@ export class FhirService {
   async find(resourceType: string, searchParams: any): Promise<any> {
     
     try {
-     
-     const operation = new SearchOperation(this.fhirResourceModel)
-      return operation.find(resourceType, searchParams)
+      
+      const operation = new SearchOperation(this.fhirResourceModel);
+      return operation.find(resourceType, searchParams);
       
     } catch (error) {
       throw new Error(`Error searching ${resourceType}: ${error.message}`);
@@ -78,12 +83,11 @@ export class FhirService {
     await this.validationService.validateResourceOrThrow(resourceData);
     
     try {
-      const operation  = new CreateOperation(this.fhirResourceModel)
+      const operation = new CreateOperation(this.fhirResourceModel);
       return operation.execute(resourceType, resourceData);
-    }
-    catch(error: any){
+    } catch (error: any) {
       
-      if(error instanceof NotAcceptableException){
+      if (error instanceof NotAcceptableException) {
         return FhirResponse.notAcceptatble(error.message);
       }
       
@@ -103,10 +107,12 @@ export class FhirService {
    */
   async update(resourceType: string, id: string, resourceData: any): Promise<any> {
     
+    await this.validationService.validateResourceOrThrow(resourceData);
+    
     try {
       
-      const operation = new UpdateOperation(this.fhirResourceModel)
-      return operation.execute(resourceType, id, resourceData)
+      const operation = new UpdateOperation(this.fhirResourceModel);
+      return operation.execute(resourceType, id, resourceData);
       
     } catch (error) {
       
@@ -129,16 +135,27 @@ export class FhirService {
     
     try {
       
-      const operation = new DeleteOperation(this.fhirResourceModel)
+      const operation = new DeleteOperation(this.fhirResourceModel);
       return operation.execute(resourceType, id);
       
-    } catch (error: any){
+    } catch (error: any) {
       
-      if(error instanceof NotFoundException){
+      if (error instanceof NotFoundException) {
         return FhirResponse.notFound(error.message);
       }
       
       throw new Error(`Error deleting ${resourceType}/${id}: ${error.message}`);
     }
+  }
+  
+  /**
+   * Retrieves FHIR server metadata including capability statement and supported resource types.
+   * Fetches distinct resource types from structure definitions and generates metadata response.
+   * @returns Promise containing the FHIR server capability statement with supported resources and operations
+   */
+  public async getMetaData(): Promise<any> {
+    
+    const structures =  await this.structureDefinitonModel.distinct('resourceType').exec()
+    return (new Metadata()).get(structures)
   }
 }

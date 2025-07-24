@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { FhirService } from '../services/fhir/fhir.service';
-import { Metadata } from '../lib/metadata';
 import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags('Fhir Server')
@@ -12,7 +11,7 @@ export class FhirController {
   
   @Get('metadata')
   getCapabilityStatement(): any {
-    return (new Metadata()).get()
+    return this._service.getMetaData()
   }
   
   @Get(':resourceType')

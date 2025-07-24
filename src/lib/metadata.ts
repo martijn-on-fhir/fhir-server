@@ -3,9 +3,9 @@ export class Metadata {
   constructor() {
   }
   
-  get(): object {
+  get(structures: string[]): object {
     
-    return {
+    const response = {
       resourceType: 'CapabilityStatement',
       status: 'active',
       date: new Date().toISOString(),
@@ -21,11 +21,21 @@ export class Metadata {
       format: ['json'],
       rest: [{
         mode: 'server',
-        resource: [
-          { type: 'Patient', interaction: [{ code: 'read' }, { code: 'create' }, { code: 'update' }, { code: 'delete' }, { code: 'search-type' }] },
-          { type: 'Observation', interaction: [{ code: 'read' }, { code: 'create' }, { code: 'update' }, { code: 'delete' }, { code: 'search-type' }] },
-        ],
+        resource: [],
       }],
     };
+    
+    structures.forEach((name: string) => {
+      
+      const entity = {
+        type: `${name}`, interaction: [{ code: 'read' }, { code: 'create' }, { code: 'update' }, { code: 'delete' }, { code: 'search-type' }]
+      }
+      
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      response.rest[0].resource.push(entity);
+    });
+    
+    return response;
   }
 }

@@ -192,7 +192,7 @@ export class ValidationService {
     
     const parentElementPath = this.getParentElementPath(elementPath);
     
-    if (parentElementPath && this.skippedElements.indexOf(parentElementPath) !== -1) {
+    if (parentElementPath && this.checkAnchestor(elementPath)) {
       return;
     }
     
@@ -326,6 +326,19 @@ export class ValidationService {
     const typeNames = types.map(t => t.code);
     
     for (const typeName of typeNames) {
+      
+      if(Array.isArray(value)){
+        
+        value.forEach((v:any) => {
+          
+          if (!this.isValidType(v, typeName)) {
+            return { isValid: false, message: 'Not each entry of this given array matches the requested type' };
+          }
+        })
+        
+        return { isValid: true, message: '' };
+      }
+
       if (this.isValidType(value, typeName)) {
         return { isValid: true, message: '' };
       }
@@ -479,5 +492,32 @@ export class ValidationService {
     } else {
       return parts.slice(0, -1).join('.');
     }
+  }
+  
+  /**
+   * If a parent element or its ancestor is optional (min=0) and has no value, we can skip validation for its child elements.
+   * For example: if Patient.link (min=0) is empty, we can skip validating Patient.link.url since the parent context is empty.
+   *
+   * @param elementPath - The element path to check for skipped validation
+   * @private
+   */
+  private checkAnchestor(elementPath: string): boolean {
+    
+    const parentElementPath = this.getParentElementPath(elementPath);
+    
+    if (parentElementPath && this.skippedElements.indexOf(parentElementPath) !== -1) {
+      return true;
+    }
+    
+    if (parentElementPath) {
+      
+      const grandChestor = this.getParentElementPath(parentElementPath);
+      
+      if (grandChestor && this.skippedElements.indexOf(grandChestor)) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 }

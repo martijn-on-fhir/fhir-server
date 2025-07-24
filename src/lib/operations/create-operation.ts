@@ -15,12 +15,12 @@ export class CreateOperation extends Operation {
   
   async execute(resourceType: string, resourceData: any): Promise<any> {
     
-    const id = resourceData.id || null;
+    const id = typeof resourceData.id === 'string' ? resourceData.id : uuidv4();
     const exsits = await this.exists(resourceType, id);
     
     if (!exsits) {
       
-      const id = uuidv4();
+      resourceData.id = id
       
       const fhirResource = new this.fhirResourceModel({
         resourceType,
@@ -34,6 +34,7 @@ export class CreateOperation extends Operation {
           versionId: '1',
           lastUpdated: new Date(),
         },
+        tags: ['tenant'],
         searchParams: this.extractSearchParams(resourceType, resourceData),
       });
       
