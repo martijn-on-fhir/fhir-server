@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { first } from 'lodash-es';
+import { first, get } from 'lodash-es';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -124,6 +124,8 @@ export class ValidationService {
    * Valideer resource tegen structure definition
    */
   private validateAgainstStructureDefinition(resource: any, structureDefinition: StructureDefinitionDocument): ValidationResult {
+    
+    this.skippedElements = []
     
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
@@ -305,9 +307,13 @@ export class ValidationService {
    */
   private getValueByPath(object: any, path: string): any {
     
-    return path.split('.').reduce((current, key) => {
+    const value = path.split('.').reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, object);
+    
+    const p = get(object, 'qualification[0].code')
+    
+    return value
   }
   
   /**
