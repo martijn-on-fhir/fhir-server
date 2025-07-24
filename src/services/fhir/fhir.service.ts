@@ -171,7 +171,7 @@ export class FhirService {
     if (method === 'POST') {
       
       if(data?.resourceType !== resourceType){
-        throw new BadRequestException('ResourceType in the URL does not match the ResourceType in the request body')
+        throw new BadRequestException(`ResourceType (${resourceType}) in the URL does not match the ResourceType in the request body (${data.resourceType})`)
       }
       
     } else if (method === 'PUT') {
@@ -181,11 +181,11 @@ export class FhirService {
       }
       
       if(data?.id !== id){
-        throw new BadRequestException('ID in the URL does not match the ID in the request body')
+        throw new BadRequestException(`ID in the URL (${id}) does not match the ID in the request body. (${data.id}`)
       }
       
       if(data?.resourceType !== resourceType){
-        throw new BadRequestException('ResourceType in the URL does not match the ResourceType in the request body')
+        throw new BadRequestException(`ResourceType (${resourceType}) in the URL does not match the ResourceType in the request body (${data.resourceType})`)
       }
       
     } else {

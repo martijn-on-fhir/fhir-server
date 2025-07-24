@@ -20,6 +20,13 @@ export class StructureDefinition {
     index: true
   })
   url: string;
+  
+  @Prop({
+    required: true,
+    default: '4',
+    index: true
+  })
+  release: number;
 
   @Prop({ type: Object })
   definition: Record<string, any>;
@@ -28,4 +35,4 @@ export class StructureDefinition {
 export const structureDefinitionSchema = SchemaFactory.createForClass(StructureDefinition);
 
 // Indexes voor performance
-structureDefinitionSchema.index({ resourceType: 1, url: 1 });
+structureDefinitionSchema.index({ resourceType: 1, url: 1, release: 1 });
