@@ -30,6 +30,22 @@ export interface ValidationWarning {
 @Injectable()
 export class ValidationService {
   
+  /**
+   * When the parent element is not required and has no value, there's no need to validate its child elements.
+   * For example: Patient.link is not required, so if it's empty, we don't need to validate Patient.link.url
+   * (which would be required if Patient.link had a value).
+   */
+  /**
+   * Tracks element paths that were skipped during validation because their parent element
+   * was optional and had no value. This prevents unnecessary validation of child elements
+   * when the parent context is empty.
+   */
+  skippedElements: string[] = [];
+  
+  /**
+   * Creates a new instance of the ValidationService
+   * @param structureDefinitionModel - Injected Mongoose model for accessing FHIR StructureDefinitions
+   */
   constructor(@InjectModel(StructureDefinition.name) private structureDefinitionModel: Model<StructureDefinitionDocument>) {
   
   }
@@ -126,15 +142,7 @@ export class ValidationService {
       for (const elementDefinition of elements) {
         
         const elementPath = elementDefinition.path;
-        
-        // Temporay moet ge refactored
-        if (elementPath.startsWith('Patient.extension') || elementPath.startsWith('Patient.contact') ||
-          elementPath.startsWith('Patient.communication') ) {
-          // skip
-        } else {
-          this.validateElement(resource, elementPath, elementDefinition, errors);
-        }
-        
+        this.validateElement(resource, elementPath, elementDefinition, errors);
       }
       
       return {
@@ -182,6 +190,12 @@ export class ValidationService {
       return;
     }
     
+    const parentElementPath = this.getParentElementPath(elementPath);
+    
+    if (parentElementPath && this.skippedElements.indexOf(parentElementPath) !== -1) {
+      return;
+    }
+    
     const fieldPath = pathParts.slice(1).join('.');
     const value = this.getValueByPath(resource, fieldPath);
     
@@ -216,6 +230,14 @@ export class ValidationService {
     
     // Skip further validation if value doesn't exist
     if (value === undefined || value === null) {
+      
+      if (elementDefinition.min === 0) {
+        
+        if (this.skippedElements.indexOf(elementPath) === -1) {
+          this.skippedElements.push(elementPath);
+        }
+      }
+      
       return;
     }
     
@@ -436,6 +458,26 @@ export class ValidationService {
         errors: result.errors,
         warnings: result.warnings,
       });
+    }
+  }
+  
+  /**
+   * Gets the parent element path by removing the last segment from a dot-separated path
+   * @param elementPath - The full element path (e.g. "Patient.name.family")
+   * @returns The parent element path or null if no parent exists (e.g. "Patient.name" or null)
+   *
+   * For paths with more than 2 segments, returns all but the last segment joined by dots.
+   * For paths with 2 or fewer segments (e.g. "Patient" or "Patient.name"), returns null
+   * since these represent root or direct child elements.
+   */
+  private getParentElementPath(elementPath: string): string | null {
+    
+    const parts = elementPath.split('.');
+    
+    if (parts.length <= 2) {
+      return null;
+    } else {
+      return parts.slice(0, -1).join('.');
     }
   }
 }
