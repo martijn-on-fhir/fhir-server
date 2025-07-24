@@ -311,7 +311,7 @@ export class ValidationService {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, object);
     
-    const p = get(object, 'qualification[0].code')
+    // const p = get(object, 'qualification[0].code')
     
     return value
   }
