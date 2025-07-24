@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { first, get } from 'lodash-es';
+import { first } from 'lodash-es';
 
 export interface ValidationResult {
   isValid: boolean;
