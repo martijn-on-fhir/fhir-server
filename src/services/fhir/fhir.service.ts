@@ -19,7 +19,6 @@ import { Metadata } from '../../lib/metadata';
 export class FhirService {
   
   /**
-   *
    * @param fhirResourceModel
    * @param structureDefinitonModel
    * @param validationService
