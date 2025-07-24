@@ -327,18 +327,18 @@ export class ValidationService {
     
     for (const typeName of typeNames) {
       
-      if(Array.isArray(value)){
+      if (Array.isArray(value)) {
         
-        value.forEach((v:any) => {
+        value.forEach((v: any) => {
           
           if (!this.isValidType(v, typeName)) {
             return { isValid: false, message: 'Not each entry of this given array matches the requested type' };
           }
-        })
+        });
         
         return { isValid: true, message: '' };
       }
-
+      
       if (this.isValidType(value, typeName)) {
         return { isValid: true, message: '' };
       }

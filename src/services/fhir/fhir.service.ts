@@ -158,4 +158,38 @@ export class FhirService {
     const structures =  await this.structureDefinitonModel.distinct('resourceType').exec()
     return (new Metadata()).get(structures)
   }
+  
+  /**
+   * Do some checks before processing the create or update process
+   * @param method
+   * @param resourceType
+   * @param data
+   * @param id
+   */
+  async checkPreRequest(method: 'POST' | 'PUT', resourceType: string, data: any, id?: string): Promise<void> {
+    
+    if (method === 'POST') {
+      
+      if(data?.resourceType !== resourceType){
+        throw new BadRequestException('ResourceType in the URL does not match the ResourceType in the request body')
+      }
+      
+    } else if (method === 'PUT') {
+      
+      if (!id) {
+        throw new BadRequestException('ID is required for PUT operation');
+      }
+      
+      if(data?.id !== id){
+        throw new BadRequestException('ID in the URL does not match the ID in the request body')
+      }
+      
+      if(data?.resourceType !== resourceType){
+        throw new BadRequestException('ResourceType in the URL does not match the ResourceType in the request body')
+      }
+      
+    } else {
+      throw new BadRequestException(`Unsupported HTTP method: ${method}`);
+    }
+  }
 }

@@ -26,17 +26,21 @@ export class FhirController {
   
   @Post(':resourceType')
   async createResource(@Param('resourceType') resourceType: string, @Body() resource: any): Promise<any> {
+    
+    await this._service.checkPreRequest('POST', resourceType, resource)
     return this._service.create(resourceType, resource);
   }
   
   @Put(':resourceType/:id')
-  update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any): Promise<any> {
+  async update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any): Promise<any> {
+    
+    await this._service.checkPreRequest('POST', resourceType, resource, id)
     return this._service.update(resourceType, id, resource)
   }
   
   @Delete(':resourceType/:id')
   delete(@Param('resourceType') resourceType: string, @Param('id') id: string): Promise<any> {
+    
     return this._service.delete(resourceType, id);
   }
-  
 }
