@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type StructureDefinitionDocument = StructureDefinition & Document;
+export type StructureDefinitionDocument = StructureDefinitionSchema & Document;
 
 @Schema({
   collection: 'structure-definitions',
@@ -9,7 +9,7 @@ export type StructureDefinitionDocument = StructureDefinition & Document;
   strict: false,
   versionKey: false
 })
-export class StructureDefinition {
+export class StructureDefinitionSchema {
   
   @Prop({ required: true, index: true })
   resourceType: string;
@@ -32,7 +32,7 @@ export class StructureDefinition {
   definition: Record<string, any>;
 }
 
-export const structureDefinitionSchema = SchemaFactory.createForClass(StructureDefinition);
+export const structureDefinitionSchema = SchemaFactory.createForClass(StructureDefinitionSchema);
 
 // Indexes voor performance
 structureDefinitionSchema.index({ resourceType: 1, url: 1, release: 1 });

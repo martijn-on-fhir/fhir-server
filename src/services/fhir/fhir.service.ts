@@ -8,7 +8,7 @@ import { CreateOperation } from '../../lib/operations/create-operation';
 import { UpdateOperation } from '../../lib/operations/update-operation';
 import { SearchOperation } from '../../lib/operations/search-operation';
 import { ValidationService } from '../validation/validation.service';
-import { StructureDefinition, StructureDefinitionDocument } from '../../schema/structure-definition';
+import { StructureDefinitionSchema, StructureDefinitionDocument } from '../../schema/structure-definition.schema';
 import { Metadata } from '../../lib/metadata';
 
 /**
@@ -24,7 +24,7 @@ export class FhirService {
    * @param validationService
    */
   constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>,
-              @InjectModel(StructureDefinition.name) private structureDefinitonModel: Model<StructureDefinitionDocument>,
+              @InjectModel(StructureDefinitionSchema.name) private structureDefinitonModel: Model<StructureDefinitionDocument>,
               private validationService: ValidationService) {
   }
   
@@ -79,7 +79,7 @@ export class FhirService {
    */
   async create(resourceType: string, resourceData: any): Promise<any> {
     
-    await this.validationService.validateResourceOrThrow(resourceData);
+    await this.validationService.validateResource(resourceData);
     
     try {
       const operation = new CreateOperation(this.fhirResourceModel);
@@ -106,7 +106,7 @@ export class FhirService {
    */
   async update(resourceType: string, id: string, resourceData: any): Promise<any> {
     
-    await this.validationService.validateResourceOrThrow(resourceData);
+    await this.validationService.validateResource(resourceData);
     
     try {
       
