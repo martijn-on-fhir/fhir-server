@@ -3,10 +3,13 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 
 async function bootstrap(): Promise<void> {
   
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
+  app.use(helmet());
   app.useStaticAssets(join(__dirname, "..", "static"));
   
   const config = new DocumentBuilder()

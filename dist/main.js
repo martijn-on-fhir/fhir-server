@@ -4,8 +4,10 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 const path_1 = require("path");
+const helmet_1 = require("helmet");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use((0, helmet_1.default)());
     app.useStaticAssets((0, path_1.join)(__dirname, "..", "static"));
     const config = new swagger_1.DocumentBuilder()
         .setTitle("Fhir Service")

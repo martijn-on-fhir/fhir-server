@@ -16,6 +16,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const fhir_resource_schema_1 = require("./schema/fhir-resource-schema");
 const structure_definition_schema_1 = require("./schema/structure-definition.schema");
 const validation_service_1 = require("./services/validation/validation.service");
+const throttler_1 = require("@nestjs/throttler");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -27,6 +28,14 @@ exports.AppModule = AppModule = __decorate([
                 serverSelectionTimeoutMS: 5000,
                 socketTimeoutMS: 45000,
                 bufferCommands: false,
+            }),
+            throttler_1.ThrottlerModule.forRoot({
+                throttlers: [
+                    {
+                        ttl: 60000,
+                        limit: 10,
+                    },
+                ],
             }),
             mongoose_1.MongooseModule.forFeature([
                 { name: fhir_resource_schema_1.FhirResource.name, schema: fhir_resource_schema_1.fhirResourceSchema },

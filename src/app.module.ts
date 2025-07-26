@@ -7,6 +7,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { FhirResource, fhirResourceSchema } from './schema/fhir-resource-schema';
 import { StructureDefinitionSchema, structureDefinitionSchema } from './schema/structure-definition.schema';
 import { ValidationService } from './services/validation/validation.service';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -15,6 +16,14 @@ import { ValidationService } from './services/validation/validation.service';
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       bufferCommands: false,
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
     }),
     MongooseModule.forFeature([
       { name: FhirResource.name, schema: fhirResourceSchema },
