@@ -23,12 +23,6 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
-                maxPoolSize: 10,
-                serverSelectionTimeoutMS: 5000,
-                socketTimeoutMS: 45000,
-                bufferCommands: false,
-            }),
             throttler_1.ThrottlerModule.forRoot({
                 throttlers: [
                     {
@@ -36,6 +30,12 @@ exports.AppModule = AppModule = __decorate([
                         limit: 10,
                     },
                 ],
+            }),
+            mongoose_1.MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
+                maxPoolSize: 10,
+                serverSelectionTimeoutMS: 5000,
+                socketTimeoutMS: 45000,
+                bufferCommands: false,
             }),
             mongoose_1.MongooseModule.forFeature([
                 { name: fhir_resource_schema_1.FhirResource.name, schema: fhir_resource_schema_1.fhirResourceSchema },

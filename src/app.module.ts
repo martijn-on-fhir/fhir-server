@@ -11,12 +11,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      bufferCommands: false,
-    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -24,6 +18,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
           limit: 10,
         },
       ],
+    }),
+    MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      bufferCommands: false,
     }),
     MongooseModule.forFeature([
       { name: FhirResource.name, schema: fhirResourceSchema },
