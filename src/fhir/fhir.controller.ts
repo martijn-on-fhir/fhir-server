@@ -1,17 +1,24 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { FhirService } from '../services/fhir/fhir.service';
 import { ApiTags } from "@nestjs/swagger";
+import { ValidationService } from '../services/validation/validation.service';
+import { ValidationResult } from '../interfaces/validation-result';
 
 @ApiTags('Fhir Server')
 @Controller('fhir')
 export class FhirController {
   
-  constructor(private readonly _service: FhirService) {
+  constructor(private readonly _service: FhirService, private readonly _validatiobService: ValidationService) {
   }
   
   @Get('metadata')
   getCapabilityStatement(): any {
     return this._service.getMetaData()
+  }
+  
+  @Post('$validate')
+  async validate( @Body() resource: any): Promise<ValidationResult> {
+    return this._validatiobService.validateResource(resource);
   }
   
   @Get(':resourceType')

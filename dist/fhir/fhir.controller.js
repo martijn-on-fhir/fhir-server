@@ -16,13 +16,19 @@ exports.FhirController = void 0;
 const common_1 = require("@nestjs/common");
 const fhir_service_1 = require("../services/fhir/fhir.service");
 const swagger_1 = require("@nestjs/swagger");
+const validation_service_1 = require("../services/validation/validation.service");
 let FhirController = class FhirController {
     _service;
-    constructor(_service) {
+    _validatiobService;
+    constructor(_service, _validatiobService) {
         this._service = _service;
+        this._validatiobService = _validatiobService;
     }
     getCapabilityStatement() {
         return this._service.getMetaData();
+    }
+    async validate(resource) {
+        return this._validatiobService.validateResource(resource);
     }
     async searchResources(resourceType, searchParams) {
         return this._service.find(resourceType, searchParams);
@@ -49,6 +55,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
 ], FhirController.prototype, "getCapabilityStatement", null);
+__decorate([
+    (0, common_1.Post)('$validate'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], FhirController.prototype, "validate", null);
 __decorate([
     (0, common_1.Get)(':resourceType'),
     __param(0, (0, common_1.Param)('resourceType')),
@@ -93,6 +106,6 @@ __decorate([
 exports.FhirController = FhirController = __decorate([
     (0, swagger_1.ApiTags)('Fhir Server'),
     (0, common_1.Controller)('fhir'),
-    __metadata("design:paramtypes", [fhir_service_1.FhirService])
+    __metadata("design:paramtypes", [fhir_service_1.FhirService, validation_service_1.ValidationService])
 ], FhirController);
 //# sourceMappingURL=fhir.controller.js.map
