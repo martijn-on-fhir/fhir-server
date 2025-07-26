@@ -18,8 +18,8 @@ import * as fhirPath from 'fhirpath';
 export class ValidationService {
   
   private structureDefinition: StructureDefinition;
-  private elements: Map<string, ElementDefinition>;
-  private slices: Map<string, ElementDefinition[]>;
+  private elements: Map<string, ElementDefinition> = new Map()
+  private slices: Map<string, ElementDefinition[]> = new Map()
   
   /**
    * Creates a new instance of the ValidationService
@@ -51,9 +51,11 @@ export class ValidationService {
       };
     }
     
-    const structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile);
+    this.structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile).then((response) => {
+      return response?.definition as StructureDefinition ?? null
+    });
     
-    if (!structureDefinition) {
+    if (!this.structureDefinition) {
       
       return {
         isValid: false,
@@ -67,8 +69,87 @@ export class ValidationService {
       };
     }
     
-    const dummy: ValidationResult = {} as ValidationResult;
-    return dummy;
+    this.parseStructureDefinition()
+    
+    const validationResult =  this.validate(resource)
+    
+    validationResult.errors.forEach(error => {
+      
+      // eslint-disable-next-line no-console
+      console.log(`  - ${error.path}: ${error.message}`)
+    })
+    
+    return validationResult
+  }
+  
+  private parseStructureDefinition(): void {
+    
+    this.structureDefinition.snapshot.element.forEach(element => {
+      
+      this.elements.set(element.path, element);
+      
+      // Handle slices
+      if (element.sliceName) {
+       
+        const basePath = element.path;
+        
+        if (!this.slices.has(basePath)) {
+          this.slices.set(basePath, []);
+        }
+        
+        this.slices.get(basePath)!.push(element);
+      }
+    });
+  }
+  
+  private validate(resource: any): ValidationResult {
+    
+    const errors: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
+    
+    try {
+      // Validate resource type
+      if (resource.resourceType !== this.structureDefinition.type) {
+        errors.push({
+          path: 'resourceType',
+          severity: 'error',
+          message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`
+        });
+        return { isValid: false, errors, warnings };
+      }
+      
+      // Validate profile declaration
+      this.validateProfileDeclaration(resource, errors);
+      
+      // Validate all elements
+      this.validateElement('Observation', resource, errors, warnings);
+      
+      // Validate specific profile constraints
+      this.validateProfileSpecificConstraints(resource, errors);
+      
+    } catch (error) {
+      errors.push({
+        path: 'root',
+        severity: 'error',
+        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings
+    };
+  }
+  
+  private validateProfileDeclaration(resource: any, errors: ValidationError[]): void {
+    if (!resource.meta?.profile?.includes(this.structureDefinition.url)) {
+      errors.push({
+        path: 'meta.profile',
+        severity: 'error',
+        message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`
+      });
+    }
   }
   
   /**
@@ -90,7 +171,7 @@ export class ValidationService {
       });
     }
     
-    return this.structureDefinitionModel.findOne(filter).exec();
+    return this.structureDefinitionModel.findOne(filter).exec()
   }
   
   private validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
