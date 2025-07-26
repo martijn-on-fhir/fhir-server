@@ -1,5 +1,6 @@
 {
   "authorization": {
-    "enabled": true
+    "enabled": true,
+    "introspect": "https://oauth.dev.carebeat-connector.nl/introspect"
   }
 }
