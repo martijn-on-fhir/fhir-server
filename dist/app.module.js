@@ -17,6 +17,7 @@ const fhir_resource_schema_1 = require("./schema/fhir-resource-schema");
 const structure_definition_schema_1 = require("./schema/structure-definition.schema");
 const validation_service_1 = require("./services/validation/validation.service");
 const throttler_1 = require("@nestjs/throttler");
+const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -31,6 +32,7 @@ exports.AppModule = AppModule = __decorate([
                     },
                 ],
             }),
+            config_1.ConfigModule.forRoot(),
             mongoose_1.MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
                 maxPoolSize: 10,
                 serverSelectionTimeoutMS: 5000,

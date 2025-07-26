@@ -8,6 +8,7 @@ import { FhirResource, fhirResourceSchema } from './schema/fhir-resource-schema'
 import { StructureDefinitionSchema, structureDefinitionSchema } from './schema/structure-definition.schema';
 import { ValidationService } from './services/validation/validation.service';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
         },
       ],
     }),
+    ConfigModule.forRoot(),
     MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
