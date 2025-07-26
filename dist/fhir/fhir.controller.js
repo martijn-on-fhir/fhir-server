@@ -50,12 +50,15 @@ let FhirController = class FhirController {
 };
 exports.FhirController = FhirController;
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Get FHIR server capability statement', description: 'Returns the FHIR server metadata including supported resources and operations' }),
     (0, common_1.Get)('metadata'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
 ], FhirController.prototype, "getCapabilityStatement", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Validate FHIR resource', description: 'Validates a FHIR resource against its structure definition' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Resource validation result' }),
     (0, common_1.Post)('$validate'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -63,6 +66,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "validate", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Search FHIR resources', description: 'Search for FHIR resources of specific type with optional search parameters' }),
+    (0, swagger_1.ApiParam)({ name: 'resourceType', description: 'Type of FHIR resource' }),
     (0, common_1.Get)(':resourceType'),
     __param(0, (0, common_1.Param)('resourceType')),
     __param(1, (0, common_1.Query)()),
@@ -71,6 +76,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "searchResources", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Get FHIR resource by ID', description: 'Retrieve a specific FHIR resource by its type and ID' }),
+    (0, swagger_1.ApiParam)({ name: 'resourceType', description: 'Type of FHIR resource' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Resource ID' }),
     (0, common_1.Get)(':resourceType/:id'),
     __param(0, (0, common_1.Param)('resourceType')),
     __param(1, (0, common_1.Param)('id')),
@@ -79,6 +87,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "getResource", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Create FHIR resource', description: 'Create a new FHIR resource' }),
+    (0, swagger_1.ApiParam)({ name: 'resourceType', description: 'Type of FHIR resource' }),
     (0, common_1.Post)(':resourceType'),
     __param(0, (0, common_1.Param)('resourceType')),
     __param(1, (0, common_1.Body)()),
@@ -87,6 +97,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "createResource", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Update FHIR resource', description: 'Update an existing FHIR resource by its ID' }),
+    (0, swagger_1.ApiParam)({ name: 'resourceType', description: 'Type of FHIR resource' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Resource ID' }),
     (0, common_1.Put)(':resourceType/:id'),
     __param(0, (0, common_1.Param)('resourceType')),
     __param(1, (0, common_1.Param)('id')),
@@ -96,6 +109,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "update", null);
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Delete FHIR resource', description: 'Delete a FHIR resource by its ID' }),
+    (0, swagger_1.ApiParam)({ name: 'resourceType', description: 'Type of FHIR resource' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Resource ID' }),
     (0, common_1.Delete)(':resourceType/:id'),
     __param(0, (0, common_1.Param)('resourceType')),
     __param(1, (0, common_1.Param)('id')),
