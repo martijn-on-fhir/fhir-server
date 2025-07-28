@@ -9,7 +9,6 @@ import { StructureDefinition } from '../../interfaces/structure-definition';
 import { ElementDefinition } from '../../interfaces/element-definition';
 import * as fhirPath from 'fhirpath';
 import { first } from 'lodash-es';
-import  * as entity  from 'fhir/r4';
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
