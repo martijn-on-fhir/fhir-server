@@ -3,7 +3,6 @@ export type ValueSetDocument = ValueSetSchema & Document;
 export declare class ValueSetSchema {
     resourceType: string;
     url: string;
-    release: number;
     concept: Record<string, any>[];
     definition: Record<string, any>;
 }

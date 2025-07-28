@@ -14,7 +14,6 @@ const mongoose_1 = require("@nestjs/mongoose");
 let ValueSetSchema = class ValueSetSchema {
     resourceType;
     url;
-    release;
     concept;
     definition;
 };
@@ -34,13 +33,6 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        index: true
-    }),
-    __metadata("design:type", Number)
-], ValueSetSchema.prototype, "release", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        required: true,
     }),
     __metadata("design:type", Array)
 ], ValueSetSchema.prototype, "concept", void 0);
@@ -57,5 +49,5 @@ exports.ValueSetSchema = ValueSetSchema = __decorate([
     })
 ], ValueSetSchema);
 exports.valueSetSchema = mongoose_1.SchemaFactory.createForClass(ValueSetSchema);
-exports.valueSetSchema.index({ resourceType: 1, url: 1, release: 1 });
+exports.valueSetSchema.index({ resourceType: 1, url: 1 });
 //# sourceMappingURL=value-set-schema.js.map

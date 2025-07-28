@@ -2,7 +2,6 @@ import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 
-
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {files: ["**/*.{ts}"]},
@@ -26,7 +25,7 @@ export default [
           'max': 1,
           'maxEOF': 1
         }],
-        'no-console': 2,
+        'no-console': 1,
         'no-fallthrough': 0,
         'padded-blocks': [0, 'never'],
         'object-curly-spacing': [0, 'always'],

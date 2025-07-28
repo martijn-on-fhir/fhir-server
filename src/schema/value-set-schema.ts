@@ -23,12 +23,6 @@ export class ValueSetSchema {
   
   @Prop({
     required: true,
-    index: true
-  })
-  release: number;
-  
-  @Prop({
-    required: true,
   })
   concept: Record<string, any>[];
   
@@ -39,4 +33,4 @@ export class ValueSetSchema {
 export const valueSetSchema = SchemaFactory.createForClass(ValueSetSchema);
 
 // Indexes voor performance
-valueSetSchema.index({ resourceType: 1, url: 1, release: 1 });
+valueSetSchema.index({ resourceType: 1, url: 1 });
