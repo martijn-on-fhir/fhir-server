@@ -2,5 +2,12 @@
   "authorization": {
     "enabled": true,
     "introspect": "https://oauth.dev.carebeat-connector.nl/introspect"
+  },
+  "terminology": {
+    "enabled": true,
+    "tokenUrl": "",
+    "baseUrl": "",
+    "username": "",
+    "password": ""
   }
 }

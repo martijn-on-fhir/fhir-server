@@ -9,6 +9,7 @@ import { StructureDefinition } from '../../interfaces/structure-definition';
 import { ElementDefinition } from '../../interfaces/element-definition';
 import * as fhirPath from 'fhirpath';
 import { first } from 'lodash-es';
+import { ValueSetDocument, ValueSetSchema } from '../../schema/value-set-schema';
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -25,8 +26,10 @@ export class ValidationService {
   /**
    * Creates a new instance of the ValidationService
    * @param structureDefinitionModel - Injected Mongoose model for accessing FHIR StructureDefinitions
+   * @param valueSetModelModel
    */
-  constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>) {
+  constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>,
+              @InjectModel(ValueSetSchema.name) private valueSetModelModel: Model<ValueSetDocument>) {
  
   }
   
@@ -76,8 +79,6 @@ export class ValidationService {
     const validationResult = this.validate(this.resource);
     
     validationResult.errors.forEach(error => {
-      
-      // eslint-disable-next-line no-console
       console.log(`  - ${error.path}: ${error.message}`);
     });
     

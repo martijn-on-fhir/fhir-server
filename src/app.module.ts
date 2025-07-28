@@ -10,6 +10,8 @@ import { ValidationService } from './services/validation/validation.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { valueSetSchema, ValueSetSchema } from './schema/value-set-schema';
+import { TerminologyService } from './services/terminology/terminology.service';
+import configuration from './config/configuration'
 
 @Module({
   imports: [
@@ -21,7 +23,10 @@ import { valueSetSchema, ValueSetSchema } from './schema/value-set-schema';
         },
       ],
     }),
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration]
+    }),
     MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
@@ -36,7 +41,7 @@ import { valueSetSchema, ValueSetSchema } from './schema/value-set-schema';
   
   ],
   controllers: [AppController, FhirController],
-  providers: [AppService, FhirService, ValidationService],
+  providers: [AppService, FhirService, ValidationService, TerminologyService],
   exports: [MongooseModule],
 })
 export class AppModule {}

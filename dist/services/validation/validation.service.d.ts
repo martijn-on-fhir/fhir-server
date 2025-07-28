@@ -1,13 +1,15 @@
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema';
 import { Model } from 'mongoose';
 import { ValidationResult } from '../../interfaces/validation-result';
+import { ValueSetDocument } from '../../schema/value-set-schema';
 export declare class ValidationService {
     private structureDefinitionModel;
+    private valueSetModelModel;
     private resource;
     private structureDefinition;
     private elements;
     private slices;
-    constructor(structureDefinitionModel: Model<StructureDefinitionDocument>);
+    constructor(structureDefinitionModel: Model<StructureDefinitionDocument>, valueSetModelModel: Model<ValueSetDocument>);
     validateResource(resource: any): Promise<ValidationResult>;
     private parseStructureDefinition;
     private validate;

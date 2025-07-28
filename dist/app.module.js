@@ -19,6 +19,8 @@ const validation_service_1 = require("./services/validation/validation.service")
 const throttler_1 = require("@nestjs/throttler");
 const config_1 = require("@nestjs/config");
 const value_set_schema_1 = require("./schema/value-set-schema");
+const terminology_service_1 = require("./services/terminology/terminology.service");
+const configuration_1 = require("./config/configuration");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,7 +35,10 @@ exports.AppModule = AppModule = __decorate([
                     },
                 ],
             }),
-            config_1.ConfigModule.forRoot(),
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                load: [configuration_1.default]
+            }),
             mongoose_1.MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
                 maxPoolSize: 10,
                 serverSelectionTimeoutMS: 5000,
@@ -47,7 +52,7 @@ exports.AppModule = AppModule = __decorate([
             ]),
         ],
         controllers: [app_controller_1.AppController, fhir_controller_1.FhirController],
-        providers: [app_service_1.AppService, fhir_service_1.FhirService, validation_service_1.ValidationService],
+        providers: [app_service_1.AppService, fhir_service_1.FhirService, validation_service_1.ValidationService, terminology_service_1.TerminologyService],
         exports: [mongoose_1.MongooseModule],
     })
 ], AppModule);

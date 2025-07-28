@@ -19,14 +19,17 @@ const mongoose_1 = require("mongoose");
 const mongoose_2 = require("@nestjs/mongoose");
 const fhirPath = require("fhirpath");
 const lodash_es_1 = require("lodash-es");
+const value_set_schema_1 = require("../../schema/value-set-schema");
 let ValidationService = class ValidationService {
     structureDefinitionModel;
+    valueSetModelModel;
     resource;
     structureDefinition;
     elements = new Map();
     slices = new Map();
-    constructor(structureDefinitionModel) {
+    constructor(structureDefinitionModel, valueSetModelModel) {
         this.structureDefinitionModel = structureDefinitionModel;
+        this.valueSetModelModel = valueSetModelModel;
     }
     async validateResource(resource) {
         const errors = [];
@@ -345,6 +348,8 @@ exports.ValidationService = ValidationService;
 exports.ValidationService = ValidationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model])
+    __param(1, (0, mongoose_2.InjectModel)(value_set_schema_1.ValueSetSchema.name)),
+    __metadata("design:paramtypes", [mongoose_1.Model,
+        mongoose_1.Model])
 ], ValidationService);
 //# sourceMappingURL=validation.service.js.map
