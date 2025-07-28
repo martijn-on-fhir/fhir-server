@@ -93,7 +93,6 @@ let ValidationService = class ValidationService {
             }
             this.validateProfileDeclaration(resource, errors);
             this.validateElement('Observation', resource, errors, warnings);
-            this.validateProfileSpecificConstraints(resource, errors);
         }
         catch (error) {
             errors.push({
@@ -314,74 +313,6 @@ let ValidationService = class ValidationService {
                 message: `Expected fixed value '${elementDef.fixedUri}', got '${value}'`,
             });
         }
-    }
-    validateProfileSpecificConstraints(resource, errors) {
-        const hasVitalSignsCategory = resource.category?.some((cat) => cat.coding?.some((coding) => coding.system === 'http://terminology.hl7.org/CodeSystem/observation-category' &&
-            coding.code === 'vital-signs'));
-        if (!hasVitalSignsCategory) {
-            errors.push({
-                path: 'category',
-                severity: 'error',
-                message: 'Blood pressure observation must have vital-signs category',
-            });
-        }
-        const hasRequiredCode = resource.code?.coding?.some((coding) => coding.system === 'http://loinc.org' && coding.code === '85354-9');
-        if (!hasRequiredCode) {
-            errors.push({
-                path: 'code',
-                severity: 'error',
-                message: 'Blood pressure observation must have LOINC code 85354-9',
-            });
-        }
-        this.validateRequiredComponents(resource, errors);
-        this.validateComponentPatterns(resource, errors);
-    }
-    validateRequiredComponents(resource, errors) {
-        if (!resource.component || !Array.isArray(resource.component)) {
-            errors.push({
-                path: 'component',
-                severity: 'error',
-                message: 'Blood pressure observation must have component array',
-            });
-            return;
-        }
-        const hasSystolic = resource.component.some((comp) => comp.code?.coding?.some((coding) => coding.system === 'http://loinc.org' && coding.code === '8480-6'));
-        if (!hasSystolic) {
-            errors.push({
-                path: 'component',
-                severity: 'error',
-                message: 'Missing required systolic blood pressure component (LOINC 8480-6)',
-            });
-        }
-        const hasDiastolic = resource.component.some((comp) => comp.code?.coding?.some((coding) => coding.system === 'http://loinc.org' && coding.code === '8462-4'));
-        if (!hasDiastolic) {
-            errors.push({
-                path: 'component',
-                severity: 'error',
-                message: 'Missing required diastolic blood pressure component (LOINC 8462-4)',
-            });
-        }
-    }
-    validateComponentPatterns(resource, errors) {
-        if (!resource.component) {
-            return;
-        }
-        resource.component.forEach((component, index) => {
-            const basePath = `component[${index}]`;
-            if (component.valueQuantity) {
-                if (component.valueQuantity.system !== 'http://unitsofmeasure.org' || component.valueQuantity.code !== 'mm[Hg]') {
-                    const isBPComponent = component.code?.coding?.some((coding) => ['8480-6', '8462-4', '6797001'].includes(coding.code) &&
-                        coding.system === 'http://loinc.org' || coding.system === 'http://snomed.info/sct');
-                    if (isBPComponent) {
-                        errors.push({
-                            path: `${basePath}.valueQuantity`,
-                            severity: 'error',
-                            message: 'Blood pressure measurements must use mmHg units (mm[Hg])',
-                        });
-                    }
-                }
-            }
-        });
     }
     isValidCodeableConcept(value) {
         return value && typeof value === 'object' && (Array.isArray(value.coding) || typeof value.text === 'string');

@@ -9,6 +9,7 @@ import { StructureDefinitionSchema, structureDefinitionSchema } from './schema/s
 import { ValidationService } from './services/validation/validation.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
+import { valueSetSchema, ValueSetSchema } from './schema/value-set-schema';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { ConfigModule } from '@nestjs/config';
     }),
     MongooseModule.forFeature([
       { name: FhirResource.name, schema: fhirResourceSchema },
-      { name: StructureDefinitionSchema.name, schema: structureDefinitionSchema }
+      { name: StructureDefinitionSchema.name, schema: structureDefinitionSchema },
+      { name: ValueSetSchema.name, schema: valueSetSchema },
     ]),
   
   ],

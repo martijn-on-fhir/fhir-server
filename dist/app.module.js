@@ -18,6 +18,7 @@ const structure_definition_schema_1 = require("./schema/structure-definition.sch
 const validation_service_1 = require("./services/validation/validation.service");
 const throttler_1 = require("@nestjs/throttler");
 const config_1 = require("@nestjs/config");
+const value_set_schema_1 = require("./schema/value-set-schema");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -41,7 +42,8 @@ exports.AppModule = AppModule = __decorate([
             }),
             mongoose_1.MongooseModule.forFeature([
                 { name: fhir_resource_schema_1.FhirResource.name, schema: fhir_resource_schema_1.fhirResourceSchema },
-                { name: structure_definition_schema_1.StructureDefinitionSchema.name, schema: structure_definition_schema_1.structureDefinitionSchema }
+                { name: structure_definition_schema_1.StructureDefinitionSchema.name, schema: structure_definition_schema_1.structureDefinitionSchema },
+                { name: value_set_schema_1.ValueSetSchema.name, schema: value_set_schema_1.valueSetSchema },
             ]),
         ],
         controllers: [app_controller_1.AppController, fhir_controller_1.FhirController],

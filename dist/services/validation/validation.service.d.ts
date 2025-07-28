@@ -21,9 +21,6 @@ export declare class ValidationService {
     private evaluateConstraint;
     private validateConstraints;
     private validatePatterns;
-    private validateProfileSpecificConstraints;
-    private validateRequiredComponents;
-    private validateComponentPatterns;
     private isValidCodeableConcept;
     private matchesCodeableConceptPattern;
     private matchesQuantityPattern;

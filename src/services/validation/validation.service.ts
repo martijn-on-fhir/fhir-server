@@ -9,6 +9,7 @@ import { StructureDefinition } from '../../interfaces/structure-definition';
 import { ElementDefinition } from '../../interfaces/element-definition';
 import * as fhirPath from 'fhirpath';
 import { first } from 'lodash-es';
+import  * as entity  from 'fhir/r4';
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -27,7 +28,7 @@ export class ValidationService {
    * @param structureDefinitionModel - Injected Mongoose model for accessing FHIR StructureDefinitions
    */
   constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>) {
-  
+ 
   }
   
   async validateResource(resource: any): Promise<ValidationResult> {
@@ -125,10 +126,7 @@ export class ValidationService {
       
       // Validate all elements
       this.validateElement('Observation', resource, errors, warnings);
-      
-      // Validate specific profile constraints
-      this.validateProfileSpecificConstraints(resource, errors);
-      
+     
     } catch (error) {
       errors.push({
         path: 'root',
@@ -433,127 +431,6 @@ export class ValidationService {
         message: `Expected fixed value '${elementDef.fixedUri}', got '${value}'`,
       });
     }
-  }
-  
-  private validateProfileSpecificConstraints(resource: any, errors: ValidationError[]): void {
-    // nl-core-BloodPressure specific validations
-    
-    // Must have vital-signs category
-    const hasVitalSignsCategory = resource.category?.some((cat: any) =>
-      cat.coding?.some((coding: any) =>
-        coding.system === 'http://terminology.hl7.org/CodeSystem/observation-category' &&
-        coding.code === 'vital-signs',
-      ),
-    );
-    
-    if (!hasVitalSignsCategory) {
-      
-      errors.push({
-        path: 'category',
-        severity: 'error',
-        message: 'Blood pressure observation must have vital-signs category',
-      });
-    }
-    
-    // Must have required LOINC code
-    const hasRequiredCode = resource.code?.coding?.some((coding: any) =>
-      coding.system === 'http://loinc.org' && coding.code === '85354-9',
-    );
-    
-    if (!hasRequiredCode) {
-      
-      errors.push({
-        path: 'code',
-        severity: 'error',
-        message: 'Blood pressure observation must have LOINC code 85354-9',
-      });
-    }
-    
-    // Validate required components
-    this.validateRequiredComponents(resource, errors);
-    
-    // Validate component patterns
-    this.validateComponentPatterns(resource, errors);
-  }
-  
-  private validateRequiredComponents(resource: any, errors: ValidationError[]): void {
-    
-    if (!resource.component || !Array.isArray(resource.component)) {
-      
-      errors.push({
-        path: 'component',
-        severity: 'error',
-        message: 'Blood pressure observation must have component array',
-      });
-      
-      return;
-    }
-    
-    // Check for required systolic component
-    const hasSystolic = resource.component.some((comp: any) =>
-      comp.code?.coding?.some((coding: any) =>
-        coding.system === 'http://loinc.org' && coding.code === '8480-6',
-      ),
-    );
-    
-    if (!hasSystolic) {
-      
-      errors.push({
-        path: 'component',
-        severity: 'error',
-        message: 'Missing required systolic blood pressure component (LOINC 8480-6)',
-      });
-    }
-    
-    // Check for required diastolic component
-    const hasDiastolic = resource.component.some((comp: any) =>
-      comp.code?.coding?.some((coding: any) =>
-        coding.system === 'http://loinc.org' && coding.code === '8462-4',
-      ),
-    );
-    
-    if (!hasDiastolic) {
-      
-      errors.push({
-        path: 'component',
-        severity: 'error',
-        message: 'Missing required diastolic blood pressure component (LOINC 8462-4)',
-      });
-    }
-  }
-  
-  private validateComponentPatterns(resource: any, errors: ValidationError[]): void {
-    
-    if (!resource.component) {
-      return;
-    }
-    
-    resource.component.forEach((component: any, index: number) => {
-      
-      const basePath = `component[${index}]`;
-      
-      // Validate quantity components have correct units
-      if (component.valueQuantity) {
-        
-        if (component.valueQuantity.system !== 'http://unitsofmeasure.org' || component.valueQuantity.code !== 'mm[Hg]') {
-          
-          // Check if this is a blood pressure measurement component
-          const isBPComponent = component.code?.coding?.some((coding: any) =>
-            ['8480-6', '8462-4', '6797001'].includes(coding.code) &&
-            coding.system === 'http://loinc.org' || coding.system === 'http://snomed.info/sct',
-          );
-          
-          if (isBPComponent) {
-            
-            errors.push({
-              path: `${basePath}.valueQuantity`,
-              severity: 'error',
-              message: 'Blood pressure measurements must use mmHg units (mm[Hg])',
-            });
-          }
-        }
-      }
-    });
   }
   
   private isValidCodeableConcept(value: any): boolean {
