@@ -19,17 +19,17 @@ const mongoose_1 = require("mongoose");
 const mongoose_2 = require("@nestjs/mongoose");
 const fhirPath = require("fhirpath");
 const lodash_es_1 = require("lodash-es");
-const value_set_schema_1 = require("../../schema/value-set-schema");
+const terminology_service_1 = require("../terminology/terminology.service");
 let ValidationService = class ValidationService {
     structureDefinitionModel;
-    valueSetModelModel;
+    _terminologyService;
     resource;
     structureDefinition;
     elements = new Map();
     slices = new Map();
-    constructor(structureDefinitionModel, valueSetModelModel) {
+    constructor(structureDefinitionModel, _terminologyService) {
         this.structureDefinitionModel = structureDefinitionModel;
-        this.valueSetModelModel = valueSetModelModel;
+        this._terminologyService = _terminologyService;
     }
     async validateResource(resource) {
         const errors = [];
@@ -150,14 +150,14 @@ let ValidationService = class ValidationService {
             }
         });
     }
-    validateElement(path, value, errors, warnings) {
+    async validateElement(path, value, errors, warnings) {
         const elementDef = this.elements.get(path);
         if (!elementDef) {
             return;
         }
         this.validateCardinality(path, value, elementDef, errors);
         this.validateDataType(path, value, elementDef, errors);
-        this.validateConstraints(path, value, elementDef, errors, warnings);
+        await this.validateConstraints(path, value, elementDef, errors, warnings);
         this.validatePatterns(path, value, elementDef, errors);
         this.validateChildElements(path, value, errors, warnings);
     }
@@ -257,9 +257,14 @@ let ValidationService = class ValidationService {
             return true;
         }
     }
-    validateConstraints(path, value, elementDef, errors, warnings) {
+    async validateConstraints(path, value, elementDef, errors, warnings) {
         if (!elementDef.constraint)
             return;
+        const valueSet = elementDef.binding?.valueSet;
+        if (valueSet) {
+            const r = await this._terminologyService.lookup(valueSet.split('|')[0]);
+            const dummy = null;
+        }
         elementDef.constraint.forEach(constraint => {
             try {
                 if (!value && elementDef.min === 0) {
@@ -348,8 +353,7 @@ exports.ValidationService = ValidationService;
 exports.ValidationService = ValidationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
-    __param(1, (0, mongoose_2.InjectModel)(value_set_schema_1.ValueSetSchema.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
-        mongoose_1.Model])
+        terminology_service_1.TerminologyService])
 ], ValidationService);
 //# sourceMappingURL=validation.service.js.map

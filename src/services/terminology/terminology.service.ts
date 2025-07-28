@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios, { AxiosRequestConfig, HttpStatusCode } from 'axios';
 import { ConfigService } from '@nestjs/config';
+import {get} from 'lodash-es'
 
 /**
  * Service for interacting with the terminology server
@@ -43,18 +44,18 @@ export class TerminologyService {
       const token = await this.getToken();
       
       const config: AxiosRequestConfig = {
-        baseURL: '',
-        url: `/fhir/ValueSet/$expand?url=${valueSet}`,
+        baseURL: this.baseUrl,
+        url: `fhir/ValueSet/$expand?url=${valueSet}`,
         method: 'GET',
         headers: {
-          authorization: token,
-        },
+          authorization: `Bearer ${token}`,
+        }
       }
       
-      return axios.request(config).then((response: any) => {
-        return response.data;
-      }).catch((error) => {
-        throw new Error(error);
+      return await axios.request(config).then((response: any) => {
+        return get(response.data.expansion, 'contains', null)
+      }).catch(() => {
+        return null;
       })
     }
   }

@@ -13,6 +13,7 @@ exports.TerminologyService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
 const config_1 = require("@nestjs/config");
+const lodash_es_1 = require("lodash-es");
 let TerminologyService = class TerminologyService {
     _config;
     enabled = false;
@@ -26,17 +27,17 @@ let TerminologyService = class TerminologyService {
         if (this.enabled) {
             const token = await this.getToken();
             const config = {
-                baseURL: '',
-                url: `/fhir/ValueSet/$expand?url=${valueSet}`,
+                baseURL: this.baseUrl,
+                url: `fhir/ValueSet/$expand?url=${valueSet}`,
                 method: 'GET',
                 headers: {
-                    authorization: token,
-                },
+                    authorization: `Bearer ${token}`,
+                }
             };
-            return axios_1.default.request(config).then((response) => {
-                return response.data;
-            }).catch((error) => {
-                throw new Error(error);
+            return await axios_1.default.request(config).then((response) => {
+                return (0, lodash_es_1.get)(response.data.expansion, 'contains', null);
+            }).catch(() => {
+                return null;
             });
         }
     }

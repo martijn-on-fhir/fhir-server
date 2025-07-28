@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { StructureDefinitionSchema, StructureDefinitionDocument } from '../../schema/structure-definition.schema';
+import { StructureDefinitionDocument, StructureDefinitionSchema } from '../../schema/structure-definition.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ValidationWarning } from '../../interfaces/validation-warning';
@@ -9,7 +9,7 @@ import { StructureDefinition } from '../../interfaces/structure-definition';
 import { ElementDefinition } from '../../interfaces/element-definition';
 import * as fhirPath from 'fhirpath';
 import { first } from 'lodash-es';
-import { ValueSetDocument, ValueSetSchema } from '../../schema/value-set-schema';
+import { TerminologyService } from '../terminology/terminology.service';
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -26,11 +26,11 @@ export class ValidationService {
   /**
    * Creates a new instance of the ValidationService
    * @param structureDefinitionModel - Injected Mongoose model for accessing FHIR StructureDefinitions
-   * @param valueSetModelModel
+   * @param _terminologyService
    */
   constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>,
-              @InjectModel(ValueSetSchema.name) private valueSetModelModel: Model<ValueSetDocument>) {
- 
+              private readonly _terminologyService: TerminologyService) {
+    
   }
   
   async validateResource(resource: any): Promise<ValidationResult> {
@@ -126,7 +126,7 @@ export class ValidationService {
       
       // Validate all elements
       this.validateElement('Observation', resource, errors, warnings);
-     
+      
     } catch (error) {
       errors.push({
         path: 'root',
@@ -201,7 +201,7 @@ export class ValidationService {
     });
   }
   
-  private validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
+   private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     const elementDef = this.elements.get(path);
     
@@ -216,7 +216,7 @@ export class ValidationService {
     this.validateDataType(path, value, elementDef, errors);
     
     // Check constraints
-    this.validateConstraints(path, value, elementDef, errors, warnings);
+    await this.validateConstraints(path, value, elementDef, errors, warnings);
     
     // Check patterns and fixed values
     this.validatePatterns(path, value, elementDef, errors);
@@ -237,15 +237,15 @@ export class ValidationService {
       
       if (path.endsWith('value[x]') && Array.isArray(types) && base) {
         
-        types.forEach((type: {code: string, profile?: string[]}) => {
+        types.forEach((type: { code: string, profile?: string[] }) => {
           
-          const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.')
-          const entities = fhirPath.evaluate(this.resource, expression, {})
+          const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.');
+          const entities = fhirPath.evaluate(this.resource, expression, {});
           
-          if(Array.isArray(entities) && entities.length >= 1){
-            value = first(entities)
+          if (Array.isArray(entities) && entities.length >= 1) {
+            value = first(entities);
           }
-        })
+        });
       }
       
       if (elementDef.min > 0 && !value) {
@@ -268,7 +268,7 @@ export class ValidationService {
           path,
           severity: 'error',
           message: `Element '${path}' has ${value.length} items, minimum required: ${elementDef.min}`,
-        })
+        });
       }
       
       if (elementDef.max !== '*' && value.length > parseInt(elementDef.max)) {
@@ -359,8 +359,15 @@ export class ValidationService {
     }
   }
   
-  private validateConstraints(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[], warnings: ValidationWarning[]): void {
+  private async validateConstraints(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[], warnings: ValidationWarning[]): Promise<any> {
     if (!elementDef.constraint) return;
+    
+    const valueSet = elementDef.binding?.valueSet as string
+    
+    if(valueSet){
+      const r = await this._terminologyService.lookup(valueSet.split('|')[0])
+      const dummy = null
+    }
     
     elementDef.constraint.forEach(constraint => {
       
@@ -386,6 +393,7 @@ export class ValidationService {
             warnings.push(validationItem);
           }
         }
+        
       } catch (error) {
         warnings.push({
           path,
@@ -472,6 +480,6 @@ export class ValidationService {
       });
     }
     
-    return types
+    return types;
   }
 }
