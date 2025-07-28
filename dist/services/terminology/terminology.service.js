@@ -15,17 +15,11 @@ const axios_1 = require("axios");
 const config_1 = require("@nestjs/config");
 let TerminologyService = class TerminologyService {
     _config;
-    tokenUrl = '';
     enabled = false;
     baseUrl = '';
-    username = '';
-    password = '';
     constructor(_config) {
         this._config = _config;
-        this.username = this._config.get('terminology.username');
-        this.password = this._config.get('terminology.password');
         this.baseUrl = this._config.get('terminology.baseUrl');
-        this.tokenUrl = this._config.get('terminology.tokenUrl');
         this.enabled = this._config.get('terminology.enabled');
     }
     async lookup(valueSet) {
@@ -48,15 +42,15 @@ let TerminologyService = class TerminologyService {
     }
     async getToken() {
         const config = {
-            url: this.tokenUrl,
+            url: this._config.get('terminology.tokenUrl'),
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             data: {
-                username: this.username,
-                password: this.password,
+                username: this._config.get('terminology.username'),
+                password: this._config.get('terminology.password'),
                 client_id: 'cli_client',
                 client_secret: '',
                 grant_type: 'password',
