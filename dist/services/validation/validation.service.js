@@ -17,10 +17,11 @@ const common_1 = require("@nestjs/common");
 const structure_definition_schema_1 = require("../../schema/structure-definition.schema");
 const mongoose_1 = require("mongoose");
 const mongoose_2 = require("@nestjs/mongoose");
-const lodash_es_1 = require("lodash-es");
 const fhirPath = require("fhirpath");
+const lodash_es_1 = require("lodash-es");
 let ValidationService = class ValidationService {
     structureDefinitionModel;
+    resource;
     structureDefinition;
     elements = new Map();
     slices = new Map();
@@ -31,6 +32,7 @@ let ValidationService = class ValidationService {
         const errors = [];
         const warnings = [];
         const resourceType = resource.resourceType;
+        this.resource = resource;
         if (!resourceType) {
             return {
                 isValid: false,
@@ -43,7 +45,7 @@ let ValidationService = class ValidationService {
                 warnings: [],
             };
         }
-        this.structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile).then((response) => {
+        this.structureDefinition = await this.getStructureDefinition(resourceType, this.resource?.profile).then((response) => {
             return response?.definition ?? null;
         });
         if (!this.structureDefinition) {
@@ -59,7 +61,7 @@ let ValidationService = class ValidationService {
             };
         }
         this.parseStructureDefinition();
-        const validationResult = this.validate(resource);
+        const validationResult = this.validate(this.resource);
         validationResult.errors.forEach(error => {
             console.log(`  - ${error.path}: ${error.message}`);
         });
@@ -85,7 +87,7 @@ let ValidationService = class ValidationService {
                 errors.push({
                     path: 'resourceType',
                     severity: 'error',
-                    message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`
+                    message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`,
                 });
                 return { isValid: false, errors, warnings };
             }
@@ -97,13 +99,13 @@ let ValidationService = class ValidationService {
             errors.push({
                 path: 'root',
                 severity: 'error',
-                message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
             });
         }
         return {
             isValid: errors.length === 0,
             errors,
-            warnings
+            warnings,
         };
     }
     validateProfileDeclaration(resource, errors) {
@@ -111,7 +113,7 @@ let ValidationService = class ValidationService {
             errors.push({
                 path: 'meta.profile',
                 severity: 'error',
-                message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`
+                message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`,
             });
         }
     }
@@ -159,7 +161,18 @@ let ValidationService = class ValidationService {
     }
     validateCardinality(path, value, elementDef, errors) {
         if (value === undefined || value === null) {
-            if (elementDef.min > 0) {
+            const base = elementDef?.base;
+            const types = this.normalizeTypes(elementDef.type);
+            if (path.endsWith('value[x]') && Array.isArray(types) && base) {
+                types.forEach((type) => {
+                    const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.');
+                    const entities = fhirPath.evaluate(this.resource, expression, {});
+                    if (Array.isArray(entities) && entities.length >= 1) {
+                        value = (0, lodash_es_1.first)(entities);
+                    }
+                });
+            }
+            if (elementDef.min > 0 && !value) {
                 errors.push({
                     path,
                     severity: 'error',
@@ -247,8 +260,10 @@ let ValidationService = class ValidationService {
             return;
         elementDef.constraint.forEach(constraint => {
             try {
-                let isValid = this.evaluateConstraint(constraint.expression, value, path);
-                isValid = true;
+                if (!value && elementDef.min === 0) {
+                    return;
+                }
+                const isValid = this.evaluateConstraint(constraint.expression, value, path);
                 if (!isValid) {
                     const validationItem = {
                         path,
@@ -382,6 +397,17 @@ let ValidationService = class ValidationService {
     matchesQuantityPattern(value, pattern) {
         return (!pattern.system || value.system === pattern.system) &&
             (!pattern.code || value.code === pattern.code);
+    }
+    normalizeTypes(types) {
+        if (types) {
+            return types.map(type => {
+                return {
+                    code: type.code.charAt(0).toUpperCase() + type.code.slice(1),
+                    profile: type.profile,
+                };
+            });
+        }
+        return types;
     }
 };
 exports.ValidationService = ValidationService;

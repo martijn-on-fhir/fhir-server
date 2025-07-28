@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { StructureDefinitionSchema, StructureDefinitionDocument } from '../../schema/structure-definition.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { first } from 'lodash-es';
 import { ValidationWarning } from '../../interfaces/validation-warning';
 import { ValidationResult } from '../../interfaces/validation-result';
 import { ValidationError } from '../../interfaces/validation-error';
 import { StructureDefinition } from '../../interfaces/structure-definition';
 import { ElementDefinition } from '../../interfaces/element-definition';
 import * as fhirPath from 'fhirpath';
+import { first } from 'lodash-es';
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -17,9 +17,10 @@ import * as fhirPath from 'fhirpath';
 @Injectable()
 export class ValidationService {
   
+  private resource: any;
   private structureDefinition: StructureDefinition;
-  private elements: Map<string, ElementDefinition> = new Map()
-  private slices: Map<string, ElementDefinition[]> = new Map()
+  private elements: Map<string, ElementDefinition> = new Map();
+  private slices: Map<string, ElementDefinition[]> = new Map();
   
   /**
    * Creates a new instance of the ValidationService
@@ -36,6 +37,7 @@ export class ValidationService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const warnings: ValidationWarning[] = [];
     const resourceType = resource.resourceType;
+    this.resource = resource;
     
     if (!resourceType) {
       
@@ -51,8 +53,8 @@ export class ValidationService {
       };
     }
     
-    this.structureDefinition = await this.getStructureDefinition(resourceType, resource?.profile).then((response) => {
-      return response?.definition as StructureDefinition ?? null
+    this.structureDefinition = await this.getStructureDefinition(resourceType, this.resource?.profile).then((response) => {
+      return response?.definition as StructureDefinition ?? null;
     });
     
     if (!this.structureDefinition) {
@@ -69,17 +71,17 @@ export class ValidationService {
       };
     }
     
-    this.parseStructureDefinition()
+    this.parseStructureDefinition();
     
-    const validationResult =  this.validate(resource)
+    const validationResult = this.validate(this.resource);
     
     validationResult.errors.forEach(error => {
       
       // eslint-disable-next-line no-console
-      console.log(`  - ${error.path}: ${error.message}`)
-    })
+      console.log(`  - ${error.path}: ${error.message}`);
+    });
     
-    return validationResult
+    return validationResult;
   }
   
   private parseStructureDefinition(): void {
@@ -90,7 +92,7 @@ export class ValidationService {
       
       // Handle slices
       if (element.sliceName) {
-       
+        
         const basePath = element.path;
         
         if (!this.slices.has(basePath)) {
@@ -113,7 +115,7 @@ export class ValidationService {
         errors.push({
           path: 'resourceType',
           severity: 'error',
-          message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`
+          message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`,
         });
         return { isValid: false, errors, warnings };
       }
@@ -131,14 +133,14 @@ export class ValidationService {
       errors.push({
         path: 'root',
         severity: 'error',
-        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
     
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
   
@@ -147,7 +149,7 @@ export class ValidationService {
       errors.push({
         path: 'meta.profile',
         severity: 'error',
-        message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`
+        message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`,
       });
     }
   }
@@ -171,7 +173,7 @@ export class ValidationService {
       });
     }
     
-    return this.structureDefinitionModel.findOne(filter).exec()
+    return this.structureDefinitionModel.findOne(filter).exec();
   }
   
   private validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
@@ -191,8 +193,10 @@ export class ValidationService {
       
       if (Array.isArray(childValue)) {
         childValue.forEach((item) => {
+          
           this.validateElement(childPath, item, errors, warnings);
         });
+        
       } else {
         this.validateElement(childPath, childValue, errors, warnings);
       }
@@ -224,8 +228,30 @@ export class ValidationService {
   }
   
   private validateCardinality(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
+    
+    /**
+     * Deze if moet gerefactored worden er wordt nog geen rekening gehouden met effectiveDate etc
+     */
     if (value === undefined || value === null) {
-      if (elementDef.min > 0) {
+      
+      const base = elementDef?.base;
+      const types = this.normalizeTypes(elementDef.type);
+      
+      if (path.endsWith('value[x]') && Array.isArray(types) && base) {
+        
+        types.forEach((type: {code: string, profile?: string[]}) => {
+          
+          const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.')
+          const entities = fhirPath.evaluate(this.resource, expression, {})
+          
+          if(Array.isArray(entities) && entities.length >= 1){
+            value = first(entities)
+          }
+        })
+      }
+      
+      if (elementDef.min > 0 && !value) {
+        
         errors.push({
           path,
           severity: 'error',
@@ -237,12 +263,14 @@ export class ValidationService {
     }
     
     if (Array.isArray(value)) {
+      
       if (value.length < elementDef.min) {
+        
         errors.push({
           path,
           severity: 'error',
           message: `Element '${path}' has ${value.length} items, minimum required: ${elementDef.min}`,
-        });
+        })
       }
       
       if (elementDef.max !== '*' && value.length > parseInt(elementDef.max)) {
@@ -313,7 +341,7 @@ export class ValidationService {
         });
         const isError = Array.isArray(result) ? result[0] === true : Boolean(result);
         
-        return isError
+        return isError;
         
       }
       
@@ -321,7 +349,7 @@ export class ValidationService {
         const match = expression.match(/\.length\(\)\s*>=\s*(\d+)/);
         
         if (match && typeof value === 'string') {
-          return value.length >= parseInt(match[1])
+          return value.length >= parseInt(match[1]);
         }
       }
       
@@ -337,16 +365,20 @@ export class ValidationService {
     if (!elementDef.constraint) return;
     
     elementDef.constraint.forEach(constraint => {
+      
       try {
+        
+        if (!value && elementDef.min === 0) {
+          return;
+        }
+        
         // Simplified constraint validation - in a real implementation, you'd use FHIRPath
-        let isValid = this.evaluateConstraint(constraint.expression, value, path);
-        isValid = true;
+        const isValid = this.evaluateConstraint(constraint.expression, value, path);
         
         if (!isValid) {
           const validationItem = {
             path,
             message: constraint.human,
-            
             constraint: constraint.key,
           };
           
@@ -545,5 +577,24 @@ export class ValidationService {
     
     return (!pattern.system || value.system === pattern.system) &&
       (!pattern.code || value.code === pattern.code);
+  }
+  
+  /**
+   * Not all types are niclely formatted, so let 's fix it
+   * @param types
+   * @private
+   */
+  private normalizeTypes(types: { code: string; profile?: string[] }[] | undefined): { code: string; profile?: string[] }[] | undefined {
+    
+    if (types) {
+      return types.map(type => {
+        return {
+          code: type.code.charAt(0).toUpperCase() + type.code.slice(1),
+          profile: type.profile,
+        };
+      });
+    }
+    
+    return types
   }
 }

@@ -21,4 +21,9 @@ export interface ElementDefinition {
         valueSet: string;
     };
     sliceName?: string;
+    base?: {
+        path: string;
+        min: number;
+        max: string;
+    };
 }

@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { ValidationResult } from '../../interfaces/validation-result';
 export declare class ValidationService {
     private structureDefinitionModel;
+    private resource;
     private structureDefinition;
     private elements;
     private slices;
@@ -26,4 +27,5 @@ export declare class ValidationService {
     private isValidCodeableConcept;
     private matchesCodeableConceptPattern;
     private matchesQuantityPattern;
+    private normalizeTypes;
 }

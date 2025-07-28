@@ -10,4 +10,5 @@ export interface ElementDefinition {
   fixedUri?: string;
   binding?: { strength: string; valueSet: string };
   sliceName?: string;
+  base?: {path: string, min: number, max: string}
 }
