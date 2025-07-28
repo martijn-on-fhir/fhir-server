@@ -29,20 +29,22 @@ let TerminologyService = class TerminologyService {
         this.enabled = this._config.get('terminology.enabled');
     }
     async lookup(valueSet) {
-        const token = await this.getToken();
-        const config = {
-            baseURL: '',
-            url: `/fhir/ValueSet/$expand?url=${valueSet}`,
-            method: 'GET',
-            headers: {
-                authorization: token
-            }
-        };
-        return axios_1.default.request(config).then((response) => {
-            return response.data;
-        }).catch((error) => {
-            throw new Error(error);
-        });
+        if (this.enabled) {
+            const token = await this.getToken();
+            const config = {
+                baseURL: '',
+                url: `/fhir/ValueSet/$expand?url=${valueSet}`,
+                method: 'GET',
+                headers: {
+                    authorization: token,
+                },
+            };
+            return axios_1.default.request(config).then((response) => {
+                return response.data;
+            }).catch((error) => {
+                throw new Error(error);
+            });
+        }
     }
     async getToken() {
         const config = {
@@ -57,8 +59,8 @@ let TerminologyService = class TerminologyService {
                 password: this.password,
                 client_id: 'cli_client',
                 client_secret: '',
-                grant_type: 'password'
-            }
+                grant_type: 'password',
+            },
         };
         return await axios_1.default.request(config).then((response) => {
             return response.data.access_token;
