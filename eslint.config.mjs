@@ -25,7 +25,7 @@ export default [
           'max': 1,
           'maxEOF': 1
         }],
-        'no-console': 1,
+        'no-console': 0,
         'no-fallthrough': 0,
         'padded-blocks': [0, 'never'],
         'object-curly-spacing': [0, 'always'],
