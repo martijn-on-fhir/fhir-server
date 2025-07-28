@@ -263,7 +263,7 @@ let ValidationService = class ValidationService {
         const valueSet = elementDef.binding?.valueSet;
         if (valueSet) {
             const r = await this._terminologyService.lookup(valueSet.split('|')[0]);
-            const dummy = null;
+            const dummy = r;
         }
         elementDef.constraint.forEach(constraint => {
             try {

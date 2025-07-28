@@ -366,7 +366,8 @@ export class ValidationService {
     
     if(valueSet){
       const r = await this._terminologyService.lookup(valueSet.split('|')[0])
-      const dummy = null
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const dummy = r
     }
     
     elementDef.constraint.forEach(constraint => {
