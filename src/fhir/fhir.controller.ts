@@ -21,14 +21,14 @@ export class FhirController {
   @ApiResponse({ status: 200, description: 'Resource validation result' })
   @Post('$validate')
   async validate( @Body() resource: any): Promise<ValidationResult> {
-    return this._validatiobService.validateResource(resource);
+    return await this._validatiobService.validateResource(resource);
   }
   
   @ApiOperation({ summary: 'Search FHIR resources', description: 'Search for FHIR resources of specific type with optional search parameters' })
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Get(':resourceType')
   async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any): Promise<any> {
-    return this._service.find(resourceType, searchParams);
+    return await this._service.find(resourceType, searchParams);
   }
   
   @ApiOperation({ summary: 'Get FHIR resource by ID', description: 'Retrieve a specific FHIR resource by its type and ID' })
@@ -36,7 +36,7 @@ export class FhirController {
   @ApiParam({ name: 'id', description: 'Resource ID' })
   @Get(':resourceType/:id')
   async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string): Promise<any> {
-    return this._service.findById(resourceType, id);
+    return await this._service.findById(resourceType, id);
   }
   
   @ApiOperation({ summary: 'Create FHIR resource', description: 'Create a new FHIR resource' })
@@ -45,7 +45,7 @@ export class FhirController {
   async createResource(@Param('resourceType') resourceType: string, @Body() resource: any): Promise<any> {
     
     await this._service.checkPreRequest('POST', resourceType, resource)
-    return this._service.create(resourceType, resource);
+    return await this._service.create(resourceType, resource);
   }
   
   @ApiOperation({ summary: 'Update FHIR resource', description: 'Update an existing FHIR resource by its ID' })
@@ -55,7 +55,7 @@ export class FhirController {
   async update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any): Promise<any> {
     
     await this._service.checkPreRequest('POST', resourceType, resource, id)
-    return this._service.update(resourceType, id, resource)
+    return await this._service.update(resourceType, id, resource)
   }
   
   @ApiOperation({ summary: 'Delete FHIR resource', description: 'Delete a FHIR resource by its ID' })

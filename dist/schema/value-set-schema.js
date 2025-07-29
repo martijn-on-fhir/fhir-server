@@ -12,34 +12,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.valueSetSchema = exports.ValueSetSchema = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let ValueSetSchema = class ValueSetSchema {
-    resourceType;
     url;
-    concept;
-    definition;
+    resourceType;
+    expansion;
+    value;
 };
 exports.ValueSetSchema = ValueSetSchema;
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, index: true }),
-    __metadata("design:type", String)
-], ValueSetSchema.prototype, "resourceType", void 0);
-__decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        unique: true,
         index: true
     }),
     __metadata("design:type", String)
 ], ValueSetSchema.prototype, "url", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
+        index: true,
+        required: false
+    }),
+    __metadata("design:type", String)
+], ValueSetSchema.prototype, "resourceType", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
         required: true,
     }),
     __metadata("design:type", Array)
-], ValueSetSchema.prototype, "concept", void 0);
+], ValueSetSchema.prototype, "expansion", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({
+        type: Object,
+        required: true
+    }),
     __metadata("design:type", Object)
-], ValueSetSchema.prototype, "definition", void 0);
+], ValueSetSchema.prototype, "value", void 0);
 exports.ValueSetSchema = ValueSetSchema = __decorate([
     (0, mongoose_1.Schema)({
         collection: 'values-sets',
@@ -49,5 +54,5 @@ exports.ValueSetSchema = ValueSetSchema = __decorate([
     })
 ], ValueSetSchema);
 exports.valueSetSchema = mongoose_1.SchemaFactory.createForClass(ValueSetSchema);
-exports.valueSetSchema.index({ resourceType: 1, url: 1 });
+exports.valueSetSchema.index({ url: 1, resourceType: 1 });
 //# sourceMappingURL=value-set-schema.js.map

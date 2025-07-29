@@ -28,21 +28,21 @@ let FhirController = class FhirController {
         return this._service.getMetaData();
     }
     async validate(resource) {
-        return this._validatiobService.validateResource(resource);
+        return await this._validatiobService.validateResource(resource);
     }
     async searchResources(resourceType, searchParams) {
-        return this._service.find(resourceType, searchParams);
+        return await this._service.find(resourceType, searchParams);
     }
     async getResource(resourceType, id) {
-        return this._service.findById(resourceType, id);
+        return await this._service.findById(resourceType, id);
     }
     async createResource(resourceType, resource) {
         await this._service.checkPreRequest('POST', resourceType, resource);
-        return this._service.create(resourceType, resource);
+        return await this._service.create(resourceType, resource);
     }
     async update(resourceType, id, resource) {
         await this._service.checkPreRequest('POST', resourceType, resource, id);
-        return this._service.update(resourceType, id, resource);
+        return await this._service.update(resourceType, id, resource);
     }
     delete(resourceType, id) {
         return this._service.delete(resourceType, id);

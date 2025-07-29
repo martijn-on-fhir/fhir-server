@@ -64,7 +64,7 @@ let ValidationService = class ValidationService {
             };
         }
         this.parseStructureDefinition();
-        const validationResult = this.validate(this.resource);
+        const validationResult = await this.validate(this.resource);
         validationResult.errors.forEach(error => {
             console.log(`  - ${error.path}: ${error.message}`);
         });
@@ -82,7 +82,7 @@ let ValidationService = class ValidationService {
             }
         });
     }
-    validate(resource) {
+    async validate(resource) {
         const errors = [];
         const warnings = [];
         try {
@@ -95,7 +95,7 @@ let ValidationService = class ValidationService {
                 return { isValid: false, errors, warnings };
             }
             this.validateProfileDeclaration(resource, errors);
-            this.validateElement('Observation', resource, errors, warnings);
+            await this.validateElement('Observation', resource, errors, warnings);
         }
         catch (error) {
             errors.push({
@@ -130,25 +130,25 @@ let ValidationService = class ValidationService {
         }
         return this.structureDefinitionModel.findOne(filter).exec();
     }
-    validateChildElements(path, value, errors, warnings) {
+    async validateChildElements(path, value, errors, warnings) {
         if (!value || typeof value !== 'object') {
             return;
         }
         const childElements = Array.from(this.elements.keys())
             .filter(elementPath => elementPath.startsWith(path + '.') &&
             elementPath.split('.').length === path.split('.').length + 1);
-        childElements.forEach(childPath => {
+        for (const childPath of childElements) {
             const childProperty = childPath.split('.').pop();
             const childValue = value[childProperty];
             if (Array.isArray(childValue)) {
-                childValue.forEach((item) => {
-                    this.validateElement(childPath, item, errors, warnings);
-                });
+                for (const item of childValue) {
+                    await this.validateElement(childPath, item, errors, warnings);
+                }
             }
             else {
-                this.validateElement(childPath, childValue, errors, warnings);
+                await this.validateElement(childPath, childValue, errors, warnings);
             }
-        });
+        }
     }
     async validateElement(path, value, errors, warnings) {
         const elementDef = this.elements.get(path);
@@ -159,7 +159,7 @@ let ValidationService = class ValidationService {
         this.validateDataType(path, value, elementDef, errors);
         await this.validateConstraints(path, value, elementDef, errors, warnings);
         this.validatePatterns(path, value, elementDef, errors);
-        this.validateChildElements(path, value, errors, warnings);
+        await this.validateChildElements(path, value, errors, warnings);
     }
     validateCardinality(path, value, elementDef, errors) {
         if (value === undefined || value === null) {
@@ -261,11 +261,27 @@ let ValidationService = class ValidationService {
         if (!elementDef.constraint)
             return;
         const valueSet = elementDef.binding?.valueSet;
-        if (valueSet) {
-            const r = await this._terminologyService.lookup(valueSet.split('|')[0]);
-            const dummy = r;
+        if (value && valueSet) {
+            const collection = await this._terminologyService.lookup(valueSet);
+            if (Array.isArray(collection)) {
+                const exists = collection.find((item) => {
+                    if (typeof value === 'string') {
+                        return item.code === value;
+                    }
+                    return item.code === value.coding[0].code;
+                });
+                if (!exists) {
+                    const allowed = collection.map((item) => {
+                        return item.code.toLowerCase() === item.display.toLowerCase() ? item.code : `${item.code} - ${item.display}`;
+                    }).join(', ');
+                    errors.push({ path,
+                        severity: 'error',
+                        message: `Value not allowed, possible values are: ${allowed}`
+                    });
+                }
+            }
         }
-        elementDef.constraint.forEach(constraint => {
+        for (const constraint of elementDef.constraint) {
             try {
                 if (!value && elementDef.min === 0) {
                     return;
@@ -291,7 +307,7 @@ let ValidationService = class ValidationService {
                     message: `Could not evaluate constraint ${constraint.key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 });
             }
-        });
+        }
     }
     validatePatterns(path, value, elementDef, errors) {
         if (elementDef.patternCodeableConcept && value) {

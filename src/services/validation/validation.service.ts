@@ -30,10 +30,9 @@ export class ValidationService {
    */
   constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>,
               private readonly _terminologyService: TerminologyService) {
-    
   }
   
-  async validateResource(resource: any): Promise<ValidationResult> {
+   async validateResource(resource: any): Promise<ValidationResult> {
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errors: ValidationError[] = [];
@@ -76,7 +75,7 @@ export class ValidationService {
     
     this.parseStructureDefinition();
     
-    const validationResult = this.validate(this.resource);
+    const validationResult = await this.validate(this.resource);
     
     validationResult.errors.forEach(error => {
       console.log(`  - ${error.path}: ${error.message}`);
@@ -105,7 +104,7 @@ export class ValidationService {
     });
   }
   
-  private validate(resource: any): ValidationResult {
+  private async validate(resource: any): Promise<ValidationResult> {
     
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
@@ -125,7 +124,7 @@ export class ValidationService {
       this.validateProfileDeclaration(resource, errors);
       
       // Validate all elements
-      this.validateElement('Observation', resource, errors, warnings);
+      await this.validateElement('Observation', resource, errors, warnings);
       
     } catch (error) {
       errors.push({
@@ -174,7 +173,7 @@ export class ValidationService {
     return this.structureDefinitionModel.findOne(filter).exec();
   }
   
-  private validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): void {
+  private async  validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     if (!value || typeof value !== 'object') {
       return;
@@ -185,23 +184,24 @@ export class ValidationService {
     .filter(elementPath => elementPath.startsWith(path + '.') &&
       elementPath.split('.').length === path.split('.').length + 1);
     
-    childElements.forEach(childPath => {
+    for(const childPath of childElements) {
+      
       const childProperty = childPath.split('.').pop()!;
       const childValue = value[childProperty];
       
       if (Array.isArray(childValue)) {
-        childValue.forEach((item) => {
-          
-          this.validateElement(childPath, item, errors, warnings);
-        });
+        
+        for (const item of  childValue){
+          await this.validateElement(childPath, item, errors, warnings);
+        }
         
       } else {
-        this.validateElement(childPath, childValue, errors, warnings);
+        await this.validateElement(childPath, childValue, errors, warnings);
       }
-    });
+    }
   }
   
-   private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
+  private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     const elementDef = this.elements.get(path);
     
@@ -222,7 +222,7 @@ export class ValidationService {
     this.validatePatterns(path, value, elementDef, errors);
     
     // Validate child elements
-    this.validateChildElements(path, value, errors, warnings);
+    await this.validateChildElements(path, value, errors, warnings);
   }
   
   private validateCardinality(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
@@ -360,17 +360,41 @@ export class ValidationService {
   }
   
   private async validateConstraints(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[], warnings: ValidationWarning[]): Promise<any> {
+    
     if (!elementDef.constraint) return;
     
-    const valueSet = elementDef.binding?.valueSet as string
+    const valueSet = elementDef.binding?.valueSet as string;
     
-    if(valueSet){
-      const r = await this._terminologyService.lookup(valueSet.split('|')[0])
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const dummy = r
+    if (value && valueSet) {
+      
+      const collection = await this._terminologyService.lookup(valueSet);
+      
+      if (Array.isArray(collection)) {
+
+        const exists = collection.find((item: any) => {
+          
+          if(typeof value === 'string'){
+            return item.code === value;
+          }
+          
+          return item.code === value.coding[0].code;
+        })
+        
+        if(!exists){
+          
+          const allowed = collection.map((item: any) => {
+            return item.code.toLowerCase() === item.display.toLowerCase() ? item.code : `${item.code} - ${item.display}`
+          }).join(', ');
+          
+          errors.push({ path,
+            severity: 'error' ,
+            message: `Value not allowed, possible values are: ${allowed}`
+          })
+        }
+      }
     }
     
-    elementDef.constraint.forEach(constraint => {
+    for (const constraint of elementDef.constraint) {
       
       try {
         
@@ -401,7 +425,7 @@ export class ValidationService {
           message: `Could not evaluate constraint ${constraint.key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
       }
-    });
+    }
   }
   
   private validatePatterns(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {

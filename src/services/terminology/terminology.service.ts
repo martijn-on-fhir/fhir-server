@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import axios, { AxiosRequestConfig, HttpStatusCode } from 'axios';
 import { ConfigService } from '@nestjs/config';
-import {get} from 'lodash-es'
+import { get } from 'lodash-es';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ValueSetDocument, ValueSetSchema } from '../../schema/value-set-schema';
 
 /**
  * Service for interacting with the terminology server
@@ -23,10 +26,16 @@ export class TerminologyService {
   baseUrl: string = '';
   
   /**
+   * Oauth toke for authorization.
+   */
+  token: string;
+  
+  /**
    * Creates an instance of TerminologyService
    * @param _config - Configuration service to retrieve terminology settings
+   * @param model
    */
-  constructor(private readonly _config: ConfigService) {
+  constructor(private readonly _config: ConfigService, @InjectModel(ValueSetSchema.name) private model: Model<ValueSetDocument>) {
     
     this.baseUrl = this._config.get('terminology.baseUrl') as string;
     this.enabled = this._config.get('terminology.enabled') as boolean;
@@ -39,25 +48,59 @@ export class TerminologyService {
    */
   async lookup(valueSet: string): Promise<any> {
     
+    if (valueSet.indexOf('|') !== -1) {
+      valueSet = valueSet.split('|')[0];
+    }
+    
+    const document = await this.find(valueSet)
+    
+    if (document) {
+      return document.toObject().expansion
+    }
+    
     if (this.enabled) {
       
-      const token = await this.getToken();
+      if (!this.token) {
+        this.token = await this.getToken();
+      }
       
       const config: AxiosRequestConfig = {
         baseURL: this.baseUrl,
         url: `fhir/ValueSet/$expand?url=${valueSet}`,
         method: 'GET',
         headers: {
-          authorization: `Bearer ${token}`,
-        }
-      }
+          authorization: `Bearer ${this.token}`,
+        },
+      };
       
       return await axios.request(config).then((response: any) => {
-        return get(response.data.expansion, 'contains', null)
+        
+        if (!document) {
+          
+          this.model.create({
+            url: response.data.url,
+            version: '1.0.0',
+            resourceType: response.data.resourceType,
+            expansion: response.data.expansion.contains,
+            value: response.data,
+          });
+        }
+        
+        return get(response.data.expansion, 'contains', null);
+        
       }).catch(() => {
         return null;
-      })
+      });
     }
+  }
+  
+  /**
+   * Searches for a value set document in the database by URL
+   * @param valueSet - The URL of the value set to find
+   * @returns Promise resolving to the found value set document or null if not found
+   */
+  async find(valueSet: string): Promise<ValueSetDocument | null> {
+    return await this.model.findOne({ url: valueSet })
   }
   
   /**
@@ -81,7 +124,7 @@ export class TerminologyService {
         client_secret: '',
         grant_type: 'password',
       },
-    }
+    };
     
     return await axios.request(config).then((response: any) => {
       return response.data.access_token;
@@ -92,6 +135,6 @@ export class TerminologyService {
       }
       
       throw new Error(error);
-    })
+    });
   }
 }

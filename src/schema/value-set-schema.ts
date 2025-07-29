@@ -11,26 +11,31 @@ export type ValueSetDocument = ValueSetSchema & Document;
 })
 export class ValueSetSchema {
   
-  @Prop({ required: true, index: true })
-  resourceType: string;
-  
   @Prop({
     required: true,
-    unique: true,
     index: true
   })
   url: string;
   
   @Prop({
+    index: true,
+    required: false
+  })
+  resourceType: string
+  
+  @Prop({
     required: true,
   })
-  concept: Record<string, any>[];
+  expansion: Record<string, any>[];
   
-  @Prop({ type: Object })
-  definition: Record<string, any>;
+  @Prop({
+    type: Object,
+    required: true
+  })
+  value: Record<string, any>;
 }
 
 export const valueSetSchema = SchemaFactory.createForClass(ValueSetSchema);
 
 // Indexes voor performance
-valueSetSchema.index({ resourceType: 1, url: 1 });
+valueSetSchema.index({ url: 1, resourceType: 1 });

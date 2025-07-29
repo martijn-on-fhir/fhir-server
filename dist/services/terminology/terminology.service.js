@@ -8,38 +8,68 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TerminologyService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
 const config_1 = require("@nestjs/config");
 const lodash_es_1 = require("lodash-es");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const value_set_schema_1 = require("../../schema/value-set-schema");
 let TerminologyService = class TerminologyService {
     _config;
+    model;
     enabled = false;
     baseUrl = '';
-    constructor(_config) {
+    token;
+    constructor(_config, model) {
         this._config = _config;
+        this.model = model;
         this.baseUrl = this._config.get('terminology.baseUrl');
         this.enabled = this._config.get('terminology.enabled');
     }
     async lookup(valueSet) {
+        if (valueSet.indexOf('|') !== -1) {
+            valueSet = valueSet.split('|')[0];
+        }
+        const document = await this.find(valueSet);
+        if (document) {
+            return document.toObject().expansion;
+        }
         if (this.enabled) {
-            const token = await this.getToken();
+            if (!this.token) {
+                this.token = await this.getToken();
+            }
             const config = {
                 baseURL: this.baseUrl,
                 url: `fhir/ValueSet/$expand?url=${valueSet}`,
                 method: 'GET',
                 headers: {
-                    authorization: `Bearer ${token}`,
-                }
+                    authorization: `Bearer ${this.token}`,
+                },
             };
             return await axios_1.default.request(config).then((response) => {
+                if (!document) {
+                    this.model.create({
+                        url: response.data.url,
+                        version: '1.0.0',
+                        resourceType: response.data.resourceType,
+                        expansion: response.data.expansion.contains,
+                        value: response.data,
+                    });
+                }
                 return (0, lodash_es_1.get)(response.data.expansion, 'contains', null);
             }).catch(() => {
                 return null;
             });
         }
+    }
+    async find(valueSet) {
+        return await this.model.findOne({ url: valueSet });
     }
     async getToken() {
         const config = {
@@ -70,6 +100,7 @@ let TerminologyService = class TerminologyService {
 exports.TerminologyService = TerminologyService;
 exports.TerminologyService = TerminologyService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __param(1, (0, mongoose_1.InjectModel)(value_set_schema_1.ValueSetSchema.name)),
+    __metadata("design:paramtypes", [config_1.ConfigService, mongoose_2.Model])
 ], TerminologyService);
 //# sourceMappingURL=terminology.service.js.map
