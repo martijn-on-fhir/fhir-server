@@ -6,6 +6,7 @@ export declare class ValidationService {
     private structureDefinitionModel;
     private readonly _terminologyService;
     private resource;
+    private resourceType;
     private structureDefinition;
     private elements;
     private slices;

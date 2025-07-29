@@ -19,10 +19,11 @@ import { TerminologyService } from '../terminology/terminology.service';
 @Injectable()
 export class ValidationService {
   
-  private resource: any;
+  private resource: any
+  private resourceType: string
   private structureDefinition: StructureDefinition;
-  private elements: Map<string, ElementDefinition> = new Map();
-  private slices: Map<string, ElementDefinition[]> = new Map();
+  private elements: Map<string, ElementDefinition> = new Map()
+  private slices: Map<string, ElementDefinition[]> = new Map()
   
   /**
    * Creates a new instance of the ValidationService
@@ -45,10 +46,10 @@ export class ValidationService {
     const errors: ValidationError[] = [];
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const warnings: ValidationWarning[] = [];
-    const resourceType = resource.resourceType;
+    this.resourceType = resource.resourceType;
     this.resource = resource;
     
-    if (!resourceType) {
+    if (!this.resourceType) {
       
       return {
         isValid: false,
@@ -62,7 +63,7 @@ export class ValidationService {
       };
     }
     
-    this.structureDefinition = await this.getStructureDefinition(resourceType, this.resource?.profile).then((response) => {
+    this.structureDefinition = await this.getStructureDefinition(this.resourceType, this.resource?.profile).then((response) => {
       return response?.definition as StructureDefinition ?? null;
     });
     
@@ -72,7 +73,7 @@ export class ValidationService {
         isValid: false,
         errors: [{
           path: 'resourceType',
-          message: `No structure definition for resource type: ${resourceType}`,
+          message: `No structure definition for resource type: ${this.resourceType}`,
           severity: 'error',
           code: 'unknown-resource-type',
         }],
@@ -98,6 +99,7 @@ export class ValidationService {
    */
   private parseStructureDefinition(): void {
     
+    this.elements.clear()
     this.structureDefinition.snapshot.element.forEach(element => {
       
       this.elements.set(element.path, element);
@@ -193,9 +195,9 @@ export class ValidationService {
 
     rootProperties.forEach(property => {
 
-      if (!this.elements.has(`Observation.${property}`) && property !== 'resourceType') {
+      if (!this.elements.has(`${this.resourceType}.${property}`) && property !== 'resourceType') {
         
-        if(property.startsWith('effective')){
+        if(property.startsWith('effective') || property.startsWith('deceased') || property.startsWith('multipleBirth')){
           return
         }
 

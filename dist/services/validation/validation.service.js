@@ -24,6 +24,7 @@ let ValidationService = class ValidationService {
     structureDefinitionModel;
     _terminologyService;
     resource;
+    resourceType;
     structureDefinition;
     elements = new Map();
     slices = new Map();
@@ -34,9 +35,9 @@ let ValidationService = class ValidationService {
     async validateResource(resource) {
         const errors = [];
         const warnings = [];
-        const resourceType = resource.resourceType;
+        this.resourceType = resource.resourceType;
         this.resource = resource;
-        if (!resourceType) {
+        if (!this.resourceType) {
             return {
                 isValid: false,
                 errors: [{
@@ -48,7 +49,7 @@ let ValidationService = class ValidationService {
                 warnings: [],
             };
         }
-        this.structureDefinition = await this.getStructureDefinition(resourceType, this.resource?.profile).then((response) => {
+        this.structureDefinition = await this.getStructureDefinition(this.resourceType, this.resource?.profile).then((response) => {
             return response?.definition ?? null;
         });
         if (!this.structureDefinition) {
@@ -56,7 +57,7 @@ let ValidationService = class ValidationService {
                 isValid: false,
                 errors: [{
                         path: 'resourceType',
-                        message: `No structure definition for resource type: ${resourceType}`,
+                        message: `No structure definition for resource type: ${this.resourceType}`,
                         severity: 'error',
                         code: 'unknown-resource-type',
                     }],
@@ -71,6 +72,7 @@ let ValidationService = class ValidationService {
         return validationResult;
     }
     parseStructureDefinition() {
+        this.elements.clear();
         this.structureDefinition.snapshot.element.forEach(element => {
             this.elements.set(element.path, element);
             if (element.sliceName) {
@@ -123,8 +125,8 @@ let ValidationService = class ValidationService {
     checkRootProperties(resource, errors) {
         const rootProperties = Object.keys(resource).filter(key => !key.startsWith('_'));
         rootProperties.forEach(property => {
-            if (!this.elements.has(`Observation.${property}`) && property !== 'resourceType') {
-                if (property.startsWith('effective')) {
+            if (!this.elements.has(`${this.resourceType}.${property}`) && property !== 'resourceType') {
+                if (property.startsWith('effective') || property.startsWith('deceased') || property.startsWith('multipleBirth')) {
                     return;
                 }
                 errors.push({
