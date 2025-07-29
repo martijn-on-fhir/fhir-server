@@ -28,7 +28,7 @@ let AppController = class AppController {
         return 'ok';
     }
     async token() {
-        return await this.service.getToken();
+        return await this.service._getToken();
     }
 };
 exports.AppController = AppController;

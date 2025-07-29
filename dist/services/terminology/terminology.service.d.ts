@@ -3,12 +3,12 @@ import { Model } from 'mongoose';
 import { ValueSetDocument } from '../../schema/value-set-schema';
 export declare class TerminologyService {
     private readonly _config;
-    private model;
+    private _model;
     enabled: boolean;
     baseUrl: string;
     token: string;
-    constructor(_config: ConfigService, model: Model<ValueSetDocument>);
+    constructor(_config: ConfigService, _model: Model<ValueSetDocument>);
     lookup(valueSet: string): Promise<any>;
-    find(valueSet: string): Promise<ValueSetDocument | null>;
-    getToken(): Promise<string>;
+    private _find;
+    private _getToken;
 }

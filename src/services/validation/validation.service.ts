@@ -14,6 +14,7 @@ import { TerminologyService } from '../terminology/terminology.service';
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
  * Provides functionality to ensure resources conform to FHIR specifications and profiles.
+ * Validates resource structure, cardinality, data types, and constraints according to FHIR specifications.
  */
 @Injectable()
 export class ValidationService {
@@ -32,7 +33,13 @@ export class ValidationService {
               private readonly _terminologyService: TerminologyService) {
   }
   
-   async validateResource(resource: any): Promise<ValidationResult> {
+  /**
+   * Validates a FHIR resource against its structure definition
+   * @param resource - The FHIR resource to validate
+   * @returns Promise resolving to validation results containing errors and warnings
+   * @throws Error if validation process fails
+   */
+  async validateResource(resource: any): Promise<ValidationResult> {
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errors: ValidationError[] = [];
@@ -84,6 +91,11 @@ export class ValidationService {
     return validationResult;
   }
   
+  /**
+   * Parses the structure definition into element and slice maps for validation
+   * Maps each element by path and collects slice definitions for handling choice types
+   * @private
+   */
   private parseStructureDefinition(): void {
     
     this.structureDefinition.snapshot.element.forEach(element => {
@@ -104,6 +116,13 @@ export class ValidationService {
     });
   }
   
+  /**
+   * Performs full validation of a resource against its structure definition
+   * Validates resource type, profile declarations, and all elements recursively
+   * @param resource - The resource to validate
+   * @returns Promise resolving to validation results
+   * @private
+   */
   private async validate(resource: any): Promise<ValidationResult> {
     
     const errors: ValidationError[] = [];
@@ -141,6 +160,13 @@ export class ValidationService {
     };
   }
   
+  /**
+   * Validates that the resource properly declares conformance to required profiles
+   * Checks meta.profile for required profile URLs
+   * @param resource - The resource being validated
+   * @param errors - Array to collect validation errors
+   * @private
+   */
   private validateProfileDeclaration(resource: any, errors: ValidationError[]): void {
     if (!resource.meta?.profile?.includes(this.structureDefinition.url)) {
       errors.push({
@@ -201,6 +227,15 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates a single element against its element definition
+   * Performs cardinality, data type, constraint, and pattern validation
+   * @param path - The element path in dot notation
+   * @param value - The element value to validate
+   * @param errors - Array to collect validation errors
+   * @param warnings - Array to collect validation warnings
+   * @private
+   */
   private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     const elementDef = this.elements.get(path);
@@ -225,6 +260,15 @@ export class ValidationService {
     await this.validateChildElements(path, value, errors, warnings);
   }
   
+  /**
+   * Validates element cardinality (min/max occurrences)
+   * Checks if required elements are present and array sizes are within bounds
+   * @param path - The element path
+   * @param value - The element value
+   * @param elementDef - The element definition to validate against
+   * @param errors - Array to collect validation errors
+   * @private
+   */
   private validateCardinality(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
     
     /**

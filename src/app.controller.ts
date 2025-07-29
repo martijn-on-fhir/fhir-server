@@ -22,6 +22,6 @@ export class AppController {
   @Get('token')
   async token(): Promise<string>{
     
-    return await this.service.getToken()
+    return await this.service._getToken()
   }
 }

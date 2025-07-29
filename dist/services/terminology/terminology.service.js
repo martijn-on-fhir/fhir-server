@@ -22,13 +22,13 @@ const mongoose_2 = require("mongoose");
 const value_set_schema_1 = require("../../schema/value-set-schema");
 let TerminologyService = class TerminologyService {
     _config;
-    model;
+    _model;
     enabled = false;
     baseUrl = '';
     token;
-    constructor(_config, model) {
+    constructor(_config, _model) {
         this._config = _config;
-        this.model = model;
+        this._model = _model;
         this.baseUrl = this._config.get('terminology.baseUrl');
         this.enabled = this._config.get('terminology.enabled');
     }
@@ -36,13 +36,13 @@ let TerminologyService = class TerminologyService {
         if (valueSet.indexOf('|') !== -1) {
             valueSet = valueSet.split('|')[0];
         }
-        const document = await this.find(valueSet);
+        const document = await this._find(valueSet);
         if (document) {
             return document.toObject().expansion;
         }
         if (this.enabled) {
             if (!this.token) {
-                this.token = await this.getToken();
+                this.token = await this._getToken();
             }
             const config = {
                 baseURL: this.baseUrl,
@@ -54,7 +54,7 @@ let TerminologyService = class TerminologyService {
             };
             return await axios_1.default.request(config).then((response) => {
                 if (!document) {
-                    this.model.create({
+                    this._model.create({
                         url: response.data.url,
                         version: '1.0.0',
                         resourceType: response.data.resourceType,
@@ -68,10 +68,10 @@ let TerminologyService = class TerminologyService {
             });
         }
     }
-    async find(valueSet) {
-        return await this.model.findOne({ url: valueSet });
+    async _find(valueSet) {
+        return await this._model.findOne({ url: valueSet });
     }
-    async getToken() {
+    async _getToken() {
         const config = {
             url: this._config.get('terminology.tokenUrl'),
             method: 'POST',
