@@ -14,6 +14,7 @@ export declare class ValidationService {
     private parseStructureDefinition;
     private validate;
     private validateProfileDeclaration;
+    private checkRootProperties;
     private getStructureDefinition;
     private validateChildElements;
     private validateElement;

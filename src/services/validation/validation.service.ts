@@ -142,6 +142,8 @@ export class ValidationService {
       // Validate profile declaration
       this.validateProfileDeclaration(resource, errors);
       
+      this.checkRootProperties(resource, errors)
+      
       // Validate all elements
       await this.validateElement('Observation', resource, errors, warnings);
       
@@ -175,6 +177,35 @@ export class ValidationService {
         message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`,
       });
     }
+  }
+  
+  /**
+   * Validates that all root level properties in the resource are defined in the structure definition
+   * Checks each property against known element definitions and reports unknown properties as errors
+   * Special handling for 'effective' prefixed properties which are allowed
+   * @param resource - The FHIR resource being validated
+   * @param errors - Array to collect validation errors
+   * @private
+   */
+  private checkRootProperties(resource: any, errors: ValidationError[]): void {
+    
+    const rootProperties = Object.keys(resource).filter(key => !key.startsWith('_'));
+
+    rootProperties.forEach(property => {
+
+      if (!this.elements.has(`Observation.${property}`) && property !== 'resourceType') {
+        
+        if(property.startsWith('effective')){
+          return
+        }
+
+        errors.push({
+          path: property,
+          severity: 'error',
+          message: `Unexpected property: ${property}`,
+        });
+      }
+    });
   }
   
   /**

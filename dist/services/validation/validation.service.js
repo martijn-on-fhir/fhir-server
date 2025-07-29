@@ -95,6 +95,7 @@ let ValidationService = class ValidationService {
                 return { isValid: false, errors, warnings };
             }
             this.validateProfileDeclaration(resource, errors);
+            this.checkRootProperties(resource, errors);
             await this.validateElement('Observation', resource, errors, warnings);
         }
         catch (error) {
@@ -118,6 +119,21 @@ let ValidationService = class ValidationService {
                 message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`,
             });
         }
+    }
+    checkRootProperties(resource, errors) {
+        const rootProperties = Object.keys(resource).filter(key => !key.startsWith('_'));
+        rootProperties.forEach(property => {
+            if (!this.elements.has(`Observation.${property}`) && property !== 'resourceType') {
+                if (property.startsWith('effective')) {
+                    return;
+                }
+                errors.push({
+                    path: property,
+                    severity: 'error',
+                    message: `Unexpected property: ${property}`,
+                });
+            }
+        });
     }
     async getStructureDefinition(resourceType, profile) {
         const filter = {

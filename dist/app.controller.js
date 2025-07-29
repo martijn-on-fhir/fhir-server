@@ -13,22 +13,16 @@ exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
 const swagger_1 = require("@nestjs/swagger");
-const terminology_service_1 = require("./services/terminology/terminology.service");
 let AppController = class AppController {
     appService;
-    service;
-    constructor(appService, service) {
+    constructor(appService) {
         this.appService = appService;
-        this.service = service;
     }
     version() {
         return 'Fhir 4.0.0';
     }
     healthcheck() {
         return 'ok';
-    }
-    async token() {
-        return await this.service._getToken();
     }
 };
 exports.AppController = AppController;
@@ -44,15 +38,9 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", String)
 ], AppController.prototype, "healthcheck", null);
-__decorate([
-    (0, common_1.Get)('token'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AppController.prototype, "token", null);
 exports.AppController = AppController = __decorate([
     (0, swagger_1.ApiTags)('Health Check'),
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService, terminology_service_1.TerminologyService])
+    __metadata("design:paramtypes", [app_service_1.AppService])
 ], AppController);
 //# sourceMappingURL=app.controller.js.map
