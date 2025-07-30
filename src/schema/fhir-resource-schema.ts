@@ -34,5 +34,6 @@ export const fhirResourceSchema = SchemaFactory.createForClass(FhirResource);
 fhirResourceSchema.index({ resourceType: 1, 'resource.id': 1, })
 fhirResourceSchema.index({ 'resource.active': 1 })
 fhirResourceSchema.index({ 'resource.meta.lastUpdated': 1 })
+fhirResourceSchema.index({ 'resource.meta.profile': 1 })
 fhirResourceSchema.index({ 'resource.identifier': 1 })
 fhirResourceSchema.index({ 'tags': 1 })

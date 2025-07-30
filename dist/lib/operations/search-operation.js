@@ -4,6 +4,7 @@ exports.SearchOperation = void 0;
 const operation_1 = require("./operation");
 const common_1 = require("@nestjs/common");
 const fhir_response_1 = require("../fhir-response");
+const lodash_es_1 = require("lodash-es");
 class SearchOperation extends operation_1.Operation {
     count = 20;
     offset = 0;
@@ -42,6 +43,7 @@ class SearchOperation extends operation_1.Operation {
         this.offset = searchParams._offset ? parseInt(searchParams._offset) : 0;
         this.appendId(searchParams?._id);
         this.appendIdentifier(searchParams?.identifier);
+        this.appendProfile(searchParams?._profile);
         const query = this.transformToDotNotation(this.filter);
         console.dir(query);
         const resources = await this.fhirResourceModel
@@ -78,6 +80,11 @@ class SearchOperation extends operation_1.Operation {
         }
         if (this.filter.resource.identifier.length === 0) {
             delete this.filter.resource.identifier;
+        }
+    }
+    appendProfile(profile) {
+        if (profile) {
+            (0, lodash_es_1.set)(this.filter, 'resource.meta.profile', profile);
         }
     }
     transformToDotNotation(nestedQuery, prefix = '') {

@@ -25,14 +25,12 @@ class UpdateOperation extends operation_1.Operation {
                 });
             }
             const newVersionId = String(parseInt(entity.meta.versionId) + 1);
-            const updatedResourceData = this.prepareResourceForUpdate(resourceType, id, resourceData, entity, newVersionId);
-            const searchParams = this.extractSearchParams(resourceType, updatedResourceData);
-            const updatedResource = await this.fhirResourceModel.findOneAndUpdate({ resourceType, id, status: 'active' }, {
+            const updatedResourceData = this.prepareResourceForUpdate(resourceType, id, resourceData);
+            const updatedResource = await this.fhirResourceModel.findOneAndUpdate({ resourceType, id }, {
                 $set: {
                     resource: updatedResourceData,
-                    'meta.versionId': newVersionId,
-                    'meta.lastUpdated': new Date(),
-                    searchParams: searchParams,
+                    'resource.meta.versionId': newVersionId,
+                    '.resource.meta.lastUpdated': new Date(),
                 },
             }, {
                 new: true,
@@ -56,18 +54,11 @@ class UpdateOperation extends operation_1.Operation {
             });
         }
     }
-    prepareResourceForUpdate(resourceType, id, resourceData, existingResource, newVersionId) {
+    prepareResourceForUpdate(resourceType, id, resourceData) {
         return {
             ...resourceData,
             resourceType,
-            id,
-            meta: {
-                versionId: newVersionId,
-                lastUpdated: new Date().toISOString(),
-                profile: resourceData.meta?.profile || existingResource.meta.profile || [],
-                security: resourceData.meta?.security || existingResource.meta.security || [],
-                tag: resourceData.meta?.tag || existingResource.meta.tag || [],
-            },
+            id
         };
     }
 }

@@ -12,19 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fhirResourceSchema = exports.FhirResource = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let FhirResource = class FhirResource {
-    resourceType;
     id;
-    meta;
+    resourceType;
     resource;
-    status;
     tags;
-    searchParams;
 };
 exports.FhirResource = FhirResource;
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, index: true }),
-    __metadata("design:type", String)
-], FhirResource.prototype, "resourceType", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
@@ -34,42 +27,30 @@ __decorate([
     __metadata("design:type", String)
 ], FhirResource.prototype, "id", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({
-        type: Object,
-        default: () => ({
-            versionId: '1',
-            lastUpdated: new Date(),
-            profile: []
-        })
-    }),
-    __metadata("design:type", Object)
-], FhirResource.prototype, "meta", void 0);
+    (0, mongoose_1.Prop)({ required: true, index: true }),
+    __metadata("design:type", String)
+], FhirResource.prototype, "resourceType", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Object }),
     __metadata("design:type", Object)
 ], FhirResource.prototype, "resource", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'active', index: true }),
-    __metadata("design:type", String)
-], FhirResource.prototype, "status", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ type: [String], default: [] }),
     __metadata("design:type", Array)
 ], FhirResource.prototype, "tags", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: Object, default: {} }),
-    __metadata("design:type", Object)
-], FhirResource.prototype, "searchParams", void 0);
 exports.FhirResource = FhirResource = __decorate([
     (0, mongoose_1.Schema)({
         collection: 'resources',
-        timestamps: { createdAt: 'meta.lastUpdated', updatedAt: false },
+        timestamps: { createdAt: true, updatedAt: false },
         strict: false,
         versionKey: false
     })
 ], FhirResource);
 exports.fhirResourceSchema = mongoose_1.SchemaFactory.createForClass(FhirResource);
-exports.fhirResourceSchema.index({ resourceType: 1, id: 1 });
-exports.fhirResourceSchema.index({ resourceType: 1, status: 1 });
-exports.fhirResourceSchema.index({ 'meta.lastUpdated': -1 });
+exports.fhirResourceSchema.index({ resourceType: 1, 'resource.id': 1, });
+exports.fhirResourceSchema.index({ 'resource.active': 1 });
+exports.fhirResourceSchema.index({ 'resource.meta.lastUpdated': 1 });
+exports.fhirResourceSchema.index({ 'resource.meta.profile': 1 });
+exports.fhirResourceSchema.index({ 'resource.identifier': 1 });
+exports.fhirResourceSchema.index({ 'tags': 1 });
 //# sourceMappingURL=fhir-resource-schema.js.map

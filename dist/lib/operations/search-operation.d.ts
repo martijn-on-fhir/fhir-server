@@ -11,5 +11,6 @@ export declare class SearchOperation extends Operation {
     find(resourceType: string, searchParams: any): Promise<any>;
     appendId(id: string): void;
     private appendIdentifier;
+    private appendProfile;
     private transformToDotNotation;
 }

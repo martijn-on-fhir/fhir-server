@@ -3,6 +3,7 @@ import { Model, SortOrder } from 'mongoose';
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema';
 import { NotFoundException } from '@nestjs/common';
 import { FhirResponse } from '../fhir-response';
+import { set } from 'lodash-es'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -78,6 +79,7 @@ export class SearchOperation extends Operation {
     
     this.appendId(searchParams?._id)
     this.appendIdentifier(searchParams?.identifier);
+    this.appendProfile(searchParams?._profile);
     
     const query = this.transformToDotNotation(this.filter);
     console.dir(query);
@@ -141,6 +143,13 @@ export class SearchOperation extends Operation {
     
     if (this.filter.resource.identifier.length === 0) {
       delete this.filter.resource.identifier;
+    }
+  }
+  
+  private appendProfile(profile: string): void {
+    
+    if(profile){
+      set(this.filter, 'resource.meta.profile', profile)
     }
   }
   

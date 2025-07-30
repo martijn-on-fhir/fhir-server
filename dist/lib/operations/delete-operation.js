@@ -46,11 +46,11 @@ class DeleteOperation extends operation_1.Operation {
         }
     }
     async updateResource(resourceType, id, entity) {
-        return this.fhirResourceModel.findOneAndUpdate({ resourceType, id, status: 'active' }, {
+        return this.fhirResourceModel.findOneAndUpdate({ resourceType, id }, {
             $set: {
                 status: 'inactive',
-                'meta.versionId': String(parseInt(entity.meta?.versionId ?? 0) + 1),
-                'meta.lastUpdated': new Date(),
+                'resource.meta.versionId': String(parseInt(entity.meta?.versionId ?? 0) + 1),
+                'resource.meta.lastUpdated': new Date(),
             },
             $push: {
                 tags: 'deleted',
