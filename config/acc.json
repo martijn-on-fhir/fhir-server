@@ -1,0 +1,15 @@
+{
+  "authorization": {
+    "oauth": {
+      "enabled": true,
+      "introspect": "http://localhost/introspect"
+    }
+  },
+  "terminology": {
+    "enabled": false,
+    "tokenUrl": "",
+    "baseUrl": "",
+    "username": "",
+    "password": ""
+  }
+}
