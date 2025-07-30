@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const fhir_service_1 = require("../services/fhir/fhir.service");
 const swagger_1 = require("@nestjs/swagger");
 const validation_service_1 = require("../services/validation/validation.service");
+const authorizer_guard_1 = require("../guards/authorizer/authorizer.guard");
 let FhirController = class FhirController {
     _service;
     _validatiobService;
@@ -120,6 +121,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FhirController.prototype, "delete", null);
 exports.FhirController = FhirController = __decorate([
+    (0, common_1.UseGuards)(authorizer_guard_1.AuthorizerGuard),
     (0, swagger_1.ApiTags)('Fhir Server'),
     (0, common_1.Controller)('fhir'),
     __metadata("design:paramtypes", [fhir_service_1.FhirService, validation_service_1.ValidationService])

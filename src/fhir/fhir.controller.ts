@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { FhirService } from '../services/fhir/fhir.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ValidationService } from '../services/validation/validation.service';
 import { ValidationResult } from '../interfaces/validation-result';
+import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
 
+@UseGuards(AuthorizerGuard)
 @ApiTags('Fhir Server')
 @Controller('fhir')
 export class FhirController {

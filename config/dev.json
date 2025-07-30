@@ -9,5 +9,9 @@
     "baseUrl": "",
     "username": "",
     "password": ""
+  },
+  "oauth": {
+    "enabled": true,
+    "introspection": "http://localhost:5000"
   }
 }
