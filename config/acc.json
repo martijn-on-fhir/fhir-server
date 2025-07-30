@@ -1,7 +1,9 @@
 {
   "authorization": {
-    "enabled": true,
-    "introspect": "https://oauth.dev.carebeat-connector.nl/introspect"
+    "oauth": {
+      "enabled": true,
+      "introspect": "http://localhost/introspect"
+    }
   },
   "terminology": {
     "enabled": false,
