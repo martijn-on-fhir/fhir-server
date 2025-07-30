@@ -27,4 +27,4 @@ The server implements core FHIR operations including:
 
 ### Notice
 
-allthough this is fully functional fhir server, it still lacks features
+allthough this is a fully functional fhir server, it still lacks features
