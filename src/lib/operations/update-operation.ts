@@ -33,17 +33,15 @@ export class UpdateOperation extends Operation {
       }
       
       const newVersionId = String(parseInt(entity.meta.versionId) + 1);
-      const updatedResourceData = this.prepareResourceForUpdate( resourceType, id, resourceData, entity, newVersionId)
+      const updatedResourceData = this.prepareResourceForUpdate( resourceType, id, resourceData)
       
-      const searchParams = this.extractSearchParams(resourceType, updatedResourceData);
       const updatedResource = await this.fhirResourceModel.findOneAndUpdate(
-        { resourceType, id, status: 'active' },
+        { resourceType, id },
         {
           $set: {
             resource: updatedResourceData,
-            'meta.versionId': newVersionId,
-            'meta.lastUpdated': new Date(),
-            searchParams: searchParams,
+            'resource.meta.versionId': newVersionId,
+            '.resource.meta.lastUpdated': new Date(),
           },
         },
         {
@@ -82,19 +80,12 @@ export class UpdateOperation extends Operation {
    * @param newVersionId - The new version identifier to be assigned
    * @returns The prepared resource object with merged metadata
    */
-  private prepareResourceForUpdate(resourceType: string, id: string, resourceData: any, existingResource: FhirResourceDocument, newVersionId: string): any {
+  private prepareResourceForUpdate(resourceType: string, id: string, resourceData: any): any {
     
     return {
       ...resourceData,
       resourceType,
-      id,
-      meta: {
-        versionId: newVersionId,
-        lastUpdated: new Date().toISOString(),
-        profile: resourceData.meta?.profile || existingResource.meta.profile || [],
-        security: resourceData.meta?.security || existingResource.meta.security || [],
-        tag: resourceData.meta?.tag || existingResource.meta.tag || [],
-      },
+      id
     };
   }
 }

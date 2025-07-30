@@ -23,19 +23,14 @@ export class CreateOperation extends Operation {
       resourceData.id = id
       
       const fhirResource = new this.fhirResourceModel({
-        resourceType,
         id,
+        resourceType,
         resource: {
           resourceType,
           id,
           ...resourceData,
         },
-        meta: {
-          versionId: '1',
-          lastUpdated: new Date(),
-        },
-        tags: ['tenant'],
-        searchParams: this.extractSearchParams(resourceType, resourceData),
+        tags: ['tenant']
       });
       
       const saved = await fhirResource.save();

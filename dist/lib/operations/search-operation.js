@@ -5,13 +5,19 @@ const operation_1 = require("./operation");
 const common_1 = require("@nestjs/common");
 const fhir_response_1 = require("../fhir-response");
 class SearchOperation extends operation_1.Operation {
+    count = 20;
+    offset = 0;
+    sort = { 'resource.meta.lastUpdated': 1 };
+    filter = {
+        resourceType: 'Patient',
+    };
     constructor(fhirResourceModel) {
         super(fhirResourceModel);
         this.fhirResourceModel = fhirResourceModel;
     }
     async findById(resourceType, id) {
         const resource = await this.fhirResourceModel.findOne({
-            resourceType, id, status: 'active',
+            resourceType, 'resource.id': id,
         }).exec();
         if (!resource) {
             throw new common_1.NotFoundException({
@@ -28,37 +34,67 @@ class SearchOperation extends operation_1.Operation {
         return fhir_response_1.FhirResponse.format(resource);
     }
     async find(resourceType, searchParams) {
-        const query = {
+        this.filter = {
             resourceType,
-            status: 'active',
+            resource: {},
         };
-        Object.keys(searchParams).forEach(key => {
-            if (key === '_count')
-                return;
-            if (key === '_offset')
-                return;
-            if (key === '_sort')
-                return;
-            query[`searchParams.${key}`] = searchParams[key];
-        });
-        const count = parseInt(searchParams._count) || 20;
-        const offset = parseInt(searchParams._offset) || 0;
-        let sort = { 'meta.lastUpdated': -1 };
-        if (searchParams._sort) {
-            const sortField = searchParams._sort.startsWith('-')
-                ? searchParams._sort.substring(1)
-                : searchParams._sort;
-            const sortOrder = searchParams._sort.startsWith('-') ? -1 : 1;
-            sort = { [`searchParams.${sortField}`]: sortOrder };
-        }
+        this.count = searchParams._count ? parseInt(searchParams._count) : 20;
+        this.offset = searchParams._offset ? parseInt(searchParams._offset) : 0;
+        this.appendId(searchParams?._id);
+        this.appendIdentifier(searchParams?.identifier);
+        const query = this.transformToDotNotation(this.filter);
+        console.dir(query);
         const resources = await this.fhirResourceModel
             .find(query)
-            .skip(offset)
-            .limit(count)
-            .sort(sort)
+            .skip(this.offset)
+            .limit(this.count)
+            .sort(this.sort)
             .exec();
         const total = await this.fhirResourceModel.countDocuments(query);
-        return fhir_response_1.FhirResponse.bundle(resources, total, resourceType, offset, count);
+        return fhir_response_1.FhirResponse.bundle(resources, total, resourceType, this.offset, this.count);
+    }
+    appendId(id) {
+        if (id) {
+            this.filter.resource.id = id;
+        }
+    }
+    appendIdentifier(entity) {
+        this.filter.resource.identifier = [];
+        const identifiers = [];
+        if (typeof entity === 'string') {
+            identifiers.push(entity);
+        }
+        for (const identifier of identifiers) {
+            const [system, value] = identifier.split('|');
+            const config = {
+                system,
+            };
+            if (value) {
+                Object.assign(config, {
+                    value,
+                });
+            }
+            this.filter.resource.identifier = config;
+        }
+        if (this.filter.resource.identifier.length === 0) {
+            delete this.filter.resource.identifier;
+        }
+    }
+    transformToDotNotation(nestedQuery, prefix = '') {
+        const transformed = {};
+        for (const key in nestedQuery) {
+            if (nestedQuery.hasOwnProperty(key)) {
+                const currentKey = prefix ? `${prefix}.${key}` : key;
+                const value = nestedQuery[key];
+                if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+                    Object.assign(transformed, this.transformToDotNotation(value, currentKey));
+                }
+                else {
+                    transformed[currentKey] = value;
+                }
+            }
+        }
+        return transformed;
     }
 }
 exports.SearchOperation = SearchOperation;

@@ -82,12 +82,12 @@ export class DeleteOperation extends Operation {
   private async updateResource(resourceType: string, id: string, entity: any): Promise<any> {
     
     return this.fhirResourceModel.findOneAndUpdate(
-      { resourceType, id, status: 'active' },
+      { resourceType, id },
       {
         $set: {
           status: 'inactive',
-          'meta.versionId': String(parseInt(entity.meta?.versionId ?? 0) + 1),
-          'meta.lastUpdated': new Date(),
+          'resource.meta.versionId': String(parseInt(entity.meta?.versionId ?? 0) + 1),
+          'resource.meta.lastUpdated': new Date(),
         },
         $push: {
           tags: 'deleted',
