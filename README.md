@@ -25,3 +25,6 @@ The server implements core FHIR operations including:
 - Support for FHIR Bundles with proper linking
 - Validation by terminology server and structure defination
 
+### Notice
+
+allthough this is fully functional fhir server, it still lacks features
