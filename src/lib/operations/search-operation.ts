@@ -146,6 +146,14 @@ export class SearchOperation extends Operation {
     }
   }
   
+  /**
+   * Appends a profile filter to the search query.
+   * If a profile URL is provided, it will be added to the resource's meta.profile criteria.
+   * This allows filtering resources based on their conformance to specific FHIR profiles.
+   *
+   * @param profile - The profile URL to filter by
+   * @private
+   */
   private appendProfile(profile: string): void {
     
     if(profile){

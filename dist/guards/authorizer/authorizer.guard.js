@@ -19,7 +19,7 @@ let AuthorizerGuard = class AuthorizerGuard {
         this._config = _config;
     }
     canActivate(context) {
-        if (this._config.get('authorization.enabled') === true) {
+        if (this._config.get('authorization.oauth.enabled') === true) {
             const request = context.switchToHttp().getRequest();
             const authHeader = request.headers['authorization'];
             if (authHeader) {
