@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/no-require-imports
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -16,6 +18,16 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'config'),
+          to: path.resolve(__dirname, 'dist/config')
+        }
+      ]
+    })
+  ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
