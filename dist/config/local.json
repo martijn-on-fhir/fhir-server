@@ -1,0 +1,16 @@
+{
+  "authorization": {
+    "oauth": {
+      "enabled": false,
+      "introspect": "https://oauth.dev.carebeat-connector.nl/introspect"
+    }
+  },
+  "terminology": {
+    "enabled": true,
+    "tokenUrl": "https://terminologieserver.nl/auth/realms/nictiz/protocol/openid-connect/token",
+    "baseUrl": "https://terminologieserver.nl",
+    "username": "m.schimmel@adapcare.nl",
+    "password": "JoopEnKaas2016"
+  }
+}
+
