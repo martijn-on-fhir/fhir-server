@@ -21,11 +21,10 @@ export declare class ValidationService {
     private validateElement;
     private validateCardinality;
     private validateDataType;
-    private isValidQuantity;
+    private _toBoolean;
     private evaluateConstraint;
     private validateConstraints;
     private validatePatterns;
-    private isValidCodeableConcept;
     private matchesCodeableConceptPattern;
     private matchesQuantityPattern;
     private normalizeTypes;

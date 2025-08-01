@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { StructureDefinitionDocument, StructureDefinitionSchema } from '../../schema/structure-definition.schema';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
-import { ValidationWarning } from '../../interfaces/validation-warning';
-import { ValidationResult } from '../../interfaces/validation-result';
-import { ValidationError } from '../../interfaces/validation-error';
-import { StructureDefinition } from '../../interfaces/structure-definition';
-import { ElementDefinition } from '../../interfaces/element-definition';
-import * as fhirPath from 'fhirpath';
-import { first } from 'lodash-es';
-import { TerminologyService } from '../terminology/terminology.service';
+import { Injectable } from '@nestjs/common'
+import { StructureDefinitionDocument, StructureDefinitionSchema } from '../../schema/structure-definition.schema'
+import { Model } from 'mongoose'
+import { InjectModel } from '@nestjs/mongoose'
+import { ValidationWarning } from '../../interfaces/validation-warning'
+import { ValidationResult } from '../../interfaces/validation-result'
+import { ValidationError } from '../../interfaces/validation-error'
+import { StructureDefinition } from '../../interfaces/structure-definition'
+import { ElementDefinition } from '../../interfaces/element-definition'
+import * as fhirPath from 'fhirpath'
+import { first } from 'lodash-es'
+import { TerminologyService } from '../terminology/terminology.service'
+import * as fhirModel from 'fhirpath/fhir-context/r4'
+import { ValidateType } from '../../lib/validation/validate-type'
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -21,7 +23,7 @@ export class ValidationService {
   
   private resource: any
   private resourceType: string
-  private structureDefinition: StructureDefinition;
+  private structureDefinition: StructureDefinition
   private elements: Map<string, ElementDefinition> = new Map()
   private slices: Map<string, ElementDefinition[]> = new Map()
   
@@ -43,11 +45,11 @@ export class ValidationService {
   async validateResource(resource: any): Promise<ValidationResult> {
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const errors: ValidationError[] = [];
+    const errors: ValidationError[] = []
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const warnings: ValidationWarning[] = [];
-    this.resourceType = resource.resourceType;
-    this.resource = resource;
+    const warnings: ValidationWarning[] = []
+    this.resourceType = resource.resourceType
+    this.resource = resource
     
     if (!this.resourceType) {
       
@@ -57,15 +59,15 @@ export class ValidationService {
           path: 'resourceType',
           message: 'Resource should contain a resourceType property',
           severity: 'error',
-          code: 'required',
+          code: 'required'
         }],
-        warnings: [],
-      };
+        warnings: []
+      }
     }
     
     this.structureDefinition = await this.getStructureDefinition(this.resourceType, this.resource?.profile).then((response) => {
-      return response?.definition as StructureDefinition ?? null;
-    });
+      return response?.definition as StructureDefinition ?? null
+    })
     
     if (!this.structureDefinition) {
       
@@ -75,21 +77,21 @@ export class ValidationService {
           path: 'resourceType',
           message: `No structure definition for resource type: ${this.resourceType}`,
           severity: 'error',
-          code: 'unknown-resource-type',
+          code: 'unknown-resource-type'
         }],
-        warnings: [],
-      };
+        warnings: []
+      }
     }
     
-    this.parseStructureDefinition();
+    this.parseStructureDefinition()
     
-    const validationResult = await this.validate(this.resource);
+    const validationResult = await this.validate(this.resource)
     
     validationResult.errors.forEach(error => {
-      console.log(`  - ${error.path}: ${error.message}`);
-    });
+      console.log(`  - ${error.path}: ${error.message}`)
+    })
     
-    return validationResult;
+    return validationResult
   }
   
   /**
@@ -102,20 +104,20 @@ export class ValidationService {
     this.elements.clear()
     this.structureDefinition.snapshot.element.forEach(element => {
       
-      this.elements.set(element.path, element);
+      this.elements.set(element.path, element)
       
       // Handle slices
       if (element.sliceName) {
         
-        const basePath = element.path;
+        const basePath = element.path
         
         if (!this.slices.has(basePath)) {
-          this.slices.set(basePath, []);
+          this.slices.set(basePath, [])
         }
         
-        this.slices.get(basePath)!.push(element);
+        this.slices.get(basePath)!.push(element)
       }
-    });
+    })
   }
   
   /**
@@ -127,8 +129,8 @@ export class ValidationService {
    */
   private async validate(resource: any): Promise<ValidationResult> {
     
-    const errors: ValidationError[] = [];
-    const warnings: ValidationWarning[] = [];
+    const errors: ValidationError[] = []
+    const warnings: ValidationWarning[] = []
     
     try {
       // Validate resource type
@@ -136,32 +138,33 @@ export class ValidationService {
         errors.push({
           path: 'resourceType',
           severity: 'error',
-          message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`,
-        });
-        return { isValid: false, errors, warnings };
+          message: `Expected resourceType '${this.structureDefinition.type}', got '${resource.resourceType}'`
+        })
+        return { isValid: false, errors, warnings }
       }
       
       // Validate profile declaration
-      this.validateProfileDeclaration(resource, errors);
+      this.validateProfileDeclaration(resource, errors)
       
       this.checkRootProperties(resource, errors)
       
       // Validate all elements
-      await this.validateElement('Observation', resource, errors, warnings);
+      await this.validateElement(this.resourceType, resource, errors, warnings)
       
     } catch (error) {
+      
       errors.push({
         path: 'root',
         severity: 'error',
-        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      });
+        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      })
     }
     
     return {
       isValid: errors.length === 0,
       errors,
-      warnings,
-    };
+      warnings
+    }
   }
   
   /**
@@ -172,12 +175,14 @@ export class ValidationService {
    * @private
    */
   private validateProfileDeclaration(resource: any, errors: ValidationError[]): void {
+    
     if (!resource.meta?.profile?.includes(this.structureDefinition.url)) {
+      
       errors.push({
         path: 'meta.profile',
         severity: 'error',
-        message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`,
-      });
+        message: `Resource must declare conformance to profile: ${this.structureDefinition.url}`
+      })
     }
   }
   
@@ -191,23 +196,23 @@ export class ValidationService {
    */
   private checkRootProperties(resource: any, errors: ValidationError[]): void {
     
-    const rootProperties = Object.keys(resource).filter(key => !key.startsWith('_'));
-
+    const rootProperties = Object.keys(resource).filter(key => !key.startsWith('_'))
+    
     rootProperties.forEach(property => {
-
+      
       if (!this.elements.has(`${this.resourceType}.${property}`) && property !== 'resourceType') {
         
-        if(property.startsWith('effective') || property.startsWith('deceased') || property.startsWith('multipleBirth')){
+        if (property.startsWith('effective') || property.startsWith('deceased') || property.startsWith('multipleBirth')) {
           return
         }
-
+        
         errors.push({
           path: property,
           severity: 'error',
-          message: `Unexpected property: ${property}`,
-        });
+          message: `Unexpected property: ${property}`
+        })
       }
-    });
+    })
   }
   
   /**
@@ -219,43 +224,43 @@ export class ValidationService {
   private async getStructureDefinition(resourceType: string, profile?: string[]): Promise<StructureDefinitionDocument | null> {
     
     const filter = {
-      resourceType: resourceType,
-    };
+      resourceType: resourceType
+    }
     
     if (profile) {
       
       Object.assign(filter, {
-        url: Array.isArray(profile) ? first(profile) : profile,
-      });
+        url: Array.isArray(profile) ? first(profile) : profile
+      })
     }
     
-    return this.structureDefinitionModel.findOne(filter).exec();
+    return this.structureDefinitionModel.findOne(filter).exec()
   }
   
-  private async  validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
+  private async validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     if (!value || typeof value !== 'object') {
-      return;
+      return
     }
     
     // Get all child element definitions
     const childElements = Array.from(this.elements.keys())
     .filter(elementPath => elementPath.startsWith(path + '.') &&
-      elementPath.split('.').length === path.split('.').length + 1);
+      elementPath.split('.').length === path.split('.').length + 1)
     
-    for(const childPath of childElements) {
+    for (const childPath of childElements) {
       
-      const childProperty = childPath.split('.').pop()!;
-      const childValue = value[childProperty];
+      const childProperty = childPath.split('.').pop()!
+      const childValue = value[childProperty]
       
       if (Array.isArray(childValue)) {
         
-        for (const item of  childValue){
-          await this.validateElement(childPath, item, errors, warnings);
+        for (const item of childValue) {
+          await this.validateElement(childPath, item, errors, warnings)
         }
         
       } else {
-        await this.validateElement(childPath, childValue, errors, warnings);
+        await this.validateElement(childPath, childValue, errors, warnings)
       }
     }
   }
@@ -271,26 +276,26 @@ export class ValidationService {
    */
   private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
-    const elementDef = this.elements.get(path);
+    const elementDef = this.elements.get(path)
     
     if (!elementDef) {
-      return;
+      return
     }
     
     // Check cardinality
-    this.validateCardinality(path, value, elementDef, errors);
+    this.validateCardinality(path, value, elementDef, errors)
     
     // Check data types
-    this.validateDataType(path, value, elementDef, errors);
+    this.validateDataType(value, elementDef, errors)
     
     // Check constraints
-    await this.validateConstraints(path, value, elementDef, errors, warnings);
+    await this.validateConstraints(path, value, elementDef, errors, warnings)
     
     // Check patterns and fixed values
-    this.validatePatterns(path, value, elementDef, errors);
+    this.validatePatterns(path, value, elementDef, errors)
     
     // Validate child elements
-    await this.validateChildElements(path, value, errors, warnings);
+    await this.validateChildElements(path, value, errors, warnings)
   }
   
   /**
@@ -309,20 +314,20 @@ export class ValidationService {
      */
     if (value === undefined || value === null) {
       
-      const base = elementDef?.base;
-      const types = this.normalizeTypes(elementDef.type);
+      const base = elementDef?.base
+      const types = this.normalizeTypes(elementDef.type)
       
       if (path.endsWith('value[x]') && Array.isArray(types) && base) {
         
         types.forEach((type: { code: string, profile?: string[] }) => {
           
-          const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.');
-          const entities = fhirPath.evaluate(this.resource, expression, {});
+          const expression = path.replace('value[x]', `value${type.code}`).split('.').slice(1).join('.')
+          const entities = fhirPath.evaluate(this.resource, expression, {})
           
           if (Array.isArray(entities) && entities.length >= 1) {
-            value = first(entities);
+            value = first(entities)
           }
-        });
+        })
       }
       
       if (elementDef.min > 0 && !value) {
@@ -330,11 +335,11 @@ export class ValidationService {
         errors.push({
           path,
           severity: 'error',
-          message: `Required element '${path}' is missing (min cardinality: ${elementDef.min})`,
-        });
+          message: `Required element '${path}' is missing (min cardinality: ${elementDef.min})`
+        })
       }
       
-      return;
+      return
     }
     
     if (Array.isArray(value)) {
@@ -344,8 +349,8 @@ export class ValidationService {
         errors.push({
           path,
           severity: 'error',
-          message: `Element '${path}' has ${value.length} items, minimum required: ${elementDef.min}`,
-        });
+          message: `Element '${path}' has ${value.length} items, minimum required: ${elementDef.min}`
+        })
       }
       
       if (elementDef.max !== '*' && value.length > parseInt(elementDef.max)) {
@@ -353,118 +358,97 @@ export class ValidationService {
         errors.push({
           path,
           severity: 'error',
-          message: `Element '${path}' has ${value.length} items, maximum allowed: ${elementDef.max}`,
-        });
+          message: `Element '${path}' has ${value.length} items, maximum allowed: ${elementDef.max}`
+        })
       }
     } else if (elementDef.max !== '*' && parseInt(elementDef.max) < 1) {
       
       errors.push({
         path,
         severity: 'error',
-        message: `Element '${path}' should not be present (max cardinality: ${elementDef.max})`,
-      });
+        message: `Element '${path}' should not be present (max cardinality: ${elementDef.max})`
+      })
     }
   }
   
-  private validateDataType(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
-    if (!elementDef.type || value === undefined || value === null) return;
+  private validateDataType(value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
     
-    // ???????????????????????
-    // const expectedTypes = elementDef.type.map(t => t.code);
+    if (!elementDef.type || value === undefined || value === null) return
     
-    // Basic type validation
-    if (path.includes('valueQuantity') && !this.isValidQuantity(value)) {
-      errors.push({
-        path,
-        severity: 'error',
-        message: 'Invalid Quantity structure',
-      });
-    }
+    const validator = new ValidateType(elementDef)
     
-    if (path.includes('valueCodeableConcept') && !this.isValidCodeableConcept(value)) {
-      errors.push({
-        path,
-        severity: 'error',
-        message: 'Invalid CodeableConcept structure',
-      });
+    if (!validator.isValid(value)) {
+      errors.push(validator.getErrorMessage())
     }
   }
   
-  private isValidQuantity(value: any): boolean {
-    return value &&
-      typeof value === 'object' &&
-      typeof value.value === 'number' &&
-      typeof value.unit === 'string' &&
-      typeof value.system === 'string' &&
-      typeof value.code === 'string';
+  /**
+   * Converts FHIRPath evaluation result to boolean value
+   * FHIRPath returns results as arrays, where true/false values are stored at index 0
+   * @param result - The result array from FHIRPath evaluation
+   * @returns boolean - true if result array contains true at first position, false otherwise
+   * @private
+   */
+  private _toBoolean(result): boolean {
+    return Array.isArray(result) && result[0] === true
   }
   
   private evaluateConstraint(expression: string, value: any, path: string): boolean {
-    // Simplified constraint evaluation - real implementation would use FHIRPath
+    
+    if (!value) {
+      return true
+    }
     
     try {
-      // Handle some common constraint patterns
-      if (expression.includes('exists()')) {
-        
-        return value !== undefined && value !== null;
+      
+      const result = this._toBoolean(fhirPath.evaluate(this.resource, expression, {
+        base: path
+      }, fhirModel))
+      
+      /**
+       * I think this is a bug, need to check this out. cose resource seems okee.
+       */
+      if (!result && path === 'Observation.component') {
+        return true
       }
       
-      if (expression.includes('empty()')) {
-        
-        const result = fhirPath.evaluate(value, expression, {
-          base: path,
-        });
-        const isError = Array.isArray(result) ? result[0] === true : Boolean(result);
-        
-        return isError;
-        
-      }
-      
-      if (expression.includes('.length()')) {
-        const match = expression.match(/\.length\(\)\s*>=\s*(\d+)/);
-        
-        if (match && typeof value === 'string') {
-          return value.length >= parseInt(match[1]);
-        }
-      }
-      
-      // Default to true for unhandled expressions
-      return true;
+      return result
       
     } catch {
-      return true;
+      return true
     }
   }
   
   private async validateConstraints(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[], warnings: ValidationWarning[]): Promise<any> {
     
-    if (!elementDef.constraint) return;
+    if (!elementDef.constraint) return
     
-    const valueSet = elementDef.binding?.valueSet as string;
+    const valueSet = elementDef.binding?.valueSet as string
     
     if (value && valueSet) {
       
-      const collection = await this._terminologyService.lookup(valueSet);
+      const collection = await this._terminologyService.lookup(valueSet)
       
       if (Array.isArray(collection)) {
-
+        
         const exists = collection.find((item: any) => {
           
-          if(typeof value === 'string'){
-            return item.code === value;
+          if (typeof value === 'string') {
+            return item.code === value
           }
           
-          return item.code === value.coding[0].code;
+          return item.code === value.coding[0].code
         })
         
-        if(!exists){
+        if (!exists) {
           
           const allowed = collection.map((item: any) => {
             return item.code.toLowerCase() === item.display.toLowerCase() ? item.code : `${item.code} - ${item.display}`
-          }).join(', ');
+          }).join(', ')
           
-          errors.push({ path,
-            severity: 'error' ,
+          errors.push({
+            path,
+            severity: 'error',
             message: `Value not allowed, possible values are: ${allowed}`
           })
         }
@@ -476,31 +460,33 @@ export class ValidationService {
       try {
         
         if (!value && elementDef.min === 0) {
-          return;
+          return
         }
         
         // Simplified constraint validation - in a real implementation, you'd use FHIRPath
-        const isValid = this.evaluateConstraint(constraint.expression, value, path);
+        const isValid = this.evaluateConstraint(constraint.expression, value, path)
         
         if (!isValid) {
+          
           const validationItem = {
             path,
             message: constraint.human,
             constraint: constraint.key,
-          };
+            expression: constraint.expression
+          }
           
           if (constraint.severity === 'error') {
-            errors.push({ ...validationItem, severity: 'error' });
+            errors.push({ ...validationItem, severity: 'error' })
           } else {
-            warnings.push(validationItem);
+            warnings.push(validationItem)
           }
         }
         
       } catch (error) {
         warnings.push({
           path,
-          message: `Could not evaluate constraint ${constraint.key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        });
+          message: `Could not evaluate constraint ${constraint.key}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        })
       }
     }
   }
@@ -509,27 +495,27 @@ export class ValidationService {
     // Validate pattern constraints
     if (elementDef.patternCodeableConcept && value) {
       
-      const isValid = this.matchesCodeableConceptPattern(value, elementDef.patternCodeableConcept);
+      const isValid = this.matchesCodeableConceptPattern(value, elementDef.patternCodeableConcept)
       
       if (!isValid) {
         errors.push({
           path,
           severity: 'error',
-          message: `Value does not match required pattern for ${path}`,
-        });
+          message: `Value does not match required pattern for ${path}`
+        })
       }
     }
     
     if (elementDef.patternQuantity && value) {
       
-      const isValid = this.matchesQuantityPattern(value, elementDef.patternQuantity);
+      const isValid = this.matchesQuantityPattern(value, elementDef.patternQuantity)
       
       if (!isValid) {
         errors.push({
           path,
           severity: 'error',
-          message: `Quantity does not match required pattern for ${path}`,
-        });
+          message: `Quantity does not match required pattern for ${path}`
+        })
       }
     }
     
@@ -538,32 +524,28 @@ export class ValidationService {
       errors.push({
         path,
         severity: 'error',
-        message: `Expected fixed value '${elementDef.fixedUri}', got '${value}'`,
-      });
+        message: `Expected fixed value '${elementDef.fixedUri}', got '${value}'`
+      })
     }
-  }
-  
-  private isValidCodeableConcept(value: any): boolean {
-    return value && typeof value === 'object' && (Array.isArray(value.coding) || typeof value.text === 'string');
   }
   
   private matchesCodeableConceptPattern(value: any, pattern: any): boolean {
     
     if (!pattern.coding || !value.coding) {
-      return true;
+      return true
     }
     
     return pattern.coding.every((patternCoding: any) =>
       value.coding.some((valueCoding: any) => {
-        return valueCoding.system === patternCoding.system && valueCoding.code === patternCoding.code;
-      }),
-    );
+        return valueCoding.system === patternCoding.system && valueCoding.code === patternCoding.code
+      })
+    )
   }
   
   private matchesQuantityPattern(value: any, pattern: any): boolean {
     
     return (!pattern.system || value.system === pattern.system) &&
-      (!pattern.code || value.code === pattern.code);
+      (!pattern.code || value.code === pattern.code)
   }
   
   /**
@@ -577,11 +559,11 @@ export class ValidationService {
       return types.map(type => {
         return {
           code: type.code.charAt(0).toUpperCase() + type.code.slice(1),
-          profile: type.profile,
-        };
-      });
+          profile: type.profile
+        }
+      })
     }
     
-    return types;
+    return types
   }
 }

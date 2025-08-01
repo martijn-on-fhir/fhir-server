@@ -15,8 +15,8 @@ export default (): object => {
   /**
    * The path to the configuration file. if using webpack, the config file is located in another relative directory.
    */
-  const configFilePath = resolve(__dirname, `../../config/${env}.json`)
-
+  const configFilePath = resolve(__dirname, `../../../config/${env}.json`)
+  
   if (existsSync(configFilePath)) {
     
     const config = readFileSync(configFilePath, 'utf8').toString()
