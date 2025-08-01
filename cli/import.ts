@@ -10,7 +10,6 @@ import * as fs from 'node:fs';
 import { Model } from 'mongoose';
 import { FhirResource, fhirResourceSchema } from '../src/schema/fhir-resource-schema';
 import * as path from 'node:path';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Main function that handles the import process:
@@ -51,7 +50,7 @@ const main = async (): Promise<void> => {
           const resource = JSON.parse(content);
           
           await model.create({
-            id: uuidv4(),
+            id: resource.id,
             resourceType: resource.resourceType,
             resource: resource,
             createdAt: new Date(),

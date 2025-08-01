@@ -6,7 +6,7 @@ const common_1 = require("@nestjs/common");
 const process = require("node:process");
 exports.default = () => {
     const env = process.env.ENV_NAME;
-    const configFilePath = (0, path_1.resolve)(__dirname, `../../config/${env}.json`);
+    const configFilePath = (0, path_1.resolve)(__dirname, `../../../config/${env}.json`);
     if ((0, fs_1.existsSync)(configFilePath)) {
         const config = (0, fs_1.readFileSync)(configFilePath, 'utf8').toString();
         return JSON.parse(config);
