@@ -1,5 +1,7 @@
 import { FhirResourceDocument } from '../schema/fhir-resource-schema';
 import { v4 as uuidv4 } from 'uuid';
+import { ValidationError } from '../interfaces/validation-error'
+import { ValidationResult } from '../interfaces/validation-result'
 
 /**
  * Handles formatting and bundling of FHIR resources for API responses.
@@ -18,6 +20,29 @@ export class FhirResponse {
       ...resource.resource,
       meta: resource.meta,
     };
+  }
+  
+  static notValid(result: ValidationResult): object {
+    
+    const response = {
+      resourceType: 'OperationOutcome',
+      issue: []
+    }
+    
+    for(const error of result.errors){
+      
+      const issue = {
+        severity: 'error',
+        code: 'invalid',
+        details: {
+          text: error
+        }
+      } as never
+
+      response.issue.push(issue)
+    }
+    
+    return response
   }
   
   static notFound(description): object {
