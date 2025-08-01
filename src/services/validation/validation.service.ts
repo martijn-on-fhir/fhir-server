@@ -43,7 +43,11 @@ export class ValidationService {
    * @throws Error if validation process fails
    */
   async validateResource(resource: any): Promise<ValidationResult> {
-   
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const errors: ValidationError[] = []
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const warnings: ValidationWarning[] = []
     this.resourceType = resource.resourceType
     this.resource = resource
     
@@ -145,7 +149,7 @@ export class ValidationService {
       this.checkRootProperties(resource, errors)
       
       // Validate all elements
-      await this.validateElement('Observation', resource, errors, warnings)
+      await this.validateElement(this.resourceType, resource, errors, warnings)
       
     } catch (error) {
       

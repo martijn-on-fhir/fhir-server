@@ -35,6 +35,8 @@ let ValidationService = class ValidationService {
         this._terminologyService = _terminologyService;
     }
     async validateResource(resource) {
+        const errors = [];
+        const warnings = [];
         this.resourceType = resource.resourceType;
         this.resource = resource;
         if (!this.resourceType) {
@@ -98,7 +100,7 @@ let ValidationService = class ValidationService {
             }
             this.validateProfileDeclaration(resource, errors);
             this.checkRootProperties(resource, errors);
-            await this.validateElement('Observation', resource, errors, warnings);
+            await this.validateElement(this.resourceType, resource, errors, warnings);
         }
         catch (error) {
             errors.push({
