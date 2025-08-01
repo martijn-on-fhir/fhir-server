@@ -492,29 +492,28 @@ export class ValidationService {
   }
   
   private validatePatterns(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
-    // Validate pattern constraints
-    if (elementDef.patternCodeableConcept && value) {
+    
+    let pattern
+    
+    for (const property in elementDef) {
       
-      const isValid = this.matchesCodeableConceptPattern(value, elementDef.patternCodeableConcept)
+      if (property.startsWith('pattern') && property) {
+        pattern = property.substring(7, property.length)
+      }
+    }
+    
+    if (pattern && value) {
       
-      if (!isValid) {
+      const r = fhirPath.evaluate(this.resource, `${path}.exists($this is ${pattern})`, {
+        base: path
+      }, fhirModel)
+      
+      if (!this._toBoolean(r)) {
+        
         errors.push({
           path,
           severity: 'error',
           message: `Value does not match required pattern for ${path}`
-        })
-      }
-    }
-    
-    if (elementDef.patternQuantity && value) {
-      
-      const isValid = this.matchesQuantityPattern(value, elementDef.patternQuantity)
-      
-      if (!isValid) {
-        errors.push({
-          path,
-          severity: 'error',
-          message: `Quantity does not match required pattern for ${path}`
         })
       }
     }
@@ -528,26 +527,7 @@ export class ValidationService {
       })
     }
   }
-  
-  private matchesCodeableConceptPattern(value: any, pattern: any): boolean {
-    
-    if (!pattern.coding || !value.coding) {
-      return true
-    }
-    
-    return pattern.coding.every((patternCoding: any) =>
-      value.coding.some((valueCoding: any) => {
-        return valueCoding.system === patternCoding.system && valueCoding.code === patternCoding.code
-      })
-    )
-  }
-  
-  private matchesQuantityPattern(value: any, pattern: any): boolean {
-    
-    return (!pattern.system || value.system === pattern.system) &&
-      (!pattern.code || value.code === pattern.code)
-  }
-  
+
   /**
    * Not all types are niclely formatted, so let 's fix it
    * @param types
