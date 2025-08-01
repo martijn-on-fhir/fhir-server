@@ -9,6 +9,23 @@ class FhirResponse {
             meta: resource.meta,
         };
     }
+    static notValid(result) {
+        const response = {
+            resourceType: 'OperationOutcome',
+            issue: []
+        };
+        for (const error of result.errors) {
+            const issue = {
+                severity: 'error',
+                code: 'invalid',
+                details: {
+                    text: error
+                }
+            };
+            response.issue.push(issue);
+        }
+        return response;
+    }
     static notFound(description) {
         return {
             resourceType: 'OperationOutcome',

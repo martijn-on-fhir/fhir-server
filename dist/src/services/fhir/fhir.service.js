@@ -56,8 +56,11 @@ let FhirService = class FhirService {
         }
     }
     async create(resourceType, resourceData) {
-        await this.validationService.validateResource(resourceData);
         try {
+            const validation = await this.validationService.validateResource(resourceData);
+            if (validation.errors.length >= 1) {
+                return fhir_response_1.FhirResponse.notValid(validation);
+            }
             const operation = new create_operation_1.CreateOperation(this.fhirResourceModel);
             return operation.execute(resourceType, resourceData);
         }
@@ -69,8 +72,11 @@ let FhirService = class FhirService {
         }
     }
     async update(resourceType, id, resourceData) {
-        await this.validationService.validateResource(resourceData);
         try {
+            const validation = await this.validationService.validateResource(resourceData);
+            if (validation.errors.length >= 1) {
+                return fhir_response_1.FhirResponse.notValid(validation);
+            }
             const operation = new update_operation_1.UpdateOperation(this.fhirResourceModel);
             return operation.execute(resourceType, id, resourceData);
         }
