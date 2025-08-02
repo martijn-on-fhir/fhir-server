@@ -17,6 +17,15 @@ import { ValidateType } from '../../lib/validation/validate-type'
  * Service responsible for validating FHIR resources against their structure definitions.
  * Provides functionality to ensure resources conform to FHIR specifications and profiles.
  * Validates resource structure, cardinality, data types, and constraints according to FHIR specifications.
+ *
+ * The service handles:
+ * - Resource type validation
+ * - Profile conformance checking
+ * - Element cardinality validation
+ * - Data type validation
+ * - FHIRPath constraint evaluation
+ * - Pattern and fixed value validation
+ * - Terminology validation through ValueSet bindings
  */
 @Injectable()
 export class ValidationService {
@@ -237,6 +246,15 @@ export class ValidationService {
     return this.structureDefinitionModel.findOne(filter).exec()
   }
   
+  /**
+   * Validates the child elements of a given object path against the defined element rules.
+   *
+   * @param {string} path - The path of the parent element to validate.
+   * @param {any} value - The value of the parent element to check for child elements.
+   * @param {ValidationError[]} errors - An array to hold validation errors encountered during the process.
+   * @param {ValidationWarning[]} warnings - An array to hold validation warnings encountered during the process.
+   * @return {Promise<void>} A promise that resolves when the validation of child elements is completed.
+   */
   private async validateChildElements(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
     
     if (!value || typeof value !== 'object') {
@@ -383,8 +401,8 @@ export class ValidationService {
   }
   
   /**
-   * Converts FHIRPath evaluation result to boolean value
-   * FHIRPath returns results as arrays, where true/false values are stored at index 0
+   * Converts FHIRPath evaluation result to boolean value.
+   * FHIRPath returns results as arrays, where true/false values are stored at index 0.
    * @param result - The result array from FHIRPath evaluation
    * @returns boolean - true if result array contains true at first position, false otherwise
    * @private
@@ -393,6 +411,14 @@ export class ValidationService {
     return Array.isArray(result) && result[0] === true
   }
   
+  /**
+   * Evaluates a FHIRPath constraint expression against a resource value
+   * @param expression - The FHIRPath expression to evaluate
+   * @param value - The value to validate
+   * @param path - The path to the element being validated
+   * @returns boolean - true if the constraint is satisfied, false otherwise
+   * @private
+   */
   private evaluateConstraint(expression: string, value: any, path: string): boolean {
     
     if (!value) {
@@ -419,6 +445,16 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates constraints and terminology bindings for an element
+   * @param path - The path to the element being validated
+   * @param value - The element value to validate
+   * @param elementDef - The element definition containing constraints
+   * @param errors - Array to collect validation errors
+   * @param warnings - Array to collect validation warnings
+   * @returns Promise resolving when all constraints are validated
+   * @private
+   */
   private async validateConstraints(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[], warnings: ValidationWarning[]): Promise<any> {
     
     if (!elementDef.constraint) return
@@ -491,6 +527,14 @@ export class ValidationService {
     }
   }
   
+  /**
+   * Validates that element values match defined patterns and fixed values
+   * @param path - The path to the element being validated
+   * @param value - The element value to validate
+   * @param elementDef - The element definition containing patterns
+   * @param errors - Array to collect validation errors
+   * @private
+   */
   private validatePatterns(path: string, value: any, elementDef: ElementDefinition, errors: ValidationError[]): void {
     
     let pattern
@@ -531,6 +575,12 @@ export class ValidationService {
   /**
    * Not all types are niclely formatted, so let 's fix it
    * @param types
+   * @private
+   */
+  /**
+   * Normalizes type definitions by capitalizing type codes
+   * @param types - Array of type definitions to normalize
+   * @returns Normalized type definitions with capitalized codes
    * @private
    */
   private normalizeTypes(types: { code: string; profile?: string[] }[] | undefined): { code: string; profile?: string[] }[] | undefined {

@@ -21,6 +21,11 @@ export class FhirResponse {
     };
   }
   
+  /**
+   * Creates an OperationOutcome resource for invalid FHIR resources.
+   * @param result - The validation result containing errors
+   * @returns An OperationOutcome resource describing validation errors
+   */
   static notValid(result: ValidationResult): object {
     
     const response = {
@@ -44,6 +49,11 @@ export class FhirResponse {
     return response
   }
   
+  /**
+   * Creates an OperationOutcome resource for resource not found errors.
+   * @param description - Description of the resource that was not found
+   * @returns An OperationOutcome resource with not-found error details
+   */
   static notFound(description): object {
     
     return {
@@ -58,7 +68,12 @@ export class FhirResponse {
     }
   }
   
-  static notAcceptatble(description): object{
+  /**
+   * Creates an OperationOutcome resource for not acceptable errors.
+   * @param description - Description of why the request was not acceptable
+   * @returns An OperationOutcome resource with not-acceptable error details
+   */
+  static notAcceptable(description): object {
     
     return {
       resourceType: 'OperationOutcome',
