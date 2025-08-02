@@ -4,6 +4,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ValidationService } from '../services/validation/validation.service';
 import { ValidationResult } from '../interfaces/validation-result';
 import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
+import { CreateResourceDto } from '../dto/create-resource-dto'
+import { UpdateResourceDto } from '../dto/update-resource-dto'
+import { ValidateResourceDto } from '../dto/validate-resource-dto'
 
 @UseGuards(AuthorizerGuard)
 @ApiTags('Fhir Server')
@@ -22,7 +25,7 @@ export class FhirController {
   @ApiOperation({ summary: 'Validate FHIR resource', description: 'Validates a FHIR resource against its structure definition' })
   @ApiResponse({ status: 200, description: 'Resource validation result' })
   @Post('$validate')
-  async validate( @Body() resource: any): Promise<ValidationResult> {
+  async validate( @Body() resource: ValidateResourceDto): Promise<ValidationResult> {
     return await this._validatiobService.validateResource(resource);
   }
   
@@ -44,7 +47,7 @@ export class FhirController {
   @ApiOperation({ summary: 'Create FHIR resource', description: 'Create a new FHIR resource' })
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Post(':resourceType')
-  async createResource(@Param('resourceType') resourceType: string, @Body() resource: any): Promise<any> {
+  async createResource(@Param('resourceType') resourceType: string, @Body() resource: CreateResourceDto): Promise<any> {
     
     await this._service.checkPreRequest('POST', resourceType, resource)
     return await this._service.create(resourceType, resource);
@@ -54,7 +57,7 @@ export class FhirController {
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @ApiParam({ name: 'id', description: 'Resource ID' })
   @Put(':resourceType/:id')
-  async update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: any): Promise<any> {
+  async update(@Param('resourceType') resourceType: string, @Param('id') id: string, @Body() resource: UpdateResourceDto): Promise<any> {
     
     await this._service.checkPreRequest('POST', resourceType, resource, id)
     return await this._service.update(resourceType, id, resource)
