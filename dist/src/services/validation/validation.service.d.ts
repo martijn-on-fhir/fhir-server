@@ -2,15 +2,17 @@ import { StructureDefinitionDocument } from '../../schema/structure-definition.s
 import { Model } from 'mongoose';
 import { ValidationResult } from '../../interfaces/validation-result';
 import { TerminologyService } from '../terminology/terminology.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 export declare class ValidationService {
     private structureDefinitionModel;
     private readonly _terminologyService;
+    private eventEmitter;
     private resource;
     private resourceType;
     private structureDefinition;
     private elements;
     private slices;
-    constructor(structureDefinitionModel: Model<StructureDefinitionDocument>, _terminologyService: TerminologyService);
+    constructor(structureDefinitionModel: Model<StructureDefinitionDocument>, _terminologyService: TerminologyService, eventEmitter: EventEmitter2);
     validateResource(resource: any): Promise<ValidationResult>;
     private parseStructureDefinition;
     private validate;

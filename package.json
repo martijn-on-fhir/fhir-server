@@ -1,9 +1,9 @@
 {
   "name": "fhir-server",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
+  "description": "Basic fhir server with validation suppert through structure definations and terminology servers",
+  "author": "Martijn Schimmel",
+  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "build:webpack": "webpack",
@@ -28,6 +28,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
