@@ -232,6 +232,23 @@ export class ValidationService {
    */
   private async getStructureDefinition(resourceType: string, profile?: string[]): Promise<StructureDefinitionDocument | null> {
     
+    if (typeof resourceType !== 'string') {
+      return null;
+    }
+    
+    if (profile !== undefined) {
+      
+      if (Array.isArray(profile)) {
+        
+        if (!profile.every(p => typeof p === 'string')) {
+          return null;
+        }
+        
+      } else if (typeof profile !== 'string') {
+        return null;
+      }
+    }
+    
     const filter = {
       resourceType: resourceType
     }

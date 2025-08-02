@@ -1,10 +1,12 @@
 name: NodeJS with Webpack
+permissions:
+  contents: read
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "development" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "development" ]
 
 jobs:
   build:

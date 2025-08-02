@@ -140,6 +140,19 @@ let ValidationService = class ValidationService {
         });
     }
     async getStructureDefinition(resourceType, profile) {
+        if (typeof resourceType !== 'string') {
+            return null;
+        }
+        if (profile !== undefined) {
+            if (Array.isArray(profile)) {
+                if (!profile.every(p => typeof p === 'string')) {
+                    return null;
+                }
+            }
+            else if (typeof profile !== 'string') {
+                return null;
+            }
+        }
         const filter = {
             resourceType: resourceType
         };
