@@ -4,6 +4,6 @@ export declare class FhirResponse {
     static format(resource: any): object;
     static notValid(result: ValidationResult): object;
     static notFound(description: any): object;
-    static notAcceptatble(description: any): object;
+    static notAcceptable(description: any): object;
     static bundle(resources: FhirResourceDocument[], total: number, resourceType: string, offset?: number, count?: number): any;
 }

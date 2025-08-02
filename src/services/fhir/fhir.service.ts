@@ -91,7 +91,7 @@ export class FhirService {
     } catch (error: any) {
       
       if (error instanceof NotAcceptableException) {
-        return FhirResponse.notAcceptatble(error.message)
+        return FhirResponse.notAcceptable(error.message)
       }
       
       throw new Error(`Error creating ${resourceType}: ${error.message}`)

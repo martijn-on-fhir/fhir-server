@@ -38,7 +38,7 @@ class FhirResponse {
                 }]
         };
     }
-    static notAcceptatble(description) {
+    static notAcceptable(description) {
         return {
             resourceType: 'OperationOutcome',
             issue: [{

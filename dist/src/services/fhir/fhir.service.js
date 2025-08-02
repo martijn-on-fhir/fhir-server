@@ -66,7 +66,7 @@ let FhirService = class FhirService {
         }
         catch (error) {
             if (error instanceof common_1.NotAcceptableException) {
-                return fhir_response_1.FhirResponse.notAcceptatble(error.message);
+                return fhir_response_1.FhirResponse.notAcceptable(error.message);
             }
             throw new Error(`Error creating ${resourceType}: ${error.message}`);
         }
