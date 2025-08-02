@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { FhirController } from "./fhir/fhir.controller";
 import { FhirService } from "./services/fhir/fhir.service";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -43,7 +42,7 @@ import { FhirEventListener } from './events/fhir-event-listener'
     EventEmitterModule.forRoot()
   ],
   controllers: [AppController, FhirController],
-  providers: [AppService, FhirService, ValidationService, TerminologyService, FhirEventListener],
+  providers: [FhirService, ValidationService, TerminologyService, FhirEventListener],
   exports: [MongooseModule],
 })
 export class AppModule {}
