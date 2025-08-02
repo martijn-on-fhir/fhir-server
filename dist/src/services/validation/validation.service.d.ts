@@ -25,7 +25,5 @@ export declare class ValidationService {
     private evaluateConstraint;
     private validateConstraints;
     private validatePatterns;
-    private matchesCodeableConceptPattern;
-    private matchesQuantityPattern;
     private normalizeTypes;
 }

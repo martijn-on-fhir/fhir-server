@@ -498,7 +498,7 @@ export class ValidationService {
     for (const property in elementDef) {
       
       if (property.startsWith('pattern') && property) {
-        pattern = property.substring(7, property.length)
+        pattern = property.substring('pattern'.length, property.length)
       }
     }
     

@@ -310,23 +310,21 @@ let ValidationService = class ValidationService {
         }
     }
     validatePatterns(path, value, elementDef, errors) {
-        if (elementDef.patternCodeableConcept && value) {
-            const isValid = this.matchesCodeableConceptPattern(value, elementDef.patternCodeableConcept);
-            if (!isValid) {
+        let pattern;
+        for (const property in elementDef) {
+            if (property.startsWith('pattern') && property) {
+                pattern = property.substring('pattern'.length, property.length);
+            }
+        }
+        if (pattern && value) {
+            const r = fhirPath.evaluate(this.resource, `${path}.exists($this is ${pattern})`, {
+                base: path
+            }, fhirModel);
+            if (!this._toBoolean(r)) {
                 errors.push({
                     path,
                     severity: 'error',
                     message: `Value does not match required pattern for ${path}`
-                });
-            }
-        }
-        if (elementDef.patternQuantity && value) {
-            const isValid = this.matchesQuantityPattern(value, elementDef.patternQuantity);
-            if (!isValid) {
-                errors.push({
-                    path,
-                    severity: 'error',
-                    message: `Quantity does not match required pattern for ${path}`
                 });
             }
         }
@@ -337,18 +335,6 @@ let ValidationService = class ValidationService {
                 message: `Expected fixed value '${elementDef.fixedUri}', got '${value}'`
             });
         }
-    }
-    matchesCodeableConceptPattern(value, pattern) {
-        if (!pattern.coding || !value.coding) {
-            return true;
-        }
-        return pattern.coding.every((patternCoding) => value.coding.some((valueCoding) => {
-            return valueCoding.system === patternCoding.system && valueCoding.code === patternCoding.code;
-        }));
-    }
-    matchesQuantityPattern(value, pattern) {
-        return (!pattern.system || value.system === pattern.system) &&
-            (!pattern.code || value.code === pattern.code);
     }
     normalizeTypes(types) {
         if (types) {

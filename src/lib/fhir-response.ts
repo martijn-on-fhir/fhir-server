@@ -1,6 +1,5 @@
 import { FhirResourceDocument } from '../schema/fhir-resource-schema';
 import { v4 as uuidv4 } from 'uuid';
-import { ValidationError } from '../interfaces/validation-error'
 import { ValidationResult } from '../interfaces/validation-result'
 
 /**
