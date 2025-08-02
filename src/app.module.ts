@@ -12,6 +12,8 @@ import { ConfigModule } from '@nestjs/config';
 import { valueSetSchema, ValueSetSchema } from './schema/value-set-schema';
 import { TerminologyService } from './services/terminology/terminology.service';
 import configuration from './config/configuration'
+import { EventEmitterModule } from '@nestjs/event-emitter'
+import { FhirEventListener } from './events/fhir-event-listener'
 
 @Module({
   imports: [
@@ -38,10 +40,10 @@ import configuration from './config/configuration'
       { name: StructureDefinitionSchema.name, schema: structureDefinitionSchema },
       { name: ValueSetSchema.name, schema: valueSetSchema },
     ]),
-  
+    EventEmitterModule.forRoot()
   ],
   controllers: [AppController, FhirController],
-  providers: [AppService, FhirService, ValidationService, TerminologyService],
+  providers: [AppService, FhirService, ValidationService, TerminologyService, FhirEventListener],
   exports: [MongooseModule],
 })
 export class AppModule {}

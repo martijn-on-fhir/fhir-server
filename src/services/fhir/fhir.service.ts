@@ -10,6 +10,8 @@ import { SearchOperation } from '../../lib/operations/search-operation'
 import { ValidationService } from '../validation/validation.service'
 import { StructureDefinitionSchema, StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 import { Metadata } from '../../lib/metadata'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { FhirEvent } from '../../events/fhir-event-listener'
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -22,10 +24,11 @@ export class FhirService {
    * @param fhirResourceModel
    * @param structureDefinitonModel
    * @param validationService
+   * @param eventEmitter
    */
   constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>,
               @InjectModel(StructureDefinitionSchema.name) private structureDefinitonModel: Model<StructureDefinitionDocument>,
-              private validationService: ValidationService) {
+              private validationService: ValidationService, private eventEmitter: EventEmitter2) {
   }
   
   /**
@@ -87,7 +90,15 @@ export class FhirService {
       }
       
       const operation = new CreateOperation(this.fhirResourceModel)
-      return operation.execute(resourceType, resourceData)
+      const result = await operation.execute(resourceType, resourceData)
+      
+      this.eventEmitter.emit(FhirEvent.CREATED, {
+        resourceType: resourceType,
+        result
+      })
+      
+      return result
+      
     } catch (error: any) {
       
       if (error instanceof NotAcceptableException) {
@@ -119,7 +130,14 @@ export class FhirService {
       }
       
       const operation = new UpdateOperation(this.fhirResourceModel)
-      return operation.execute(resourceType, id, resourceData)
+      const result = await operation.execute(resourceType, id, resourceData)
+      
+      this.eventEmitter.emit(FhirEvent.UPDATED, {
+        resourceType: resourceType,
+        id
+      })
+      
+      return result
       
     } catch (error) {
       
@@ -143,7 +161,14 @@ export class FhirService {
     try {
       
       const operation = new DeleteOperation(this.fhirResourceModel)
-      return operation.execute(resourceType, id)
+      const result = await operation.execute(resourceType, id)
+      
+      this.eventEmitter.emit(FhirEvent.DELETED, {
+        resourceType: resourceType,
+        id
+      })
+      
+      return result
       
     } catch (error: any) {
       

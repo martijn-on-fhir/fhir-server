@@ -25,14 +25,18 @@ const search_operation_1 = require("../../lib/operations/search-operation");
 const validation_service_1 = require("../validation/validation.service");
 const structure_definition_schema_1 = require("../../schema/structure-definition.schema");
 const metadata_1 = require("../../lib/metadata");
+const event_emitter_1 = require("@nestjs/event-emitter");
+const fhir_event_listener_1 = require("../../events/fhir-event-listener");
 let FhirService = class FhirService {
     fhirResourceModel;
     structureDefinitonModel;
     validationService;
-    constructor(fhirResourceModel, structureDefinitonModel, validationService) {
+    eventEmitter;
+    constructor(fhirResourceModel, structureDefinitonModel, validationService, eventEmitter) {
         this.fhirResourceModel = fhirResourceModel;
         this.structureDefinitonModel = structureDefinitonModel;
         this.validationService = validationService;
+        this.eventEmitter = eventEmitter;
     }
     async findById(resourceType, id) {
         try {
@@ -62,7 +66,12 @@ let FhirService = class FhirService {
                 return fhir_response_1.FhirResponse.notValid(validation);
             }
             const operation = new create_operation_1.CreateOperation(this.fhirResourceModel);
-            return operation.execute(resourceType, resourceData);
+            const result = await operation.execute(resourceType, resourceData);
+            this.eventEmitter.emit(fhir_event_listener_1.FhirEvent.CREATED, {
+                resourceType: resourceType,
+                result
+            });
+            return result;
         }
         catch (error) {
             if (error instanceof common_1.NotAcceptableException) {
@@ -78,7 +87,12 @@ let FhirService = class FhirService {
                 return fhir_response_1.FhirResponse.notValid(validation);
             }
             const operation = new update_operation_1.UpdateOperation(this.fhirResourceModel);
-            return operation.execute(resourceType, id, resourceData);
+            const result = await operation.execute(resourceType, id, resourceData);
+            this.eventEmitter.emit(fhir_event_listener_1.FhirEvent.UPDATED, {
+                resourceType: resourceType,
+                id
+            });
+            return result;
         }
         catch (error) {
             if (error instanceof common_1.NotFoundException || error instanceof common_1.BadRequestException || error instanceof common_1.ConflictException) {
@@ -90,7 +104,12 @@ let FhirService = class FhirService {
     async delete(resourceType, id) {
         try {
             const operation = new delete_operation_1.DeleteOperation(this.fhirResourceModel);
-            return operation.execute(resourceType, id);
+            const result = await operation.execute(resourceType, id);
+            this.eventEmitter.emit(fhir_event_listener_1.FhirEvent.DELETED, {
+                resourceType: resourceType,
+                id
+            });
+            return result;
         }
         catch (error) {
             if (error instanceof common_1.NotFoundException) {
@@ -132,6 +151,6 @@ exports.FhirService = FhirService = __decorate([
     __param(1, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
         mongoose_1.Model,
-        validation_service_1.ValidationService])
+        validation_service_1.ValidationService, event_emitter_1.EventEmitter2])
 ], FhirService);
 //# sourceMappingURL=fhir.service.js.map

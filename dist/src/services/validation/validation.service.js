@@ -22,17 +22,21 @@ const lodash_es_1 = require("lodash-es");
 const terminology_service_1 = require("../terminology/terminology.service");
 const fhirModel = require("fhirpath/fhir-context/r4");
 const validate_type_1 = require("../../lib/validation/validate-type");
+const event_emitter_1 = require("@nestjs/event-emitter");
+const fhir_event_listener_1 = require("../../events/fhir-event-listener");
 let ValidationService = class ValidationService {
     structureDefinitionModel;
     _terminologyService;
+    eventEmitter;
     resource;
     resourceType;
     structureDefinition;
     elements = new Map();
     slices = new Map();
-    constructor(structureDefinitionModel, _terminologyService) {
+    constructor(structureDefinitionModel, _terminologyService, eventEmitter) {
         this.structureDefinitionModel = structureDefinitionModel;
         this._terminologyService = _terminologyService;
+        this.eventEmitter = eventEmitter;
     }
     async validateResource(resource) {
         const errors = [];
@@ -70,6 +74,10 @@ let ValidationService = class ValidationService {
         const validationResult = await this.validate(this.resource);
         validationResult.errors.forEach(error => {
             console.log(`  - ${error.path}: ${error.message}`);
+        });
+        this.eventEmitter.emit(fhir_event_listener_1.FhirEvent.VALIDATED, {
+            resourceType: this.resourceType,
+            validationResult: validationResult
         });
         return validationResult;
     }
@@ -366,6 +374,6 @@ exports.ValidationService = ValidationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
-        terminology_service_1.TerminologyService])
+        terminology_service_1.TerminologyService, event_emitter_1.EventEmitter2])
 ], ValidationService);
 //# sourceMappingURL=validation.service.js.map

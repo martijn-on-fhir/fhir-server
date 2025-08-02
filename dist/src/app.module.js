@@ -21,6 +21,8 @@ const config_1 = require("@nestjs/config");
 const value_set_schema_1 = require("./schema/value-set-schema");
 const terminology_service_1 = require("./services/terminology/terminology.service");
 const configuration_1 = require("./config/configuration");
+const event_emitter_1 = require("@nestjs/event-emitter");
+const fhir_event_listener_1 = require("./events/fhir-event-listener");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -50,9 +52,10 @@ exports.AppModule = AppModule = __decorate([
                 { name: structure_definition_schema_1.StructureDefinitionSchema.name, schema: structure_definition_schema_1.structureDefinitionSchema },
                 { name: value_set_schema_1.ValueSetSchema.name, schema: value_set_schema_1.valueSetSchema },
             ]),
+            event_emitter_1.EventEmitterModule.forRoot()
         ],
         controllers: [app_controller_1.AppController, fhir_controller_1.FhirController],
-        providers: [app_service_1.AppService, fhir_service_1.FhirService, validation_service_1.ValidationService, terminology_service_1.TerminologyService],
+        providers: [app_service_1.AppService, fhir_service_1.FhirService, validation_service_1.ValidationService, terminology_service_1.TerminologyService, fhir_event_listener_1.FhirEventListener],
         exports: [mongoose_1.MongooseModule],
     })
 ], AppModule);

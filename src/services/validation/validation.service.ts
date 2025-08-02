@@ -12,6 +12,8 @@ import { first } from 'lodash-es'
 import { TerminologyService } from '../terminology/terminology.service'
 import * as fhirModel from 'fhirpath/fhir-context/r4'
 import { ValidateType } from '../../lib/validation/validate-type'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { FhirEvent } from '../../events/fhir-event-listener'
 
 /**
  * Service responsible for validating FHIR resources against their structure definitions.
@@ -40,9 +42,10 @@ export class ValidationService {
    * Creates a new instance of the ValidationService
    * @param structureDefinitionModel - Injected Mongoose model for accessing FHIR StructureDefinitions
    * @param _terminologyService
+   * @param eventEmitter
    */
   constructor(@InjectModel(StructureDefinitionSchema.name) private structureDefinitionModel: Model<StructureDefinitionDocument>,
-              private readonly _terminologyService: TerminologyService) {
+              private readonly _terminologyService: TerminologyService, private eventEmitter: EventEmitter2) {
   }
   
   /**
@@ -98,6 +101,11 @@ export class ValidationService {
     
     validationResult.errors.forEach(error => {
       console.log(`  - ${error.path}: ${error.message}`)
+    })
+    
+    this.eventEmitter.emit(FhirEvent.VALIDATED, {
+      resourceType: this.resourceType,
+      validationResult: validationResult
     })
     
     return validationResult
