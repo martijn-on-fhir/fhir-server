@@ -6,6 +6,7 @@ import { ValidationResult } from '../interfaces/validation-result';
 import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
 import { CreateResourceDto } from '../dto/create-resource-dto'
 import { UpdateResourceDto } from '../dto/update-resource-dto'
+import { ValidateResourceDto } from '../dto/validate-resource-dto'
 
 @UseGuards(AuthorizerGuard)
 @ApiTags('Fhir Server')
@@ -24,7 +25,7 @@ export class FhirController {
   @ApiOperation({ summary: 'Validate FHIR resource', description: 'Validates a FHIR resource against its structure definition' })
   @ApiResponse({ status: 200, description: 'Resource validation result' })
   @Post('$validate')
-  async validate( @Body() resource: any): Promise<ValidationResult> {
+  async validate( @Body() resource: ValidateResourceDto): Promise<ValidationResult> {
     return await this._validatiobService.validateResource(resource);
   }
   
