@@ -88,8 +88,8 @@ Security advisories are published:
 
 For general security questions (non-vulnerabilities):
 - Email: `martijn.github@proton.me`
-- Documentation: [Link to security docs]
+- Documentation: /api
 
 ---
 
-*This security policy is effective as of [DATE] and may be updated periodically.*
+*This security policy is effective as of 2025-08-01 and may be updated periodically.*
