@@ -60,12 +60,5 @@ export class UpdateResourceDto {
   @IsOptional()
   modifierExtension?: any[];
   
-  // Allow any additional properties for flexible updates
-  // @ts-ignore
-  @ApiPropertyOptional({
-    description: 'Any resource-specific properties to update',
-    type: 'object',
-    additionalProperties: true
-  })
   [key: string]: any;
 }

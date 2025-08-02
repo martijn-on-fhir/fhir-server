@@ -83,11 +83,5 @@ export class CreateResourceDto {
   @IsOptional()
   modifierExtension?: any[]
   
-  // @ts-ignore
-  @ApiPropertyOptional({
-    description: 'Additional properties specific to the FHIR resource type',
-    type: 'object',
-    additionalProperties: true
-  })
   [key: string]: any;
 }
