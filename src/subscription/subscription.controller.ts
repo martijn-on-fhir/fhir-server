@@ -29,12 +29,15 @@ export class SubscriptionController {
     
     const filter: any = {}
     
-    if (status) {
-      filter.status = status
+    if (status && this.isValidSubscriptionStatus(status)) {
+      filter.status = status as SubscriptionStatus
     }
     
     if (criteria) {
-      filter.criteria = new RegExp(criteria, 'i')
+      
+      const sanitizedCriteria = this.escapeRegexCharacters(criteria)
+      filter.criteria = new RegExp(sanitizedCriteria, 'i')
+      
     }
     
     return this.service.findAll(filter)
@@ -69,4 +72,19 @@ export class SubscriptionController {
   deactivate(@Param('id') id: string): any {
     return this.service.deactivateSubscription(id)
   }
+  
+  /**
+   * Controleert of de gegeven waarde een geldige SubscriptionStatus enum waarde is
+   */
+  private isValidSubscriptionStatus(value: string): value is SubscriptionStatus {
+    return Object.values(SubscriptionStatus).includes(value as SubscriptionStatus)
+  }
+  
+  /**
+   * Escapes special regex characters in user input to prevent regex injection
+   */
+  private escapeRegexCharacters(input: string): string {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+  
 }
