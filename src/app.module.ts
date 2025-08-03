@@ -13,6 +13,9 @@ import { TerminologyService } from './services/terminology/terminology.service';
 import configuration from './config/configuration'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { FhirEventListener } from './events/fhir-event-listener'
+import { subscriptionSchema, SubscriptionSchema } from './schema/subscription-schema'
+import { SubscriptionController } from './subscription/subscription.controller';
+import { SubscriptionService } from './services/subscription/subscription.service';
 
 @Module({
   imports: [
@@ -38,11 +41,12 @@ import { FhirEventListener } from './events/fhir-event-listener'
       { name: FhirResource.name, schema: fhirResourceSchema },
       { name: StructureDefinitionSchema.name, schema: structureDefinitionSchema },
       { name: ValueSetSchema.name, schema: valueSetSchema },
+      { name: SubscriptionSchema.name, schema: subscriptionSchema },
     ]),
     EventEmitterModule.forRoot()
   ],
-  controllers: [AppController, FhirController],
-  providers: [FhirService, ValidationService, TerminologyService, FhirEventListener],
+  controllers: [AppController, FhirController, SubscriptionController],
+  providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionService],
   exports: [MongooseModule],
 })
 export class AppModule {}
