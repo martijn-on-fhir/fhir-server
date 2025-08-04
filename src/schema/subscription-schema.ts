@@ -44,13 +44,6 @@ const SubscriptionChannelSchema = SchemaFactory.createForClass(SubscriptionChann
 })
 export class SubscriptionSchema {
   
-  @Prop({
-    required: true,
-    unique: true,
-    index: true
-  })
-  id: string;
-  
   @Prop({ default: 'Subscription' })
   resourceType: string
   
@@ -138,7 +131,7 @@ export const subscriptionSchema = SchemaFactory.createForClass(SubscriptionSchem
 subscriptionSchema.index({ resourceType: 1 })
 subscriptionSchema.index({ status: 1, criteria: 1 })
 subscriptionSchema.index({ 'channel.type': 1 })
-subscriptionSchema.index({ lastNotification: 1 })
+//subscriptionSchema.index({ lastNotification: 1 })
 subscriptionSchema.index({ errorCount: 1 })
 
 subscriptionSchema.pre('save', function(next) {
