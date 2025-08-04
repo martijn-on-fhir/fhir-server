@@ -4,6 +4,7 @@ import { FhirResourceDocument } from '../../schema/fhir-resource-schema';
 import { NotFoundException } from '@nestjs/common';
 import { FhirResponse } from '../fhir-response';
 import { set } from 'lodash-es'
+import { SearchResult } from '../../interfaces/search-result'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -67,7 +68,7 @@ export class SearchOperation extends Operation {
    * @param searchParams - Search parameters including _count, _offset, and identifier
    * @returns Promise resolving to a FHIR Bundle containing matching resources
    */
-  async find(resourceType: string, searchParams: any): Promise<any> {
+  async find(resourceType: string, searchParams: any): Promise<SearchResult> {
     
     this.filter = {
       resourceType,

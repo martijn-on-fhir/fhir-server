@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { ValidationService } from '../validation/validation.service';
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SearchResult } from '../../interfaces/search-result';
 export declare class FhirService {
     private fhirResourceModel;
     private structureDefinitonModel;
@@ -10,7 +11,7 @@ export declare class FhirService {
     private eventEmitter;
     constructor(fhirResourceModel: Model<FhirResourceDocument>, structureDefinitonModel: Model<StructureDefinitionDocument>, validationService: ValidationService, eventEmitter: EventEmitter2);
     findById(resourceType: string, id: string): Promise<any>;
-    find(resourceType: string, searchParams: any): Promise<any>;
+    find(resourceType: string, searchParams: any): Promise<SearchResult>;
     create(resourceType: string, resourceData: any): Promise<any>;
     update(resourceType: string, id: string, resourceData: any): Promise<any>;
     delete(resourceType: string, id: string): Promise<any>;
