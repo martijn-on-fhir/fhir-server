@@ -7,9 +7,19 @@ import { InjectModel } from '@nestjs/mongoose'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ResourceChangeEvent } from '../../interfaces/resource-change-event'
 
+/**
+ * Service for managing FHIR Subscriptions, handling creation, updates, and notifications
+ * for different subscription types (REST Hook, WebSocket, Email).
+ * Manages subscription lifecycle and handles resource change notifications.
+ */
 @Injectable()
 export class SubscriptionService {
   
+  /**
+   * Creates an instance of SubscriptionService.
+   * @param subscriptionModel - Mongoose model for Subscription documents
+   * @param eventEmitter - Event emitter for handling resource change events
+   */
   constructor(  @InjectModel(SubscriptionSchema.name) private subscriptionModel: Model<SubscriptionDocument>,
     private eventEmitter: EventEmitter2
   ) {
@@ -17,34 +27,53 @@ export class SubscriptionService {
     this.eventEmitter.on('resource.changed', this.handleResourceChange.bind(this))
   }
   
+  /**
+   * Creates a new subscription based on the provided DTO.
+   * Validates criteria format and activates subscription if requested.
+   * @param createDto - Data transfer object containing subscription details
+   * @returns Created subscription document
+   */
   async create(createDto: CreateSubscriptionDto): Promise<SubscriptionDocument> {
    
     // Validate criteria format
     this.validateCriteria(createDto.criteria)
     
-    const subscription = new this.subscriptionModel({
+    const properties = {
       ...createDto,
       end: createDto.end ? new Date(createDto.end) : undefined,
       meta: {
         versionId: '1',
         lastUpdated: new Date()
       }
-    })
+    }
     
+    const subscription = new this.subscriptionModel(properties)
     const saved: SubscriptionDocument = await subscription.save()
     
     // Activate subscription if requested
     if (saved.status === SubscriptionStatus.REQUESTED) {
-      await this.activateSubscription(saved.id.toString())
+      await this.activateSubscription(saved?._id as string)
     }
     
     return saved
   }
   
+  /**
+   * Retrieves all subscriptions matching the provided filter.
+   * @param filter - MongoDB filter criteria
+   * @returns Array of subscription documents
+   */
   async findAll(filter: any = {}): Promise<SubscriptionDocument[]> {
     return this.subscriptionModel.find(filter).exec()
   }
   
+  /**
+   * Retrieves a single subscription by ID.
+   * @param id - Subscription ID
+   * @returns Subscription document
+   * @throws BadRequestException if ID is invalid
+   * @throws NotFoundException if subscription not found
+   */
   async findOne(id: string): Promise<SubscriptionDocument> {
     
     if (!Types.ObjectId.isValid(id)) {
@@ -60,6 +89,12 @@ export class SubscriptionService {
     return subscription
   }
   
+  /**
+   * Updates an existing subscription with new data.
+   * @param id - Subscription ID
+   * @param updateDto - Data transfer object containing update fields
+   * @returns Updated subscription document
+   */
   async update(id: string, updateDto: UpdateSubscriptionDto): Promise<SubscriptionDocument> {
     
     const subscription = await this.findOne(id)
@@ -73,6 +108,11 @@ export class SubscriptionService {
     return subscription.save()
   }
   
+  /**
+   * Deletes a subscription by ID.
+   * @param id - Subscription ID
+   * @throws NotFoundException if subscription not found
+   */
   async delete(id: string): Promise<void> {
     
     const result = await this.subscriptionModel.findByIdAndDelete(id).exec()
@@ -82,6 +122,11 @@ export class SubscriptionService {
     }
   }
   
+  /**
+   * Activates a subscription and tests the endpoint for REST hooks.
+   * @param id - Subscription ID
+   * @returns Updated subscription document
+   */
   async activateSubscription(id: string): Promise<SubscriptionDocument> {
     
     const subscription = await this.findOne(id)
@@ -98,6 +143,11 @@ export class SubscriptionService {
     return subscription.save()
   }
   
+  /**
+   * Deactivates a subscription by setting its status to OFF.
+   * @param id - Subscription ID
+   * @returns Updated subscription document
+   */
   async deactivateSubscription(id: string): Promise<SubscriptionDocument> {
     
     const subscription = await this.findOne(id)
@@ -107,6 +157,12 @@ export class SubscriptionService {
   }
   
   // Find active subscriptions efficiently
+  /**
+   * Finds all active subscriptions for a specific resource type.
+   * Filters out expired subscriptions based on end date.
+   * @param resourceType - FHIR resource type
+   * @returns Array of active subscription documents
+   */
   async findActiveSubscriptionsForResource(resourceType: string): Promise<SubscriptionDocument[]> {
     
     return this.subscriptionModel.find({
@@ -279,6 +335,7 @@ export class SubscriptionService {
     /**
      * @todo send with axios
      */
+    Promise.resolve()
   }
   
   private async handleNotificationError(subscription: SubscriptionDocument, error: any): Promise<void> {
