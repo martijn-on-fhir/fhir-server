@@ -175,6 +175,10 @@ export class SubscriptionService {
     }).exec()
   }
   
+  /**
+   * Handles resource change events by finding and notifying relevant active subscriptions.
+   * @param event - The resource change event containing details about the changed resource
+   */
   private async handleResourceChange(event: ResourceChangeEvent): Promise<void> {
     
     const activeSubscriptions = await this.findActiveSubscriptionsForResource(event.resourceType)
@@ -186,6 +190,12 @@ export class SubscriptionService {
     await Promise.allSettled(notificationPromises)
   }
   
+  /**
+   * Checks if a resource change event matches the subscription criteria.
+   * @param event - The resource change event to evaluate
+   * @param criteria - The subscription criteria to match against
+   * @returns Boolean indicating if the event matches the criteria
+   */
   private matchesCriteria(event: ResourceChangeEvent, criteria: string): boolean {
     
     // Parse criteria (simplified - in production use a proper FHIRPath evaluator)
@@ -203,6 +213,12 @@ export class SubscriptionService {
     return true
   }
   
+  /**
+   * Sends a notification for a subscription based on its channel type.
+   * Updates subscription metrics after successful notification.
+   * @param subscription - The subscription document to send notification for
+   * @param event - The resource change event that triggered the notification
+   */
   private async sendNotification(subscription: SubscriptionDocument, event: ResourceChangeEvent): Promise<void> {
     
     try {
@@ -232,6 +248,12 @@ export class SubscriptionService {
     }
   }
   
+  /**
+   * Sends a REST hook notification to the subscription endpoint.
+   * Handles content type and custom headers configuration.
+   * @param subscription - The subscription document containing endpoint details
+   * @param event - The resource change event to send
+   */
   private async sendRestHookNotification(subscription: SubscriptionDocument, event: ResourceChangeEvent): Promise<void> {
     
     const notification = this.createNotificationBundle(subscription, event)
@@ -257,6 +279,11 @@ export class SubscriptionService {
     console.log(`Sent REST hook notification to ${subscription.channel.endpoint}`)
   }
   
+  /**
+   * Emits a WebSocket notification event for the subscription.
+   * @param subscription - The subscription document to send notification for
+   * @param event - The resource change event to send
+   */
   private async sendWebSocketNotification(subscription: SubscriptionDocument, event: ResourceChangeEvent): Promise<void> {
     
     this.eventEmitter.emit('websocket.notification', {
@@ -265,6 +292,12 @@ export class SubscriptionService {
     })
   }
   
+  /**
+   * Sends an email notification for the subscription.
+   * Currently logs the notification (implementation pending).
+   * @param subscription - The subscription document to send notification for
+   * @param event - The resource change event to send
+   */
   private async sendEmailNotification(subscription: SubscriptionDocument, event: ResourceChangeEvent): Promise<void> {
     
     console.log(event)
@@ -273,6 +306,13 @@ export class SubscriptionService {
     console.log(`Email notification for subscription ${subscription._id}`)
   }
   
+  /**
+   * Creates a FHIR Bundle containing the notification details.
+   * Includes SubscriptionStatus and the changed resource if available.
+   * @param subscription - The subscription document to create notification for
+   * @param event - The resource change event details
+   * @returns FHIR Bundle containing notification details
+   */
   private createNotificationBundle(subscription: SubscriptionDocument, event: ResourceChangeEvent): any {
    
     return {
@@ -310,6 +350,11 @@ export class SubscriptionService {
     }
   }
   
+  /**
+   * Tests the subscription endpoint by sending a test notification.
+   * Used during subscription activation for REST hook subscriptions.
+   * @param subscription - The subscription document containing endpoint details
+   */
   private async testEndpoint(subscription: SubscriptionDocument): Promise<void> {
     
     const testPayload = {
@@ -338,6 +383,12 @@ export class SubscriptionService {
     Promise.resolve()
   }
   
+  /**
+   * Handles errors that occur during notification delivery.
+   * Updates error metrics and deactivates subscription after too many errors.
+   * @param subscription - The subscription document that encountered an error
+   * @param error - The error that occurred
+   */
   private async handleNotificationError(subscription: SubscriptionDocument, error: any): Promise<void> {
     subscription.errorCount++
     subscription.lastError = error.message
@@ -351,6 +402,12 @@ export class SubscriptionService {
     await subscription.save()
   }
   
+  /**
+   * Validates subscription criteria format and resource type.
+   * Currently performs basic validation against supported resource types.
+   * @param criteria - The subscription criteria to validate
+   * @throws BadRequestException if criteria format or resource type is invalid
+   */
   private validateCriteria(criteria: string): void {
     // Basic validation - in production, use proper FHIRPath validation
     if (!criteria || typeof criteria !== 'string') {
