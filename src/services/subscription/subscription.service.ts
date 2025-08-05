@@ -393,6 +393,7 @@ export class SubscriptionService {
    * @param error - The error that occurred
    */
   private async handleNotificationError(subscription: SubscriptionDocument, error: any): Promise<void> {
+    
     subscription.errorCount++
     subscription.lastError = error.message
     

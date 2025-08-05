@@ -36,10 +36,11 @@ export class FhirService {
    * Retrieve a specific FHIR resource by its type and ID.
    * @param resourceType - The FHIR resource type (e.g., 'Patient', 'Observation')
    * @param id - The unique identifier of the resource
+   * @param searchParams
    * @returns Promise containing the requested FHIR resource
    * @throws NotFoundException if the resource is not found
    */
-  async findById(resourceType: string, id: string): Promise<any> {
+  async findById(resourceType: string, id: string, searchParams?: any): Promise<any> {
     
     try {
       

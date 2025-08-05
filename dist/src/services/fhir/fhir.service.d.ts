@@ -10,7 +10,7 @@ export declare class FhirService {
     private validationService;
     private eventEmitter;
     constructor(fhirResourceModel: Model<FhirResourceDocument>, structureDefinitonModel: Model<StructureDefinitionDocument>, validationService: ValidationService, eventEmitter: EventEmitter2);
-    findById(resourceType: string, id: string): Promise<any>;
+    findById(resourceType: string, id: string, searchParams?: any): Promise<any>;
     find(resourceType: string, searchParams: any): Promise<SearchResult>;
     create(resourceType: string, resourceData: any): Promise<any>;
     update(resourceType: string, id: string, resourceData: any): Promise<any>;

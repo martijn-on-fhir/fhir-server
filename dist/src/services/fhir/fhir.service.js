@@ -38,7 +38,7 @@ let FhirService = class FhirService {
         this.validationService = validationService;
         this.eventEmitter = eventEmitter;
     }
-    async findById(resourceType, id) {
+    async findById(resourceType, id, searchParams) {
         try {
             const operation = new search_operation_1.SearchOperation(this.fhirResourceModel);
             return await operation.findById(resourceType, id);
