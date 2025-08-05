@@ -6,6 +6,7 @@ import { CreateSubscriptionDto } from 'src/dto/create-subscription-dto'
 import { InjectModel } from '@nestjs/mongoose'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ResourceChangeEvent } from '../../interfaces/resource-change-event'
+import axios from 'axios'
 
 /**
  * Service for managing FHIR Subscriptions, handling creation, updates, and notifications
@@ -357,15 +358,13 @@ export class SubscriptionService {
    */
   private async testEndpoint(subscription: SubscriptionDocument): Promise<void> {
     
-    const testPayload = {
+    const pPayload = {
       resourceType: 'Bundle',
       id: 'test-notification',
       type: 'history',
       timestamp: new Date().toISOString(),
       entry: []
     }
-    
-    console.log(testPayload)
     
     const headers: Record<string, string> = {
       'Content-Type': subscription.channel.payload || 'application/fhir+json'
@@ -377,10 +376,14 @@ export class SubscriptionService {
       })
     }
     
-    /**
-     * @todo send with axios
-     */
-    Promise.resolve()
+    const config = {
+      method: 'post',
+      url: subscription.channel.endpoint,
+      headers,
+      data: pPayload
+    }
+    
+    return await axios.request(config)
   }
   
   /**
