@@ -7,6 +7,7 @@ import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
 import { CreateResourceDto } from '../dto/create-resource-dto'
 import { UpdateResourceDto } from '../dto/update-resource-dto'
 import { ValidateResourceDto } from '../dto/validate-resource-dto'
+import { SearchResult } from '../interfaces/search-result'
 
 @UseGuards(AuthorizerGuard)
 @ApiTags('Fhir Server')
@@ -32,7 +33,7 @@ export class FhirController {
   @ApiOperation({ summary: 'Search FHIR resources', description: 'Search for FHIR resources of specific type with optional search parameters' })
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Get(':resourceType')
-  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any): Promise<any> {
+  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any): Promise<SearchResult> {
     return await this._service.find(resourceType, searchParams);
   }
   
