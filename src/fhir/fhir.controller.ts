@@ -8,6 +8,7 @@ import { CreateResourceDto } from '../dto/create-resource-dto'
 import { UpdateResourceDto } from '../dto/update-resource-dto'
 import { ValidateResourceDto } from '../dto/validate-resource-dto'
 import { SearchResult } from '../interfaces/search-result'
+import { SearchParameters } from '../interfaces/search-parameters'
 
 @UseGuards(AuthorizerGuard)
 @ApiTags('Fhir Server')
@@ -33,16 +34,17 @@ export class FhirController {
   @ApiOperation({ summary: 'Search FHIR resources', description: 'Search for FHIR resources of specific type with optional search parameters' })
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Get(':resourceType')
-  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams: any): Promise<SearchResult> {
-    return await this._service.find(resourceType, searchParams);
+  async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams?: SearchParameters): Promise<SearchResult> {
+    return await this._service.find(resourceType, searchParams ?? {});
   }
   
   @ApiOperation({ summary: 'Get FHIR resource by ID', description: 'Retrieve a specific FHIR resource by its type and ID' })
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @ApiParam({ name: 'id', description: 'Resource ID' })
   @Get(':resourceType/:id')
-  async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string): Promise<any> {
-    return await this._service.findById(resourceType, id);
+  async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string,
+                    @Query() searchParams?: SearchParameters): Promise<any> {
+    return await this._service.findById(resourceType, id, searchParams);
   }
   
   @ApiOperation({ summary: 'Create FHIR resource', description: 'Create a new FHIR resource' })

@@ -5,6 +5,8 @@ import { NotFoundException } from '@nestjs/common';
 import { FhirResponse } from '../fhir-response';
 import { set } from 'lodash-es'
 import { SearchResult } from '../../interfaces/search-result'
+import { SearchParameters } from '../../interfaces/search-parameters'
+import { IncludeOperation } from './include-operation'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -23,6 +25,10 @@ export class SearchOperation extends Operation {
     resourceType: 'Patient',
   };
   
+  includes: any[] = []
+  
+  revIncludes: any[] = []
+  
   constructor(fhirResourceModel: Model<FhirResourceDocument>) {
     
     super(fhirResourceModel);
@@ -37,7 +43,7 @@ export class SearchOperation extends Operation {
    * @returns Promise resolving to the formatted FHIR resource
    * @throws NotFoundException if the resource is not found
    */
-  async findById(resourceType: string, id: string): Promise<any> {
+  async findById(resourceType: string, id: string, searchParameters?: SearchParameters): Promise<any> {
     
     const resource = await this.fhirResourceModel.findOne({
       resourceType, 'resource.id': id,
@@ -57,6 +63,11 @@ export class SearchOperation extends Operation {
       });
     }
     
+    if(searchParameters?._include){
+      const operation = new IncludeOperation(resource, this.fhirResourceModel);
+      this.includes = await operation.execute(searchParameters._include)
+    }
+    
     return FhirResponse.format(resource);
   }
   
@@ -68,22 +79,32 @@ export class SearchOperation extends Operation {
    * @param searchParams - Search parameters including _count, _offset, and identifier
    * @returns Promise resolving to a FHIR Bundle containing matching resources
    */
-  async find(resourceType: string, searchParams: any): Promise<SearchResult> {
+  async find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult> {
     
     this.filter = {
       resourceType,
       resource: {},
     };
     
-    this.count = searchParams._count ? parseInt(searchParams._count) : 20;
-    this.offset = searchParams._offset ? parseInt(searchParams._offset) : 0;
-    
-    this.appendId(searchParams?._id)
-    this.appendIdentifier(searchParams?.identifier);
-    this.appendProfile(searchParams?._profile);
+    if(searchParams){
+      
+      this.count = searchParams._count ? searchParams._count : 20;
+      this.offset = searchParams._offset ? searchParams._offset : 0;
+      
+      if(searchParams._id){
+        this.appendId(searchParams._id)
+      }
+      
+      if(searchParams.identifier){
+        this.appendIdentifier(searchParams.identifier);
+      }
+      
+      if(searchParams._profile){
+        this.appendProfile(searchParams?._profile);
+      }
+    }
     
     const query = this.transformToDotNotation(this.filter);
-    console.dir(query);
     
     const resources = await this.fhirResourceModel
     .find(query)

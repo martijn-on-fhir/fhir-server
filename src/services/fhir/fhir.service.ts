@@ -13,6 +13,7 @@ import { Metadata } from '../../lib/metadata'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { FhirEvent } from '../../events/fhir-event-listener'
 import { SearchResult } from '../../interfaces/search-result'
+import { SearchParameters } from '../../interfaces/search-parameters'
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -36,15 +37,16 @@ export class FhirService {
    * Retrieve a specific FHIR resource by its type and ID.
    * @param resourceType - The FHIR resource type (e.g., 'Patient', 'Observation')
    * @param id - The unique identifier of the resource
+   * @param searchParams
    * @returns Promise containing the requested FHIR resource
    * @throws NotFoundException if the resource is not found
    */
-  async findById(resourceType: string, id: string): Promise<any> {
+  async findById(resourceType: string, id: string, searchParams?: SearchParameters): Promise<any> {
     
     try {
       
       const operation = new SearchOperation(this.fhirResourceModel)
-      return await operation.findById(resourceType, id)
+      return await operation.findById(resourceType, id, searchParams)
       
     } catch (error) {
       
@@ -63,7 +65,7 @@ export class FhirService {
    * @param searchParams - Search parameters including _count, _offset, _sort, and resource-specific filters
    * @returns Promise containing a FHIR Bundle with matching resources
    */
-  async find(resourceType: string, searchParams: any): Promise<SearchResult> {
+  async find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult> {
     
     try {
       

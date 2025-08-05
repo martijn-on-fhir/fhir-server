@@ -38,10 +38,10 @@ let FhirService = class FhirService {
         this.validationService = validationService;
         this.eventEmitter = eventEmitter;
     }
-    async findById(resourceType, id) {
+    async findById(resourceType, id, searchParams) {
         try {
             const operation = new search_operation_1.SearchOperation(this.fhirResourceModel);
-            return await operation.findById(resourceType, id);
+            return await operation.findById(resourceType, id, searchParams);
         }
         catch (error) {
             if (error instanceof common_1.NotFoundException) {

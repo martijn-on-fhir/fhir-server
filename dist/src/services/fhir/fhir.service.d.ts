@@ -4,14 +4,15 @@ import { ValidationService } from '../validation/validation.service';
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SearchResult } from '../../interfaces/search-result';
+import { SearchParameters } from '../../interfaces/search-parameters';
 export declare class FhirService {
     private fhirResourceModel;
     private structureDefinitonModel;
     private validationService;
     private eventEmitter;
     constructor(fhirResourceModel: Model<FhirResourceDocument>, structureDefinitonModel: Model<StructureDefinitionDocument>, validationService: ValidationService, eventEmitter: EventEmitter2);
-    findById(resourceType: string, id: string): Promise<any>;
-    find(resourceType: string, searchParams: any): Promise<SearchResult>;
+    findById(resourceType: string, id: string, searchParams?: SearchParameters): Promise<any>;
+    find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult>;
     create(resourceType: string, resourceData: any): Promise<any>;
     update(resourceType: string, id: string, resourceData: any): Promise<any>;
     delete(resourceType: string, id: string): Promise<any>;

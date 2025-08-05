@@ -5,6 +5,7 @@ const operation_1 = require("./operation");
 const common_1 = require("@nestjs/common");
 const fhir_response_1 = require("../fhir-response");
 const lodash_es_1 = require("lodash-es");
+const include_operation_1 = require("./include-operation");
 class SearchOperation extends operation_1.Operation {
     count = 20;
     offset = 0;
@@ -12,11 +13,13 @@ class SearchOperation extends operation_1.Operation {
     filter = {
         resourceType: 'Patient',
     };
+    includes = [];
+    revIncludes = [];
     constructor(fhirResourceModel) {
         super(fhirResourceModel);
         this.fhirResourceModel = fhirResourceModel;
     }
-    async findById(resourceType, id) {
+    async findById(resourceType, id, searchParameters) {
         const resource = await this.fhirResourceModel.findOne({
             resourceType, 'resource.id': id,
         }).exec();
@@ -32,6 +35,10 @@ class SearchOperation extends operation_1.Operation {
                     }],
             });
         }
+        if (searchParameters?._include) {
+            const operation = new include_operation_1.IncludeOperation(resource, this.fhirResourceModel);
+            this.includes = await operation.execute(searchParameters._include);
+        }
         return fhir_response_1.FhirResponse.format(resource);
     }
     async find(resourceType, searchParams) {
@@ -39,13 +46,20 @@ class SearchOperation extends operation_1.Operation {
             resourceType,
             resource: {},
         };
-        this.count = searchParams._count ? parseInt(searchParams._count) : 20;
-        this.offset = searchParams._offset ? parseInt(searchParams._offset) : 0;
-        this.appendId(searchParams?._id);
-        this.appendIdentifier(searchParams?.identifier);
-        this.appendProfile(searchParams?._profile);
+        if (searchParams) {
+            this.count = searchParams._count ? searchParams._count : 20;
+            this.offset = searchParams._offset ? searchParams._offset : 0;
+            if (searchParams._id) {
+                this.appendId(searchParams._id);
+            }
+            if (searchParams.identifier) {
+                this.appendIdentifier(searchParams.identifier);
+            }
+            if (searchParams._profile) {
+                this.appendProfile(searchParams?._profile);
+            }
+        }
         const query = this.transformToDotNotation(this.filter);
-        console.dir(query);
         const resources = await this.fhirResourceModel
             .find(query)
             .skip(this.offset)
