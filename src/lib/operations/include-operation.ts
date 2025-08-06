@@ -50,7 +50,7 @@ export class IncludeOperation {
       if (defination) {
         
         const { path } = defination
-        const values = fhirPath.evaluate(this.resource, path)
+        const values = fhirPath.evaluate(this.resource,`${path}`)
         
         if (Array.isArray(values)) {
           
