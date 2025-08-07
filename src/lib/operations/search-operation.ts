@@ -3,7 +3,7 @@ import { Model, SortOrder } from 'mongoose'
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema'
 import { NotFoundException } from '@nestjs/common'
 import { FhirResponse } from '../fhir-response'
-import { set } from 'lodash-es'
+import { set, pick } from 'lodash-es'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
 import { IncludeOperation } from './include-operation'
@@ -77,6 +77,12 @@ export class SearchOperation extends Operation {
       if (this.includes.length >= 1) {
         return operation.getResponse()
       }
+    }
+    
+    // Only show those elements that are specified in the _elements parameter
+    if(searchParameters?._elements){
+      const filtered = pick(resource.resource, searchParameters._elements.split(','))
+      resource.resource = filtered
     }
     
     return FhirResponse.format(resource)

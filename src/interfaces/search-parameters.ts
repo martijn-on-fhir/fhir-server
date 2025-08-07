@@ -7,4 +7,6 @@ export interface SearchParameters {
   _rev_include?: string | string[],
   identifier?: string
   _profile?: string
+  _summary?: 'true' | 'text' | 'data' | 'count' | 'false'
+  _elements?: string
 }
