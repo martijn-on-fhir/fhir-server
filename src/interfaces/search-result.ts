@@ -1,18 +1,13 @@
+import { BundleEntry } from './bundle-entry'
+
 export interface SearchResult {
-  resourceType: 'Bundle';
+  resourceType: string;
   id: string;
-  type: 'searchset';
+  type: string;
   total: number;
   link?: Array<{
     relation: string;
     url: string;
   }>;
-  entry: Array<{
-    fullUrl: string;
-    resource: any;
-    search: {
-      mode: 'match' | 'include';
-      score?: number;
-    };
-  }>;
+  entry: BundleEntry[]
 }

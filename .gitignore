@@ -56,4 +56,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /config/local.json
 /export/**/*.json
 /dist/
-/.idea/compiler.xml
+/.idea/**/*
+/.idea/

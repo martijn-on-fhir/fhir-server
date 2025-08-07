@@ -11,17 +11,19 @@ class SearchOperation extends operation_1.Operation {
     offset = 0;
     sort = { 'resource.meta.lastUpdated': 1 };
     filter = {
-        resourceType: 'Patient',
+        resourceType: 'Patient'
     };
     includes = [];
     revIncludes = [];
-    constructor(fhirResourceModel) {
+    request;
+    constructor(fhirResourceModel, request) {
         super(fhirResourceModel);
         this.fhirResourceModel = fhirResourceModel;
+        this.request = request;
     }
     async findById(resourceType, id, searchParameters) {
         const resource = await this.fhirResourceModel.findOne({
-            resourceType, 'resource.id': id,
+            resourceType, 'resource.id': id
         }).exec();
         if (!resource) {
             throw new common_1.NotFoundException({
@@ -30,21 +32,24 @@ class SearchOperation extends operation_1.Operation {
                         severity: 'error',
                         code: 'not-found',
                         details: {
-                            text: `${resourceType}/${id} not found`,
-                        },
-                    }],
+                            text: `${resourceType}/${id} not found`
+                        }
+                    }]
             });
         }
         if (searchParameters?._include) {
-            const operation = new include_operation_1.IncludeOperation(resource, this.fhirResourceModel);
+            const operation = new include_operation_1.IncludeOperation(resource, this.fhirResourceModel, this.request);
             this.includes = await operation.execute(searchParameters._include);
+            if (this.includes.length >= 1) {
+                return operation.getResponse();
+            }
         }
         return fhir_response_1.FhirResponse.format(resource);
     }
     async find(resourceType, searchParams) {
         this.filter = {
             resourceType,
-            resource: {},
+            resource: {}
         };
         if (searchParams) {
             this.count = searchParams._count ? searchParams._count : 20;
@@ -83,11 +88,11 @@ class SearchOperation extends operation_1.Operation {
         for (const identifier of identifiers) {
             const [system, value] = identifier.split('|');
             const config = {
-                system,
+                system
             };
             if (value) {
                 Object.assign(config, {
-                    value,
+                    value
                 });
             }
             this.filter.resource.identifier = config;

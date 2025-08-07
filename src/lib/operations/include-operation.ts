@@ -4,6 +4,9 @@ import { searchParameterMap } from '../search-parameter-map'
 import { IncludeInstruction } from '../../interfaces/include-instruction'
 import { BadRequestException } from '@nestjs/common'
 import * as fhirPath from 'fhirpath'
+import { v4 as uuidv4 } from 'uuid';
+import { SearchResult } from '../../interfaces/search-result'
+import { Request } from 'express';
 
 /**
  * Handles FHIR _include operations to fetch referenced resources.
@@ -23,10 +26,10 @@ export class IncludeOperation {
    * @param model - The source model containing the primary resource
    * @param fhirResourceModel - Mongoose model for FHIR resources
    */
-  constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>) {
+  constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>, private readonly request: Request) {
     
     this.resource = this.model.resource
-    this.collection = [this.resource]
+    this.collection = []
   }
   
   /**
@@ -81,6 +84,47 @@ export class IncludeOperation {
     }
 
     return this.collection
+  }
+  
+  /**
+   * Formats and returns the search results as a FHIR Bundle resource.
+   * Creates a Bundle containing the primary resource and any included referenced resources.
+   * The Bundle follows the FHIR searchset structure with appropriate search modes for
+   * primary and included resources.
+   */
+  getResponse(): SearchResult {
+    
+    const hostUrl = this.request.get('secure') ?  `https://${this.request.get('host')}` : `http://${this.request.get('host')}`
+    
+    const response = {
+      id: uuidv4(),
+      resourceType: "Bundle",
+      type: "searchset",
+      total: 1,
+      entry: [
+        {
+          fullUrl: `${hostUrl}/fhir/${this.resource.resourceType}/${this.resource.id}`,
+          resource: this.resource,
+          search: {
+            mode: "match",
+            score: 1
+          }
+        }
+      ]
+    }
+    
+    for(const resource of this.collection){
+      
+      const entry = {
+        fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
+        resource: resource,
+        search: { mode: "include", score: 1 }
+      }
+      
+      response.entry.push(entry)
+    }
+    
+    return response
   }
   
   /**
