@@ -79,7 +79,10 @@ export class IncludeOperation {
         
         const { resource, id } = reference
         const entity = await this.getReference(resource, id)
-        this.collection.push(entity)
+        
+        if(entity){
+          this.collection.push(entity)
+        }
       }
     }
 
