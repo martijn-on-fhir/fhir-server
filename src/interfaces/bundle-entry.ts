@@ -20,7 +20,7 @@ export interface BundleEntry {
    * Used when the bundle represents search results.
    */
   search?: {
-    mode: 'match' | 'include';  // Whether this resource matched search criteria or was included via _include
+    mode: string;  // Whether this resource matched search criteria or was included via _include
     score?: number             // Search ranking score if the server supports scoring
   }
 }

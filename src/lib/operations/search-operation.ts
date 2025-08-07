@@ -1,8 +1,8 @@
-import { Operation } from './operation';
-import { Model, SortOrder } from 'mongoose';
-import { FhirResourceDocument } from '../../schema/fhir-resource-schema';
-import { NotFoundException } from '@nestjs/common';
-import { FhirResponse } from '../fhir-response';
+import { Operation } from './operation'
+import { Model, SortOrder } from 'mongoose'
+import { FhirResourceDocument } from '../../schema/fhir-resource-schema'
+import { NotFoundException } from '@nestjs/common'
+import { FhirResponse } from '../fhir-response'
 import { set } from 'lodash-es'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
@@ -15,15 +15,15 @@ import { IncludeOperation } from './include-operation'
  */
 export class SearchOperation extends Operation {
   
-  count: number = 20;
+  count: number = 20
   
-  offset: number = 0;
+  offset: number = 0
   
-  sort: Record<string, SortOrder> = { 'resource.meta.lastUpdated': 1 };
+  sort: Record<string, SortOrder> = { 'resource.meta.lastUpdated': 1 }
   
   filter: any = {
-    resourceType: 'Patient',
-  };
+    resourceType: 'Patient'
+  }
   
   includes: any[] = []
   
@@ -31,8 +31,8 @@ export class SearchOperation extends Operation {
   
   constructor(fhirResourceModel: Model<FhirResourceDocument>) {
     
-    super(fhirResourceModel);
-    this.fhirResourceModel = fhirResourceModel;
+    super(fhirResourceModel)
+    this.fhirResourceModel = fhirResourceModel
   }
   
   /**
@@ -46,8 +46,8 @@ export class SearchOperation extends Operation {
   async findById(resourceType: string, id: string, searchParameters?: SearchParameters): Promise<any> {
     
     const resource = await this.fhirResourceModel.findOne({
-      resourceType, 'resource.id': id,
-    }).exec();
+      resourceType, 'resource.id': id
+    }).exec()
     
     if (!resource) {
       
@@ -57,20 +57,23 @@ export class SearchOperation extends Operation {
           severity: 'error',
           code: 'not-found',
           details: {
-            text: `${resourceType}/${id} not found`,
-          },
-        }],
-      });
+            text: `${resourceType}/${id} not found`
+          }
+        }]
+      })
     }
     
-    if(searchParameters?._include){
-      const operation = new IncludeOperation(resource, this.fhirResourceModel);
+    if (searchParameters?._include) {
+      const operation = new IncludeOperation(resource, this.fhirResourceModel)
+      
       this.includes = await operation.execute(searchParameters._include)
       
-      return this.includes
+      if (this.includes.length >= 1) {
+        return operation.getResponse()
+      }
     }
     
-    return FhirResponse.format(resource);
+    return FhirResponse.format(resource)
   }
   
   /**
@@ -85,39 +88,39 @@ export class SearchOperation extends Operation {
     
     this.filter = {
       resourceType,
-      resource: {},
-    };
+      resource: {}
+    }
     
-    if(searchParams){
+    if (searchParams) {
       
-      this.count = searchParams._count ? searchParams._count : 20;
-      this.offset = searchParams._offset ? searchParams._offset : 0;
+      this.count = searchParams._count ? searchParams._count : 20
+      this.offset = searchParams._offset ? searchParams._offset : 0
       
-      if(searchParams._id){
+      if (searchParams._id) {
         this.appendId(searchParams._id)
       }
       
-      if(searchParams.identifier){
-        this.appendIdentifier(searchParams.identifier);
+      if (searchParams.identifier) {
+        this.appendIdentifier(searchParams.identifier)
       }
       
-      if(searchParams._profile){
-        this.appendProfile(searchParams?._profile);
+      if (searchParams._profile) {
+        this.appendProfile(searchParams?._profile)
       }
     }
     
-    const query = this.transformToDotNotation(this.filter);
+    const query = this.transformToDotNotation(this.filter)
     
     const resources = await this.fhirResourceModel
     .find(query)
     .skip(this.offset)
     .limit(this.count)
     .sort(this.sort)
-    .exec();
+    .exec()
     
-    const total = await this.fhirResourceModel.countDocuments(query);
+    const total = await this.fhirResourceModel.countDocuments(query)
     
-    return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count);
+    return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count)
   }
   
   /**
@@ -128,8 +131,8 @@ export class SearchOperation extends Operation {
    */
   appendId(id: string): void {
     
-    if(id){
-      this.filter.resource.id = id;
+    if (id) {
+      this.filter.resource.id = id
     }
   }
   
@@ -142,31 +145,31 @@ export class SearchOperation extends Operation {
    */
   private appendIdentifier(entity: string | string[]): void {
     
-    this.filter.resource.identifier = [];
-    const identifiers: string[] = [];
+    this.filter.resource.identifier = []
+    const identifiers: string[] = []
     
     if (typeof entity === 'string') {
-      identifiers.push(entity);
+      identifiers.push(entity)
     }
     
     for (const identifier of identifiers) {
       
-      const [system, value] = identifier.split('|');
+      const [system, value] = identifier.split('|')
       const config = {
-        system,
-      };
+        system
+      }
       
       if (value) {
         Object.assign(config, {
-          value,
-        });
+          value
+        })
       }
       
-      this.filter.resource.identifier = config;
+      this.filter.resource.identifier = config
     }
     
     if (this.filter.resource.identifier.length === 0) {
-      delete this.filter.resource.identifier;
+      delete this.filter.resource.identifier
     }
   }
   
@@ -180,7 +183,7 @@ export class SearchOperation extends Operation {
    */
   private appendProfile(profile: string): void {
     
-    if(profile){
+    if (profile) {
       set(this.filter, 'resource.meta.profile', profile)
     }
   }
@@ -211,22 +214,22 @@ export class SearchOperation extends Operation {
    */
   private transformToDotNotation(nestedQuery: any, prefix: string = ''): any {
     
-    const transformed: any = {};
+    const transformed: any = {}
     
     for (const key in nestedQuery) {
       if (nestedQuery.hasOwnProperty(key)) {
         
-        const currentKey = prefix ? `${prefix}.${key}` : key;
-        const value = nestedQuery[key];
+        const currentKey = prefix ? `${prefix}.${key}` : key
+        const value = nestedQuery[key]
         
         if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-          Object.assign(transformed, this.transformToDotNotation(value, currentKey));
+          Object.assign(transformed, this.transformToDotNotation(value, currentKey))
         } else {
-          transformed[currentKey] = value;
+          transformed[currentKey] = value
         }
       }
     }
     
-    return transformed;
+    return transformed
   }
 }

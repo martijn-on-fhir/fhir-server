@@ -4,6 +4,8 @@ import { searchParameterMap } from '../search-parameter-map'
 import { IncludeInstruction } from '../../interfaces/include-instruction'
 import { BadRequestException } from '@nestjs/common'
 import * as fhirPath from 'fhirpath'
+import { v4 as uuidv4 } from 'uuid';
+import { SearchResult } from '../../interfaces/search-result'
 
 /**
  * Handles FHIR _include operations to fetch referenced resources.
@@ -26,7 +28,7 @@ export class IncludeOperation {
   constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>) {
     
     this.resource = this.model.resource
-    this.collection = [this.resource]
+    this.collection = []
   }
   
   /**
@@ -81,6 +83,45 @@ export class IncludeOperation {
     }
 
     return this.collection
+  }
+  
+  /**
+   * Formats and returns the search results as a FHIR Bundle resource.
+   * Creates a Bundle containing the primary resource and any included referenced resources.
+   * The Bundle follows the FHIR searchset structure with appropriate search modes for
+   * primary and included resources.
+   */
+  getResponse(): SearchResult {
+    
+    const response = {
+      id: uuidv4(),
+      resourceType: "Bundle",
+      type: "searchset",
+      total: 1,
+      entry: [
+        {
+          fullUrl: "https://example.com/fhir/Patient/123",
+          resource: this.resource,
+          search: {
+            mode: "match",
+            score: 1
+          }
+        }
+      ]
+    }
+    
+    for(const resource of this.collection){
+      
+      const entry = {
+        fullUrl: `https://example.com/fhir/${resource.resourceType}/${resource.id}`,
+        resource: resource,
+        search: { mode: "include", score: 1 }
+      }
+      
+      response.entry.push(entry)
+    }
+    
+    return response
   }
   
   /**
