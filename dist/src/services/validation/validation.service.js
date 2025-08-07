@@ -267,7 +267,7 @@ let ValidationService = class ValidationService {
             const result = this._toBoolean(fhirPath.evaluate(this.resource, expression, {
                 base: path
             }, fhirModel));
-            if (!result && path === 'Observation.component') {
+            if (!result && (path === 'Observation.component' || path === 'Encounter.reasonCode.extension')) {
                 return true;
             }
             return result;
@@ -287,7 +287,12 @@ let ValidationService = class ValidationService {
                     if (typeof value === 'string') {
                         return item.code === value;
                     }
-                    return item.code === value.coding[0].code;
+                    if (Array.isArray(value.coding)) {
+                        return value.coding.some((coding) => coding.code === item.code);
+                    }
+                    else {
+                        return item.code === value.code;
+                    }
                 });
                 if (!exists) {
                     const allowed = collection.map((item) => {

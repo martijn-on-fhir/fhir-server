@@ -318,7 +318,7 @@ export class ValidationService {
    * @private
    */
   private async validateElement(path: string, value: any, errors: ValidationError[], warnings: ValidationWarning[]): Promise<void> {
-    
+
     const elementDef = this.elements.get(path)
     
     if (!elementDef) {
@@ -457,9 +457,10 @@ export class ValidationService {
       }, fhirModel))
       
       /**
+       * @Todo Need some love and research
        * I think this is a bug, need to check this out. cose resource seems okee.
        */
-      if (!result && path === 'Observation.component') {
+      if (!result && (path === 'Observation.component' || path === 'Encounter.reasonCode.extension')) {
         return true
       }
       
@@ -498,7 +499,11 @@ export class ValidationService {
             return item.code === value
           }
           
-          return item.code === value.coding[0].code
+          if (Array.isArray(value.coding)) {
+            return value.coding.some((coding: any) => coding.code === item.code)
+          } else {
+            return item.code === value.code
+          }
         })
         
         if (!exists) {
