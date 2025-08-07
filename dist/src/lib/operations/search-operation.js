@@ -44,6 +44,10 @@ class SearchOperation extends operation_1.Operation {
                 return operation.getResponse();
             }
         }
+        if (searchParameters?._elements) {
+            const filtered = (0, lodash_es_1.pick)(resource.resource, searchParameters._elements.split(','));
+            resource.resource = filtered;
+        }
         return fhir_response_1.FhirResponse.format(resource);
     }
     async find(resourceType, searchParams) {
