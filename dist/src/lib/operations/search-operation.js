@@ -15,9 +15,11 @@ class SearchOperation extends operation_1.Operation {
     };
     includes = [];
     revIncludes = [];
-    constructor(fhirResourceModel) {
+    request;
+    constructor(fhirResourceModel, request) {
         super(fhirResourceModel);
         this.fhirResourceModel = fhirResourceModel;
+        this.request = request;
     }
     async findById(resourceType, id, searchParameters) {
         const resource = await this.fhirResourceModel.findOne({
@@ -36,7 +38,7 @@ class SearchOperation extends operation_1.Operation {
             });
         }
         if (searchParameters?._include) {
-            const operation = new include_operation_1.IncludeOperation(resource, this.fhirResourceModel);
+            const operation = new include_operation_1.IncludeOperation(resource, this.fhirResourceModel, this.request);
             this.includes = await operation.execute(searchParameters._include);
             if (this.includes.length >= 1) {
                 return operation.getResponse();

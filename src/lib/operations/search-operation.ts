@@ -7,6 +7,7 @@ import { set } from 'lodash-es'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
 import { IncludeOperation } from './include-operation'
+import { Request } from 'express';
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -29,10 +30,14 @@ export class SearchOperation extends Operation {
   
   revIncludes: any[] = []
   
-  constructor(fhirResourceModel: Model<FhirResourceDocument>) {
+  request: Request
+  
+  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request) {
     
     super(fhirResourceModel)
+    
     this.fhirResourceModel = fhirResourceModel
+    this.request = request
   }
   
   /**
@@ -40,6 +45,7 @@ export class SearchOperation extends Operation {
    *
    * @param resourceType - The type of FHIR resource to search for (e.g., 'Patient', 'Observation')
    * @param id - The unique identifier of the resource
+   * @param searchParameters
    * @returns Promise resolving to the formatted FHIR resource
    * @throws NotFoundException if the resource is not found
    */
@@ -64,7 +70,7 @@ export class SearchOperation extends Operation {
     }
     
     if (searchParameters?._include) {
-      const operation = new IncludeOperation(resource, this.fhirResourceModel)
+      const operation = new IncludeOperation(resource, this.fhirResourceModel, this.request)
       
       this.includes = await operation.execute(searchParameters._include)
       

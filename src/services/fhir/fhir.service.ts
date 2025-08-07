@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ConflictException, Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common'
 import { FhirResource, FhirResourceDocument } from '../../schema/fhir-resource-schema'
 import { Model } from 'mongoose'
 import { InjectModel } from '@nestjs/mongoose'
@@ -14,6 +14,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { FhirEvent } from '../../events/fhir-event-listener'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
+import { REQUEST } from '@nestjs/core'
+import { Request } from 'express';
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -28,7 +30,7 @@ export class FhirService {
    * @param validationService
    * @param eventEmitter
    */
-  constructor(@InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>,
+  constructor(@Inject(REQUEST) private readonly request: Request, @InjectModel(FhirResource.name) private fhirResourceModel: Model<FhirResourceDocument>,
               @InjectModel(StructureDefinitionSchema.name) private structureDefinitonModel: Model<StructureDefinitionDocument>,
               private validationService: ValidationService, private eventEmitter: EventEmitter2) {
   }
@@ -45,7 +47,7 @@ export class FhirService {
     
     try {
       
-      const operation = new SearchOperation(this.fhirResourceModel)
+      const operation = new SearchOperation(this.fhirResourceModel, this.request)
       return await operation.findById(resourceType, id, searchParams)
       
     } catch (error) {
@@ -69,7 +71,7 @@ export class FhirService {
     
     try {
       
-      const operation = new SearchOperation(this.fhirResourceModel)
+      const operation = new SearchOperation(this.fhirResourceModel, this.request)
       return operation.find(resourceType, searchParams)
       
     } catch (error) {

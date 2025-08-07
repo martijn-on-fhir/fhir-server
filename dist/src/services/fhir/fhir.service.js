@@ -27,12 +27,15 @@ const structure_definition_schema_1 = require("../../schema/structure-definition
 const metadata_1 = require("../../lib/metadata");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const fhir_event_listener_1 = require("../../events/fhir-event-listener");
+const core_1 = require("@nestjs/core");
 let FhirService = class FhirService {
+    request;
     fhirResourceModel;
     structureDefinitonModel;
     validationService;
     eventEmitter;
-    constructor(fhirResourceModel, structureDefinitonModel, validationService, eventEmitter) {
+    constructor(request, fhirResourceModel, structureDefinitonModel, validationService, eventEmitter) {
+        this.request = request;
         this.fhirResourceModel = fhirResourceModel;
         this.structureDefinitonModel = structureDefinitonModel;
         this.validationService = validationService;
@@ -40,7 +43,7 @@ let FhirService = class FhirService {
     }
     async findById(resourceType, id, searchParams) {
         try {
-            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel);
+            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request);
             return await operation.findById(resourceType, id, searchParams);
         }
         catch (error) {
@@ -52,7 +55,7 @@ let FhirService = class FhirService {
     }
     async find(resourceType, searchParams) {
         try {
-            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel);
+            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request);
             return operation.find(resourceType, searchParams);
         }
         catch (error) {
@@ -147,9 +150,10 @@ let FhirService = class FhirService {
 exports.FhirService = FhirService;
 exports.FhirService = FhirService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_2.InjectModel)(fhir_resource_schema_1.FhirResource.name)),
-    __param(1, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model,
+    __param(0, (0, common_1.Inject)(core_1.REQUEST)),
+    __param(1, (0, mongoose_2.InjectModel)(fhir_resource_schema_1.FhirResource.name)),
+    __param(2, (0, mongoose_2.InjectModel)(structure_definition_schema_1.StructureDefinitionSchema.name)),
+    __metadata("design:paramtypes", [Object, mongoose_1.Model,
         mongoose_1.Model,
         validation_service_1.ValidationService, event_emitter_1.EventEmitter2])
 ], FhirService);

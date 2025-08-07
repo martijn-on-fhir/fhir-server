@@ -6,6 +6,7 @@ import { BadRequestException } from '@nestjs/common'
 import * as fhirPath from 'fhirpath'
 import { v4 as uuidv4 } from 'uuid';
 import { SearchResult } from '../../interfaces/search-result'
+import { Request } from 'express';
 
 /**
  * Handles FHIR _include operations to fetch referenced resources.
@@ -25,7 +26,7 @@ export class IncludeOperation {
    * @param model - The source model containing the primary resource
    * @param fhirResourceModel - Mongoose model for FHIR resources
    */
-  constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>) {
+  constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>, private readonly request: Request) {
     
     this.resource = this.model.resource
     this.collection = []
@@ -93,6 +94,8 @@ export class IncludeOperation {
    */
   getResponse(): SearchResult {
     
+    const hostUrl = this.request.get('secure') ?  `https://${this.request.get('host')}` : `http://${this.request.get('host')}`
+    
     const response = {
       id: uuidv4(),
       resourceType: "Bundle",
@@ -100,7 +103,7 @@ export class IncludeOperation {
       total: 1,
       entry: [
         {
-          fullUrl: "https://example.com/fhir/Patient/123",
+          fullUrl: `${hostUrl}/fhir/${this.resource.resourceType}/${this.resource.id}`,
           resource: this.resource,
           search: {
             mode: "match",
@@ -113,7 +116,7 @@ export class IncludeOperation {
     for(const resource of this.collection){
       
       const entry = {
-        fullUrl: `https://example.com/fhir/${resource.resourceType}/${resource.id}`,
+        fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
         resource: resource,
         search: { mode: "include", score: 1 }
       }

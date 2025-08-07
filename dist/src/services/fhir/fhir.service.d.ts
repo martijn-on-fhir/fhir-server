@@ -5,12 +5,14 @@ import { StructureDefinitionDocument } from '../../schema/structure-definition.s
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SearchResult } from '../../interfaces/search-result';
 import { SearchParameters } from '../../interfaces/search-parameters';
+import { Request } from 'express';
 export declare class FhirService {
+    private readonly request;
     private fhirResourceModel;
     private structureDefinitonModel;
     private validationService;
     private eventEmitter;
-    constructor(fhirResourceModel: Model<FhirResourceDocument>, structureDefinitonModel: Model<StructureDefinitionDocument>, validationService: ValidationService, eventEmitter: EventEmitter2);
+    constructor(request: Request, fhirResourceModel: Model<FhirResourceDocument>, structureDefinitonModel: Model<StructureDefinitionDocument>, validationService: ValidationService, eventEmitter: EventEmitter2);
     findById(resourceType: string, id: string, searchParams?: SearchParameters): Promise<any>;
     find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult>;
     create(resourceType: string, resourceData: any): Promise<any>;
