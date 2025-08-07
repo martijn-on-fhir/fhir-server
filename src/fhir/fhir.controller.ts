@@ -9,8 +9,9 @@ import { UpdateResourceDto } from '../dto/update-resource-dto'
 import { ValidateResourceDto } from '../dto/validate-resource-dto'
 import { SearchResult } from '../interfaces/search-result'
 import { SearchParameters } from '../interfaces/search-parameters'
+import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.guard'
 
-@UseGuards(AuthorizerGuard)
+@UseGuards(AuthorizerGuard, FhirAuthorizerGuard)
 @ApiTags('Fhir Server')
 @Controller('fhir')
 export class FhirController {
