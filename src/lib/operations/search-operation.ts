@@ -66,6 +66,8 @@ export class SearchOperation extends Operation {
     if(searchParameters?._include){
       const operation = new IncludeOperation(resource, this.fhirResourceModel);
       this.includes = await operation.execute(searchParameters._include)
+      
+      return this.includes
     }
     
     return FhirResponse.format(resource);
