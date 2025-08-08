@@ -23,7 +23,7 @@ export class SearchOperation extends Operation {
   
   offset: number = 0
   
-  sort: Record<string, SortOrder> = { 'resource.meta.lastUpdated': 1 }
+  sort: Record<string, SortOrder> = { 'meta.lastUpdated': 1 }
   
   filter: any = {
     resourceType: 'Patient'
@@ -54,9 +54,11 @@ export class SearchOperation extends Operation {
    */
   async findById(resourceType: string, id: string, searchParameters?: SearchParameters): Promise<any> {
     
-    const resource = await this.fhirResourceModel.findOne({
-      resourceType, 'resource.id': id
-    }).exec()
+    let resource = await this.fhirResourceModel.findOne({
+      resourceType, id
+    })
+    .select('-_id')
+    .lean()
     
     if (!resource) {
       
@@ -83,9 +85,9 @@ export class SearchOperation extends Operation {
     }
     
     if(searchParameters?._elements  && typeof searchParameters._elements === 'string'){
-      resource.resource = elements(resource.resource, searchParameters._elements)
+      resource = elements(resource, searchParameters._elements)
     } else if(searchParameters?._summary  && typeof searchParameters._summary === 'string'){
-      resource.resource = await summary(resource.resource, searchParameters._summary, this.structureDefinitonModel)
+      resource = await summary(resource, searchParameters._summary, this.structureDefinitonModel)
     }
     
     return FhirResponse.format(resource)
@@ -103,7 +105,6 @@ export class SearchOperation extends Operation {
     
     this.filter = {
       resourceType,
-      resource: {}
     }
     
     if (searchParams) {
@@ -131,7 +132,8 @@ export class SearchOperation extends Operation {
     .skip(this.offset)
     .limit(this.count)
     .sort(this.sort)
-    .exec()
+    .select('-_id')
+    .lean()
     
     const total = await this.fhirResourceModel.countDocuments(query)
     
@@ -199,7 +201,7 @@ export class SearchOperation extends Operation {
   private appendProfile(profile: string): void {
     
     if (profile) {
-      set(this.filter, 'resource.meta.profile', profile)
+      set(this.filter, 'meta.profile', profile)
     }
   }
   

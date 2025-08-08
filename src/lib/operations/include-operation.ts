@@ -139,11 +139,11 @@ export class IncludeOperation {
   private async getReference(resource: string, id: string): Promise<any> {
     
     const entity = await this.fhirResourceModel.findOne({
-      resourceType: resource, 'resource.id': id,
+      resourceType: resource, 'id': id,
     }).exec();
     
     if(entity){
-      return entity.resource
+      return entity.id === id ? entity.id : undefined
     }
   }
   
