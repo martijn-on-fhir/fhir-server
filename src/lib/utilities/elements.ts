@@ -8,6 +8,6 @@ import { pick } from 'lodash-es'
  * @param filters - Comma-separated string of element paths to include in the result
  * @returns A new object containing only the specified elements from the original resource
  */
-export const elements = (resource: Record<string, unknown>, filters: string) => {
+export const elements = (resource: Record<string, unknown>, filters: string): any => {
   return pick(resource, filters.split(','))
 }

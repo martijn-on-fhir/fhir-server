@@ -84,8 +84,8 @@ export class SearchOperation extends Operation {
     
     if(searchParameters?._elements  && typeof searchParameters._elements === 'string'){
       resource.resource = elements(resource.resource, searchParameters._elements)
-    } else if(searchParameters?._summary  && Array.isArray(searchParameters._summary)){
-      resource.resource = summary(resource.resource, searchParameters._summary, this.structureDefinitonModel)
+    } else if(searchParameters?._summary  && typeof searchParameters._summary === 'string'){
+      resource.resource = await summary(resource.resource, searchParameters._summary, this.structureDefinitonModel)
     }
     
     return FhirResponse.format(resource)

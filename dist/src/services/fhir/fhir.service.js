@@ -43,7 +43,7 @@ let FhirService = class FhirService {
     }
     async findById(resourceType, id, searchParams) {
         try {
-            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request);
+            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel);
             return await operation.findById(resourceType, id, searchParams);
         }
         catch (error) {
@@ -55,7 +55,7 @@ let FhirService = class FhirService {
     }
     async find(resourceType, searchParams) {
         try {
-            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request);
+            const operation = new search_operation_1.SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel);
             return operation.find(resourceType, searchParams);
         }
         catch (error) {
