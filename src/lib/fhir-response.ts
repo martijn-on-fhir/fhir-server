@@ -16,8 +16,7 @@ export class FhirResponse {
   static format(resource): object {
     
     return {
-      ...resource.resource,
-      meta: resource.meta,
+      ...resource
     };
   }
   

@@ -3,7 +3,24 @@ export type FhirResourceDocument = FhirResource & Document;
 export declare class FhirResource {
     id: string;
     resourceType: string;
-    resource: Record<string, any>;
+    meta?: {
+        versionId?: string;
+        lastUpdated?: Date;
+        profile?: string[];
+        security?: any[];
+        tag?: any[];
+        source?: string;
+    };
+    implicitRules?: string;
+    language?: string;
+    text?: {
+        status: 'generated' | 'extensions' | 'additional' | 'empty';
+        div: string;
+    };
+    contained?: any[];
+    extension?: any[];
+    modifierExtension?: any[];
+    identifier?: any[];
     tags: string[];
 }
 export declare const fhirResourceSchema: import("mongoose").Schema<FhirResource, import("mongoose").Model<FhirResource, any, any, any, Document<unknown, any, FhirResource, any> & FhirResource & {

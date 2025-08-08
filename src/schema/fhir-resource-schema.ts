@@ -1,39 +1,112 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
 
 export type FhirResourceDocument = FhirResource & Document;
 
 @Schema({
   collection: 'resources',
-  timestamps: { createdAt: true, updatedAt: false },
-  strict: false, // Flexibiliteit voor verschillende FHIR resource types
-  versionKey: false
+  timestamps: { createdAt: false, updatedAt: false },
+  strict: false, // Toestaan van alle FHIR resource eigenschappen
+  versionKey: false,
+  // Discriminator op resourceType voor type-specifieke indexering
+  discriminatorKey: 'resourceType'
 })
 export class FhirResource {
-  
+  // Core FHIR eigenschappen die altijd aanwezig zijn
   @Prop({
     required: true,
-    unique: true,
     index: true
   })
-  id: string;
+  id: string
   
   @Prop({ required: true, index: true })
-  resourceType: string;
+  resourceType: string
   
-  @Prop({ type: Object }) // Flexibel voor alle FHIR data
-  resource: Record<string, any>;
+  // FHIR Meta informatie
+  @Prop({
+    type: {
+      versionId: String,
+      lastUpdated: { type: Date, default: Date.now },
+      profile: [String],
+      security: [Object],
+      tag: [Object],
+      source: String
+    }
+  })
+  meta?: {
+    versionId?: string;
+    lastUpdated?: Date;
+    profile?: string[];
+    security?: any[];
+    tag?: any[];
+    source?: string;
+  }
   
+  // FHIR basis elementen (optioneel voor alle resources)
+  @Prop()
+  implicitRules?: string
+  
+  @Prop()
+  language?: string
+  
+  @Prop({ type: Object })
+  text?: {
+    status: 'generated' | 'extensions' | 'additional' | 'empty';
+    div: string;
+  }
+  
+  @Prop([Object])
+  contained?: any[]
+  
+  @Prop([Object])
+  extension?: any[]
+  
+  @Prop([Object])
+  modifierExtension?: any[]
+  
+  @Prop([Object])
+  identifier?: any[]
+  
+  // Operationele velden (niet onderdeel van FHIR spec)
   @Prop({ type: [String], default: [] })
-  tags: string[];
+  tags: string[]
+  
+  // Alle andere FHIR resource eigenschappen worden dynamisch toegevoegd
+  // door strict: false
 }
 
-export const fhirResourceSchema = SchemaFactory.createForClass(FhirResource);
+export const fhirResourceSchema = SchemaFactory.createForClass(FhirResource)
 
-// Indexes voor performance
-fhirResourceSchema.index({ resourceType: 1, 'resource.id': 1, })
-fhirResourceSchema.index({ 'resource.active': 1 })
-fhirResourceSchema.index({ 'resource.meta.lastUpdated': 1 })
-fhirResourceSchema.index({ 'resource.meta.profile': 1 })
-fhirResourceSchema.index({ 'resource.identifier': 1 })
-fhirResourceSchema.index({ 'tags': 1 })
+// Basis indexen voor alle resources
+fhirResourceSchema.index({ resourceType: 1, id: 1 }, { unique: true })
+fhirResourceSchema.index({ 'meta.lastUpdated': 1 })
+fhirResourceSchema.index({ 'meta.profile': 1 })
+fhirResourceSchema.index({ 'identifier.system': 1, 'identifier.value': 1 })
+fhirResourceSchema.index({ tags: 1 })
+
+// Resource-specifieke indexen
+fhirResourceSchema.index({ resourceType: 1, status: 1 }) // Voor Patient.active, Observation.status, etc.
+fhirResourceSchema.index({ resourceType: 1, 'subject.reference': 1 }) // Voor Observation.subject, etc.
+fhirResourceSchema.index({ resourceType: 1, 'patient.reference': 1 }) // Voor Encounter.patient, etc.
+
+// Pre-save hook voor meta.lastUpdated en meta.versionId
+fhirResourceSchema.pre('save', function(next) {
+  // Zorg dat id aanwezig is
+  if (!this.id) {
+    this.id = uuidv4()
+  }
+  
+  // Meta bijwerken
+  this.meta = this.meta || {}
+  this.meta.lastUpdated = new Date()
+  
+  if (!this.meta.versionId) {
+    this.meta.versionId = '1'
+  } else if (this.isModified() && !this.isNew) {
+    const current = Number(this.meta.versionId)
+    this.meta.versionId = String(isNaN(current) ? 1 : current + 1)
+  }
+  
+  next()
+})

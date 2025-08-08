@@ -12,7 +12,7 @@ class SearchOperation extends operation_1.Operation {
     structureDefinitonModel;
     count = 20;
     offset = 0;
-    sort = { 'resource.meta.lastUpdated': 1 };
+    sort = { 'meta.lastUpdated': 1 };
     filter = {
         resourceType: 'Patient'
     };
@@ -26,9 +26,11 @@ class SearchOperation extends operation_1.Operation {
         this.request = request;
     }
     async findById(resourceType, id, searchParameters) {
-        const resource = await this.fhirResourceModel.findOne({
-            resourceType, 'resource.id': id
-        }).exec();
+        let resource = await this.fhirResourceModel.findOne({
+            resourceType, id
+        })
+            .select('-_id')
+            .lean();
         if (!resource) {
             throw new common_1.NotFoundException({
                 resourceType: 'OperationOutcome',
@@ -49,17 +51,16 @@ class SearchOperation extends operation_1.Operation {
             }
         }
         if (searchParameters?._elements && typeof searchParameters._elements === 'string') {
-            resource.resource = (0, elements_1.elements)(resource.resource, searchParameters._elements);
+            resource = (0, elements_1.elements)(resource, searchParameters._elements);
         }
         else if (searchParameters?._summary && typeof searchParameters._summary === 'string') {
-            resource.resource = await (0, summary_1.summary)(resource.resource, searchParameters._summary, this.structureDefinitonModel);
+            resource = await (0, summary_1.summary)(resource, searchParameters._summary, this.structureDefinitonModel);
         }
         return fhir_response_1.FhirResponse.format(resource);
     }
     async find(resourceType, searchParams) {
         this.filter = {
             resourceType,
-            resource: {}
         };
         if (searchParams) {
             this.count = searchParams._count ? searchParams._count : 20;
@@ -80,7 +81,8 @@ class SearchOperation extends operation_1.Operation {
             .skip(this.offset)
             .limit(this.count)
             .sort(this.sort)
-            .exec();
+            .select('-_id')
+            .lean();
         const total = await this.fhirResourceModel.countDocuments(query);
         return fhir_response_1.FhirResponse.bundle(resources, total, resourceType, this.offset, this.count);
     }
@@ -113,7 +115,7 @@ class SearchOperation extends operation_1.Operation {
     }
     appendProfile(profile) {
         if (profile) {
-            (0, lodash_es_1.set)(this.filter, 'resource.meta.profile', profile);
+            (0, lodash_es_1.set)(this.filter, 'meta.profile', profile);
         }
     }
     transformToDotNotation(nestedQuery, prefix = '') {
