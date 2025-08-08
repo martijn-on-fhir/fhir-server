@@ -1,5 +1,5 @@
 import { Operation } from './operation'
-import { Model, SortOrder } from 'mongoose'
+import { Model } from 'mongoose'
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema'
 import { NotFoundException } from '@nestjs/common'
 import { FhirResponse } from '../fhir-response'
@@ -11,6 +11,7 @@ import { Request } from 'express'
 import { elements } from '../utilities/elements'
 import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
+import { getSortOrder } from '../utilities/sort'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -22,8 +23,6 @@ export class SearchOperation extends Operation {
   count: number = 20
   
   offset: number = 0
-  
-  sort: Record<string, SortOrder> = { 'meta.lastUpdated': 1 }
   
   filter: any = {
     resourceType: 'Patient'
@@ -131,7 +130,7 @@ export class SearchOperation extends Operation {
     .find(query)
     .skip(this.offset)
     .limit(this.count)
-    .sort(this.sort)
+    .sort(getSortOrder(searchParams['_sort']))
     .select('-_id')
     .lean()
     
@@ -213,21 +212,6 @@ export class SearchOperation extends Operation {
    * @param nestedQuery - The nested object to transform
    * @param prefix - The prefix to prepend to the keys (used for recursion)
    * @returns An object with flattened structure using dot notation
-   * @private
-   *
-   * @example
-   * // Input:
-   * {
-   *   resource: {
-   *     identifier: {
-   *       system: 'http://example.com'
-   *     }
-   *   }
-   * }
-   * // Output:
-   * {
-   *   'resource.identifier.system': 'http://example.com'
-   * }
    */
   private transformToDotNotation(nestedQuery: any, prefix: string = ''): any {
     
