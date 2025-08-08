@@ -108,5 +108,14 @@ fhirResourceSchema.pre('save', function(next) {
     this.meta.versionId = String(isNaN(current) ? 1 : current + 1)
   }
   
+  if(this.meta.security && this.meta.security.length === 0) {
+    
+    this.meta.security.push({
+      "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+      "code": "N",
+      "display": "normal"
+    })
+  }
+  
   next()
 })

@@ -11,7 +11,7 @@ import { Request } from 'express'
 import { elements } from '../utilities/elements'
 import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
-import { getSortOrder } from '../utilities/sort'
+import { setSortOrder } from '../utilities/sort'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -120,7 +120,11 @@ export class SearchOperation extends Operation {
       }
       
       if (searchParams._profile) {
-        this.appendProfile(searchParams?._profile)
+        this.appendProfile(searchParams._profile)
+      }
+      
+      if(searchParams._tag){
+        this.appendTag(searchParams._tag)
       }
     }
     
@@ -130,7 +134,7 @@ export class SearchOperation extends Operation {
     .find(query)
     .skip(this.offset)
     .limit(this.count)
-    .sort(getSortOrder(searchParams['_sort']))
+    .sort(setSortOrder(searchParams['_sort']))
     .select('-_id')
     .lean()
     
@@ -148,7 +152,7 @@ export class SearchOperation extends Operation {
   appendId(id: string): void {
     
     if (id) {
-      this.filter.resource.id = id
+      this.filter.id = id
     }
   }
   
@@ -161,7 +165,7 @@ export class SearchOperation extends Operation {
    */
   private appendIdentifier(entity: string | string[]): void {
     
-    this.filter.resource.identifier = []
+    this.filter.identifier = []
     const identifiers: string[] = []
     
     if (typeof entity === 'string') {
@@ -181,11 +185,11 @@ export class SearchOperation extends Operation {
         })
       }
       
-      this.filter.resource.identifier = config
+      this.filter.identifier = config
     }
     
-    if (this.filter.resource.identifier.length === 0) {
-      delete this.filter.resource.identifier
+    if (this.filter.identifier.length === 0) {
+      delete this.filter.identifier
     }
   }
   
@@ -201,6 +205,20 @@ export class SearchOperation extends Operation {
     
     if (profile) {
       set(this.filter, 'meta.profile', profile)
+    }
+  }
+  
+  /**
+   * Appends a tag filter to the search query.
+   * If a tag value is provided, it will be added to the resource's meta.tag criteria.
+   * This allows filtering resources based on their associated tags.
+   *
+   * @param tag - The tag value to filter by
+   */
+  private appendTag(tag: string): void {
+    
+    if (tag) {
+      set(this.filter, 'meta.tag', tag)
     }
   }
   
