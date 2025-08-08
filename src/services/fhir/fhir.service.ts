@@ -80,6 +80,18 @@ export class FhirService {
   }
   
   /**
+   * Searches and retrieves data based on the specified type and additional search parameters.
+   *
+   * @param {SearchParameters} searchParams - The parameters containing the type or types and any additional constraints for the search.
+   * @return {Promise<SearchResult>} A promise that resolves to the search result matching the given parameters.
+   */
+  async findByType(searchParams: SearchParameters): Promise<SearchResult> {
+    
+    console.log(searchParams)
+    return Promise.resolve({} as SearchResult)
+  }
+  
+  /**
    * Create a new FHIR resource.
    * @param resourceType - The type of FHIR resource to create
    * @param resourceData - The resource data to be stored
