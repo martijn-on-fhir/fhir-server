@@ -3,11 +3,14 @@ import { Model, SortOrder } from 'mongoose'
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema'
 import { NotFoundException } from '@nestjs/common'
 import { FhirResponse } from '../fhir-response'
-import { set, pick } from 'lodash-es'
+import { set } from 'lodash-es'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
 import { IncludeOperation } from './include-operation'
-import { Request } from 'express';
+import { Request } from 'express'
+import { elements } from '../utilities/elements'
+import { summary } from '../utilities/summary'
+import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -32,7 +35,7 @@ export class SearchOperation extends Operation {
   
   request: Request
   
-  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request) {
+  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>,) {
     
     super(fhirResourceModel)
     
@@ -79,10 +82,10 @@ export class SearchOperation extends Operation {
       }
     }
     
-    // Only show those elements that are specified in the _elements parameter
-    if(searchParameters?._elements){
-      const filtered = pick(resource.resource, searchParameters._elements.split(','))
-      resource.resource = filtered
+    if(searchParameters?._elements  && typeof searchParameters._elements === 'string'){
+      resource.resource = elements(resource.resource, searchParameters._elements)
+    } else if(searchParameters?._summary  && typeof searchParameters._summary === 'string'){
+      resource.resource = await summary(resource.resource, searchParameters._summary, this.structureDefinitonModel)
     }
     
     return FhirResponse.format(resource)

@@ -6,7 +6,10 @@ const common_1 = require("@nestjs/common");
 const fhir_response_1 = require("../fhir-response");
 const lodash_es_1 = require("lodash-es");
 const include_operation_1 = require("./include-operation");
+const elements_1 = require("../utilities/elements");
+const summary_1 = require("../utilities/summary");
 class SearchOperation extends operation_1.Operation {
+    structureDefinitonModel;
     count = 20;
     offset = 0;
     sort = { 'resource.meta.lastUpdated': 1 };
@@ -16,8 +19,9 @@ class SearchOperation extends operation_1.Operation {
     includes = [];
     revIncludes = [];
     request;
-    constructor(fhirResourceModel, request) {
+    constructor(fhirResourceModel, request, structureDefinitonModel) {
         super(fhirResourceModel);
+        this.structureDefinitonModel = structureDefinitonModel;
         this.fhirResourceModel = fhirResourceModel;
         this.request = request;
     }
@@ -44,9 +48,11 @@ class SearchOperation extends operation_1.Operation {
                 return operation.getResponse();
             }
         }
-        if (searchParameters?._elements) {
-            const filtered = (0, lodash_es_1.pick)(resource.resource, searchParameters._elements.split(','));
-            resource.resource = filtered;
+        if (searchParameters?._elements && typeof searchParameters._elements === 'string') {
+            resource.resource = (0, elements_1.elements)(resource.resource, searchParameters._elements);
+        }
+        else if (searchParameters?._summary && typeof searchParameters._summary === 'string') {
+            resource.resource = await (0, summary_1.summary)(resource.resource, searchParameters._summary, this.structureDefinitonModel);
         }
         return fhir_response_1.FhirResponse.format(resource);
     }

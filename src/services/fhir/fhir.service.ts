@@ -47,7 +47,7 @@ export class FhirService {
     
     try {
       
-      const operation = new SearchOperation(this.fhirResourceModel, this.request)
+      const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
       return await operation.findById(resourceType, id, searchParams)
       
     } catch (error) {
@@ -71,7 +71,7 @@ export class FhirService {
     
     try {
       
-      const operation = new SearchOperation(this.fhirResourceModel, this.request)
+      const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
       return operation.find(resourceType, searchParams)
       
     } catch (error) {
