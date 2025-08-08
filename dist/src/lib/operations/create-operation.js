@@ -16,14 +16,7 @@ class CreateOperation extends operation_1.Operation {
         if (!exsits) {
             resourceData.id = id;
             const fhirResource = new this.fhirResourceModel({
-                id,
-                resourceType,
-                resource: {
-                    resourceType,
-                    id,
-                    ...resourceData,
-                },
-                tags: ['tenant']
+                ...resourceData
             });
             const saved = await fhirResource.save();
             return fhir_response_1.FhirResponse.format(saved);
