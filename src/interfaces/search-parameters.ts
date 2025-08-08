@@ -19,5 +19,6 @@ export interface SearchParameters {
   _profile?: string
   _summary?: SummaryType
   _elements?: string
-  _tag?: string
+  _tag?: string,
+  _type?: string
 }

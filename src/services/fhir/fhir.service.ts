@@ -15,7 +15,7 @@ import { FhirEvent } from '../../events/fhir-event-listener'
 import { SearchResult } from '../../interfaces/search-result'
 import { SearchParameters } from '../../interfaces/search-parameters'
 import { REQUEST } from '@nestjs/core'
-import { Request } from 'express';
+import { Request } from 'express'
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -85,8 +85,17 @@ export class FhirService {
    * @param {SearchParameters} searchParams - The parameters containing the type or types and any additional constraints for the search.
    * @return {Promise<SearchResult>} A promise that resolves to the search result matching the given parameters.
    */
-  async findByType(searchParams: SearchParameters): Promise<SearchResult> {
+  async findByType(searchParams: SearchParameters): Promise<SearchResult | any> {
     
+    if (!searchParams._type) {
+      return FhirResponse.notAcceptable('_type is a required parameter when no resource is defined')
+    }
+    
+    const resources = searchParams._type.split(',').map(type => type.trim())
+    const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
+    return operation.findByType(resources, searchParams)
+    
+    console.dir(resources)
     console.log(searchParams)
     return Promise.resolve({} as SearchResult)
   }

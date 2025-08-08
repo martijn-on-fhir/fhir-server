@@ -34,12 +34,21 @@ export class SearchOperation extends Operation {
   
   request: Request
   
-  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>,) {
+  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>) {
     
     super(fhirResourceModel)
     
     this.fhirResourceModel = fhirResourceModel
     this.request = request
+  }
+  
+  findByType(resources: string[], searchParameters: SearchParameters): Promise<any> {
+    
+    if(searchParameters._type){
+      delete searchParameters._type
+    }
+    
+    return Promise.resolve({...resources, ...searchParameters})
   }
   
   /**
@@ -83,9 +92,9 @@ export class SearchOperation extends Operation {
       }
     }
     
-    if(searchParameters?._elements  && typeof searchParameters._elements === 'string'){
+    if (searchParameters?._elements && typeof searchParameters._elements === 'string') {
       resource = elements(resource, searchParameters._elements)
-    } else if(searchParameters?._summary  && typeof searchParameters._summary === 'string'){
+    } else if (searchParameters?._summary && typeof searchParameters._summary === 'string') {
       resource = await summary(resource, searchParameters._summary, this.structureDefinitonModel)
     }
     
@@ -103,7 +112,7 @@ export class SearchOperation extends Operation {
   async find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult> {
     
     this.filter = {
-      resourceType,
+      resourceType
     }
     
     if (searchParams) {
@@ -123,7 +132,7 @@ export class SearchOperation extends Operation {
         this.appendProfile(searchParams._profile)
       }
       
-      if(searchParams._tag){
+      if (searchParams._tag) {
         this.appendTag(searchParams._tag)
       }
     }
