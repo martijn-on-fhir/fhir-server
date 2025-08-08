@@ -17,7 +17,7 @@ import { SortOrder } from 'mongoose'
  * // Returns { 'meta.lastUpdated': 1 }
  * getSortOrder(undefined)
  */
-export const getSortOrder = (parameter: string|undefined): Record<string, SortOrder> => {
+export const setSortOrder = (parameter: string|undefined): Record<string, SortOrder> => {
   
   if(!parameter) return {
     'meta.lastUpdated': -1
