@@ -34,7 +34,7 @@ export class SearchOperation extends Operation {
   
   request: Request
   
-  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>) {
+  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>,) {
     
     super(fhirResourceModel)
     
@@ -42,13 +42,26 @@ export class SearchOperation extends Operation {
     this.request = request
   }
   
-  findByType(resources: string[], searchParameters: SearchParameters): Promise<any> {
+  async findByType(resources: string[], searchParameters: SearchParameters): Promise<any> {
     
     if(searchParameters._type){
       delete searchParameters._type
     }
     
-    return Promise.resolve({...resources, ...searchParameters})
+    const entities = await this.fhirResourceModel.find({resourceType: {$in: resources}})
+    .select('-_id')
+    .lean()
+    .then(resources => {
+      return resources
+    })
+    .catch(error => {
+      return error
+    })
+    
+    const total = 10
+    
+    return FhirResponse.bundle(entities, total, "", this.offset, this.count, this.request)
+    
   }
   
   /**

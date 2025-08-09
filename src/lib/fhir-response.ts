@@ -1,6 +1,7 @@
 import { FhirResourceDocument } from '../schema/fhir-resource-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { ValidationResult } from '../interfaces/validation-result'
+import { Request } from 'express';
 
 /**
  * Handles formatting and bundling of FHIR resources for API responses.
@@ -93,9 +94,16 @@ export class FhirResponse {
    * @param resourceType - The type of FHIR resources in the bundle
    * @param offset - Starting index for pagination (default: 0)
    * @param count - Number of resources per page (default: 20)
+   * @param request
    * @returns A FHIR Bundle resource containing the requested resources and pagination links
    */
-  static bundle(resources: FhirResourceDocument[], total: number, resourceType: string, offset: number = 0, count: number = 20): any {
+  static bundle(resources: FhirResourceDocument[], total: number, resourceType: string, offset: number = 0, count: number = 20, request?: Request): any {
+    
+    let hostUrl = ''
+    
+    if(request){
+      hostUrl = request.get('secure') ?  `https://${request.get('host')}` : `http://${request.get('host')}`
+    }
     
     return {
       resourceType: 'Bundle',
@@ -118,7 +126,7 @@ export class FhirResponse {
         }] : []),
       ],
       entry: resources.map(resource => ({
-        fullUrl: `${resourceType}/${resource.id}`,
+        fullUrl: `${hostUrl}/${resource.resourceType}/${resource.id}`,
         resource: FhirResponse.format(resource),
         search: {
           mode: 'match',

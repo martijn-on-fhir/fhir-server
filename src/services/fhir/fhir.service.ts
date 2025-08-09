@@ -88,16 +88,12 @@ export class FhirService {
   async findByType(searchParams: SearchParameters): Promise<SearchResult | any> {
     
     if (!searchParams._type) {
-      return FhirResponse.notAcceptable('_type is a required parameter when no resource is defined')
+      return FhirResponse.notAcceptable('_type is a required parameter when no resource are defined')
     }
     
     const resources = searchParams._type.split(',').map(type => type.trim())
     const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
     return operation.findByType(resources, searchParams)
-    
-    console.dir(resources)
-    console.log(searchParams)
-    return Promise.resolve({} as SearchResult)
   }
   
   /**
