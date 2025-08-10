@@ -2,6 +2,7 @@ import { FhirResourceDocument } from '../schema/fhir-resource-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { ValidationResult } from '../interfaces/validation-result'
 import { Request } from 'express';
+import { IncomingMessage } from 'node:http';
 
 /**
  * Handles formatting and bundling of FHIR resources for API responses.
@@ -101,7 +102,7 @@ export class FhirResponse {
     
     let hostUrl = ''
     
-    if(request){
+    if(request && request instanceof IncomingMessage){
       hostUrl = request.get('secure') ?  `https://${request.get('host')}` : `http://${request.get('host')}`
     }
     
