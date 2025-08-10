@@ -10,13 +10,19 @@ import { ValidateResourceDto } from '../dto/validate-resource-dto'
 import { SearchResult } from '../interfaces/search-result'
 import { SearchParameters } from '../interfaces/search-parameters'
 import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.guard'
-import { FhirSearchParamsDto } from '../dto/fhir-search-params-dto'
 
 @UseGuards(AuthorizerGuard, FhirAuthorizerGuard)
 @ApiTags('Fhir Server')
 @Controller('fhir')
 export class FhirController {
   
+  /**
+   * Constructs an instance of the class with the provided FhirService and ValidationService.
+   *
+   * @param {FhirService} _service - The service that provides FHIR-related functionality.
+   * @param {ValidationService} _validatiobService - The service responsible for validation operations.
+   * @return {void} This constructor does not return any value.
+   */
   constructor(private readonly _service: FhirService, private readonly _validatiobService: ValidationService) {
   }
   
