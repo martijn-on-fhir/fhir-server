@@ -10,6 +10,7 @@ import { ValidateResourceDto } from '../dto/validate-resource-dto'
 import { SearchResult } from '../interfaces/search-result'
 import { SearchParameters } from '../interfaces/search-parameters'
 import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.guard'
+import { FhirSearchParamsDto } from '../dto/fhir-search-params-dto'
 
 @UseGuards(AuthorizerGuard, FhirAuthorizerGuard)
 @ApiTags('Fhir Server')
@@ -17,6 +18,13 @@ import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.g
 export class FhirController {
   
   constructor(private readonly _service: FhirService, private readonly _validatiobService: ValidationService) {
+  }
+  
+  @ApiOperation({ summary: 'Get resources by type', description: 'In some circumstances, a search is executed where there is no fixed type of resource.' })
+  @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
+  @Get()
+  findByType(@Query() searchParams: SearchParameters): Promise<SearchResult> {
+    return this._service.findByType(searchParams)
   }
   
   @ApiOperation({ summary: 'Get FHIR server capability statement', description: 'Returns the FHIR server metadata including supported resources and operations' })
