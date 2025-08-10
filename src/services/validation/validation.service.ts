@@ -516,7 +516,7 @@ export class ValidationService {
             path,
             severity: 'error',
             message: `Value not allowed, possible values are: ${allowed}`,
-            currentValue: JSON.stringify(value)
+            value: JSON.stringify(value)
           })
         }
       }

@@ -4,5 +4,5 @@ export interface ValidationError {
   message: string;
   constraint?: string;
   code?: string;
-  currentValue?: any;
+  value?: any;
 }

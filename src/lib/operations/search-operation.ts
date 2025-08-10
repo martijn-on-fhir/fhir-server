@@ -162,7 +162,7 @@ export class SearchOperation extends Operation {
     
     const total = await this.fhirResourceModel.countDocuments(query)
     
-    return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count)
+    return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count, this.request)
   }
   
   /**
