@@ -28,7 +28,7 @@ export class CreateOperation extends Operation {
       
       const saved = await fhirResource.save();
       
-      return FhirResponse.format(saved);
+      return FhirResponse.format(saved.toObject());
       
     } else {
       
