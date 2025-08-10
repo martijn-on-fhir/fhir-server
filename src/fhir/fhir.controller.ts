@@ -10,7 +10,6 @@ import { ValidateResourceDto } from '../dto/validate-resource-dto'
 import { SearchResult } from '../interfaces/search-result'
 import { SearchParameters } from '../interfaces/search-parameters'
 import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.guard'
-import { FhirSearchParamsDto } from '../dto/fhir-search-params-dto'
 
 @UseGuards(AuthorizerGuard, FhirAuthorizerGuard)
 @ApiTags('Fhir Server')
