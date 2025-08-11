@@ -23,4 +23,5 @@ export interface SearchParameters {
   _type?: string
   _text?: string
   _content?: string
+  _security?: string
 }

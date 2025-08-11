@@ -182,6 +182,10 @@ export class SearchOperation extends Operation {
         this.appendTag(searchParams._tag)
       }
       
+      if (searchParams._security) {
+        this.appendSecurity(searchParams._security)
+      }
+      
       if (searchParams._text || searchParams._content) {
         
         const term = searchParams._text ?? searchParams._content
@@ -220,6 +224,32 @@ export class SearchOperation extends Operation {
     
     if (id) {
       this.filter.id = id
+    }
+  }
+  
+  private appendSecurity(entity: string | string[]): void {
+    
+    this.filter.identifier = []
+    const identifiers: string[] = []
+    
+    if (typeof entity === 'string') {
+      identifiers.push(entity)
+    }
+    
+    for (const identifier of identifiers) {
+      
+      const [system, value] = identifier.split('|')
+      const config = {
+        system
+      }
+      
+      if (value) {
+        Object.assign(config, {
+          value
+        })
+      }
+      
+      set(this.filter, 'meta.security', config)
     }
   }
   

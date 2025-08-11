@@ -68,10 +68,6 @@ export class FhirResource {
   @Prop([Object])
   identifier?: any[]
   
-  // Operationele velden (niet onderdeel van FHIR spec)
-  @Prop({ type: [String], default: [] })
-  tags: string[]
-  
   // Alle andere FHIR resource eigenschappen worden dynamisch toegevoegd
   // door strict: false
 }
@@ -88,6 +84,10 @@ fhirResourceSchema.index({ resourceType: 1, 'meta.lastUpdated': 1 }, {
   name: 'lastUpdated'
 })
 
+fhirResourceSchema.index({ resourceType: 1, 'meta.security': 1 }, {
+  name: 'security'
+})
+
 fhirResourceSchema.index({ 'meta.profile': 1 }, {
   name: 'profiles'
 })
@@ -96,7 +96,7 @@ fhirResourceSchema.index({ 'identifier.system': 1, 'identifier.value': 1 }, {
   name: 'identifiers'
 })
 
-fhirResourceSchema.index({ 'meta.tags': 1 }, {
+fhirResourceSchema.index({ 'meta.tag': 1 }, {
   name: 'tags'
 })
 
