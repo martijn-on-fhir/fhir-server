@@ -48,7 +48,10 @@ export class SearchOperation extends Operation {
       delete searchParameters._type
     }
     
-    const entities = await this.fhirResourceModel.find({resourceType: {$in: resources}})
+    const query = {resourceType: {$in: resources}}
+    const total = await this.fhirResourceModel.countDocuments(query)
+    
+    const entities = await this.fhirResourceModel.find(query)
     .select('-_id')
     .lean()
     .then(resources => {
@@ -58,10 +61,7 @@ export class SearchOperation extends Operation {
       return error
     })
     
-    const total = 10
-    
     return FhirResponse.bundle(entities, total, "", this.offset, this.count, this.request)
-    
   }
   
   /**

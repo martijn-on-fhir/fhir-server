@@ -113,21 +113,21 @@ export class FhirResponse {
       total,
       link: [{
         relation: 'self',
-        url: `${resourceType}?_offset=${offset}&_count=${count}`,
+        url: `${hostUrl}/fhir/${resourceType}?_offset=${offset}&_count=${count}`,
       },
         
         ...(offset + count < total ? [{
           relation: 'next',
-          url: `${resourceType}?_offset=${offset + count}&_count=${count}`,
+          url: `${hostUrl}/fhir/${resourceType}?_offset=${offset + count}&_count=${count}`,
         }] : []),
         
         ...(offset > 0 ? [{
           relation: 'previous',
-          url: `${resourceType}?_offset=${Math.max(0, offset - count)}&_count=${count}`,
+          url: `${hostUrl}/fhir/${resourceType}?_offset=${Math.max(0, offset - count)}&_count=${count}`,
         }] : []),
       ],
       entry: resources.map(resource => ({
-        fullUrl: `${hostUrl}/${resource.resourceType}/${resource.id}`,
+        fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
         resource: FhirResponse.format(resource),
         search: {
           mode: 'match',
