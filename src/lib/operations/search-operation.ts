@@ -312,7 +312,6 @@ export class SearchOperation extends Operation {
         if ((key === '$and' || key === '$or' || key === '$not' || key === '$elemMatch' || key === '$text' || key === 'text.div')) {
           transformed[currentKey] = value
         } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-          
           Object.assign(transformed, this.transform(value, currentKey))
         } else {
           transformed[currentKey] = value

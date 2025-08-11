@@ -79,15 +79,36 @@ export class FhirResource {
 export const fhirResourceSchema = SchemaFactory.createForClass(FhirResource)
 
 // Basis indexen voor alle resources
-fhirResourceSchema.index({ resourceType: 1, id: 1 }, { unique: true })
-fhirResourceSchema.index({ 'meta.lastUpdated': 1 })
-fhirResourceSchema.index({ 'meta.profile': 1 })
-fhirResourceSchema.index({ 'identifier.system': 1, 'identifier.value': 1 })
-fhirResourceSchema.index({ tags: 1 })
-fhirResourceSchema.index({'text.div': "text"})
+fhirResourceSchema.index({ resourceType: 1, id: 1 }, {
+  unique: true,
+  name: 'resourceId'
+})
+
+fhirResourceSchema.index({ resourceType: 1, 'meta.lastUpdated': 1 }, {
+  name: 'lastUpdated'
+})
+
+fhirResourceSchema.index({ 'meta.profile': 1 }, {
+  name: 'profiles'
+})
+
+fhirResourceSchema.index({ 'identifier.system': 1, 'identifier.value': 1 }, {
+  name: 'identifiers'
+})
+
+fhirResourceSchema.index({ 'meta.tags': 1 }, {
+  name: 'tags'
+})
+
+fhirResourceSchema.index({'text.div': "text"}, {
+  name: 'narrative'
+})
 
 // Resource-specifieke indexen
-fhirResourceSchema.index({ resourceType: 1, status: 1 }) // Voor Patient.active, Observation.status, etc.
+fhirResourceSchema.index({ resourceType: 1, status: 1 }, {
+  name: 'status'
+})
+
 fhirResourceSchema.index({ resourceType: 1, 'subject.reference': 1 }) // Voor Observation.subject, etc.
 fhirResourceSchema.index({ resourceType: 1, 'patient.reference': 1 }) // Voor Encounter.patient, etc.
 
