@@ -12,6 +12,7 @@ import { elements } from '../utilities/elements'
 import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 import { setSortOrder } from '../utilities/sort'
+import { text } from '../utilities/text'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -57,7 +58,7 @@ export class SearchOperation extends Operation {
    * @param structureDefinitonModel - Mongoose model for accessing FHIR StructureDefinitions
    *                                 used in _summary operations
    */
-  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>,) {
+  constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>) {
     
     super(fhirResourceModel)
     
@@ -76,11 +77,11 @@ export class SearchOperation extends Operation {
    */
   async findByType(resources: string[], searchParameters: SearchParameters): Promise<any> {
     
-    if(searchParameters._type){
+    if (searchParameters._type) {
       delete searchParameters._type
     }
     
-    const query = {resourceType: {$in: resources}}
+    const query = { resourceType: { $in: resources } }
     const total = await this.fhirResourceModel.countDocuments(query)
     
     const entities = await this.fhirResourceModel.find(query)
@@ -93,7 +94,7 @@ export class SearchOperation extends Operation {
       return error
     })
     
-    return FhirResponse.bundle(entities, total, "", this.offset, this.count, this.request)
+    return FhirResponse.bundle(entities, total, '', this.offset, this.count, this.request)
   }
   
   /**
@@ -180,9 +181,21 @@ export class SearchOperation extends Operation {
       if (searchParams._tag) {
         this.appendTag(searchParams._tag)
       }
+      
+      if (searchParams._text || searchParams._content) {
+        
+        const term = searchParams._text ?? searchParams._content
+        
+        if (typeof term !== 'string') {
+          throw new Error('Invalid search term')
+        }
+        
+        const type = searchParams._text ? '_text' : '_content'
+        this.filter = text(term, type)
+      }
     }
     
-    const query = this.transformToDotNotation(this.filter)
+    const query = this.transform(this.filter)
     
     const resources = await this.fhirResourceModel
     .find(query)
@@ -285,18 +298,22 @@ export class SearchOperation extends Operation {
    * @param prefix - The prefix to prepend to the keys (used for recursion)
    * @returns An object with flattened structure using dot notation
    */
-  private transformToDotNotation(nestedQuery: any, prefix: string = ''): any {
+  private transform(nestedQuery: any, prefix: string = ''): any {
     
     const transformed: any = {}
     
     for (const key in nestedQuery) {
+      
       if (nestedQuery.hasOwnProperty(key)) {
         
         const currentKey = prefix ? `${prefix}.${key}` : key
         const value = nestedQuery[key]
         
-        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-          Object.assign(transformed, this.transformToDotNotation(value, currentKey))
+        if ((key === '$and' || key === '$or' || key === '$not' || key === '$elemMatch' || key === '$text' || key === 'text.div')) {
+          transformed[currentKey] = value
+        } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+          
+          Object.assign(transformed, this.transform(value, currentKey))
         } else {
           transformed[currentKey] = value
         }

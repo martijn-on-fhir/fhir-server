@@ -84,6 +84,7 @@ fhirResourceSchema.index({ 'meta.lastUpdated': 1 })
 fhirResourceSchema.index({ 'meta.profile': 1 })
 fhirResourceSchema.index({ 'identifier.system': 1, 'identifier.value': 1 })
 fhirResourceSchema.index({ tags: 1 })
+fhirResourceSchema.index({'text.div': "text"})
 
 // Resource-specifieke indexen
 fhirResourceSchema.index({ resourceType: 1, status: 1 }) // Voor Patient.active, Observation.status, etc.
