@@ -17,23 +17,46 @@ import { setSortOrder } from '../utilities/sort'
  * Handles FHIR search operations for resources in the database.
  * Provides functionality for searching resources by various criteria,
  * including resource type, identifier, and pagination support.
+ *
+ * This class implements standard FHIR search operations allowing:
+ * - Search by resource type and ID
+ * - Filtering by identifiers
+ * - Support for _include parameters to fetch referenced resources
+ * - Pagination using _count and _offset parameters
+ * - Filtering by profiles and tags
+ * - Element filtering using _elements parameter
+ * - Summary views using _summary parameter
  */
 export class SearchOperation extends Operation {
   
+  /** Number of resources to return per page. Defaults to 20. */
   count: number = 20
   
+  /** Number of resources to skip for pagination. Defaults to 0. */
   offset: number = 0
   
+  /** Filter criteria for the search query. Defaults to Patient resource type. */
   filter: any = {
     resourceType: 'Patient'
   }
   
+  /** Array of included resources resolved from _include parameters */
   includes: any[] = []
   
+  /** Array of reverse included resources resolved from _revinclude parameters */
   revIncludes: any[] = []
   
+  /** Express request object used for building response URLs */
   request: Request
   
+  /**
+   * Creates an instance of SearchOperation.
+   *
+   * @param fhirResourceModel - Mongoose model for accessing FHIR resources
+   * @param request - Express request object used for building response URLs
+   * @param structureDefinitonModel - Mongoose model for accessing FHIR StructureDefinitions
+   *                                 used in _summary operations
+   */
   constructor(fhirResourceModel: Model<FhirResourceDocument>, request: Request, private readonly structureDefinitonModel: Model<StructureDefinitionDocument>,) {
     
     super(fhirResourceModel)
@@ -42,13 +65,25 @@ export class SearchOperation extends Operation {
     this.request = request
   }
   
+  /**
+   * Searches for FHIR resources by their resource types.
+   * Allows searching across multiple resource types in a single query.
+   *
+   * @param resources - Array of FHIR resource types to search for (e.g., ['Patient', 'Practitioner'])
+   * @param searchParameters - Search parameters object containing query criteria
+   * @returns Promise resolving to a FHIR Bundle containing matching resources
+   * @throws Returns error if the database query fails
+   */
   async findByType(resources: string[], searchParameters: SearchParameters): Promise<any> {
     
     if(searchParameters._type){
       delete searchParameters._type
     }
     
-    const entities = await this.fhirResourceModel.find({resourceType: {$in: resources}})
+    const query = {resourceType: {$in: resources}}
+    const total = await this.fhirResourceModel.countDocuments(query)
+    
+    const entities = await this.fhirResourceModel.find(query)
     .select('-_id')
     .lean()
     .then(resources => {
@@ -58,10 +93,7 @@ export class SearchOperation extends Operation {
       return error
     })
     
-    const total = 10
-    
     return FhirResponse.bundle(entities, total, "", this.offset, this.count, this.request)
-    
   }
   
   /**
