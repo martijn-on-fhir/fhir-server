@@ -21,4 +21,6 @@ export interface SearchParameters {
   _elements?: string
   _tag?: string,
   _type?: string
+  _text?: string
+  _content?: string
 }
