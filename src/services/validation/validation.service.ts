@@ -119,6 +119,11 @@ export class ValidationService {
   private parseStructureDefinition(): void {
     
     this.elements.clear()
+    
+    if(!this.structureDefinition.snapshot) {
+      throw new Error('Structure definition does not have a snapshot')
+    }
+    
     this.structureDefinition.snapshot.element.forEach(element => {
       
       this.elements.set(element.path, element)

@@ -7,7 +7,10 @@ export interface StructureDefinition {
   name: string;
   type: string;
   baseDefinition: string;
-  snapshot: {
+  snapshot?: {
+    element: ElementDefinition[];
+  };
+  differential?: {
     element: ElementDefinition[];
   };
 }

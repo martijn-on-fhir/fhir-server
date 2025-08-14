@@ -13,6 +13,7 @@ import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 import { setSortOrder } from '../utilities/sort'
 import { text } from '../utilities/text'
+import { QueryBuilder } from '../query-builder/query-builder'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -160,6 +161,9 @@ export class SearchOperation extends Operation {
     this.filter = {
       resourceType
     }
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const queryBuilder = new QueryBuilder(resourceType, searchParams)
     
     if (searchParams) {
       
