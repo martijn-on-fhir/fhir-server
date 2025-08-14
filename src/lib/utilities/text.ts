@@ -6,6 +6,8 @@
  */
 export const text = (searchTerm: string, field: '_text' | '_content'): Record<string, any> => {
   
+  if (!searchTerm || typeof searchTerm !== 'string') return {}
+  
   let query: Record<string, any>
   
   // Handle exact phrase search with quoted text

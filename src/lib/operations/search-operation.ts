@@ -13,6 +13,7 @@ import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 import { setSortOrder } from '../utilities/sort'
 import { text } from '../utilities/text'
+import { QueryBuilder } from '../query-builder/query-builder'
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -161,6 +162,9 @@ export class SearchOperation extends Operation {
       resourceType
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const queryBuilder = new QueryBuilder(resourceType, searchParams)
+    
     if (searchParams) {
       
       this.count = searchParams._count ? searchParams._count : 20
@@ -180,6 +184,10 @@ export class SearchOperation extends Operation {
       
       if (searchParams._tag) {
         this.appendTag(searchParams._tag)
+      }
+      
+      if (searchParams._security) {
+        this.appendSecurity(searchParams._security)
       }
       
       if (searchParams._text || searchParams._content) {
@@ -220,6 +228,32 @@ export class SearchOperation extends Operation {
     
     if (id) {
       this.filter.id = id
+    }
+  }
+  
+  private appendSecurity(entity: string | string[]): void {
+    
+    this.filter.identifier = []
+    const identifiers: string[] = []
+    
+    if (typeof entity === 'string') {
+      identifiers.push(entity)
+    }
+    
+    for (const identifier of identifiers) {
+      
+      const [system, value] = identifier.split('|')
+      const config = {
+        system
+      }
+      
+      if (value) {
+        Object.assign(config, {
+          value
+        })
+      }
+      
+      set(this.filter, 'meta.security', config)
     }
   }
   
