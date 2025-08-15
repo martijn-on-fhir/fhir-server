@@ -11,7 +11,6 @@ import { elements } from '../utilities/elements'
 import { summary } from '../utilities/summary'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
 import { setSortOrder } from '../utilities/sort'
-import { text } from '../utilities/text'
 import { QueryBuilder } from '../query-builder/query-builder'
 
 /**
