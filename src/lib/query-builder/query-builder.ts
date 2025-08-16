@@ -45,7 +45,7 @@ export class QueryBuilder {
   private _sort: any = {}
   
   /**
-   * List of allowed search parameters for the query builder when id is set
+   * List of allowed search parameters for the query builder when id is set (single resource)
    */
   allowedParams: string[] = ['_count', '_sort', '_elements', '_include', '_summary']
   
@@ -106,7 +106,55 @@ export class QueryBuilder {
   }
   
   appendSummary(): void {
-  
+    
+    if (this._searchParams._summary && typeof this._searchParams._summary === 'string') {
+      
+      const type = this._searchParams._summary.toLowerCase()
+      
+      switch (type) {
+        
+        case 'count': {
+          // can only be applied afterward
+          break
+        }
+        
+        case 'text': {
+          
+          this._projection = {
+            _id: 0,
+            id: 1,
+            resourceType: 1,
+            meta: 1,
+            text: 1,
+            implicitRules: 1,
+            language: 1
+          }
+          break
+        }
+        
+        case 'data': {
+          
+          this._projection = {
+            _id: 0,
+            text: 0,
+          }
+          break
+        }
+        
+        case 'true': {
+          // can only be applied afterward
+          break
+        }
+        
+        case 'false': {
+          
+          this._projection = {
+            _id: 0
+          }
+          break
+        }
+      }
+    }
   }
   
   /**
