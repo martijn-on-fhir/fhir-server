@@ -8,7 +8,6 @@ import { SearchParameters } from '../../interfaces/search-parameters'
 import { IncludeOperation } from './include-operation'
 import { Request } from 'express'
 import { StructureDefinitionDocument } from '../../schema/structure-definition.schema'
-import { setSortOrder } from '../utilities/sort'
 import { QueryBuilder } from '../query-builder/query-builder'
 
 /**
@@ -152,64 +151,20 @@ export class SearchOperation extends Operation {
    * @returns Promise resolving to a FHIR Bundle containing matching resources
    */
   async find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult> {
-    
-    // this.filter = {
-    //   resourceType
-    // }
-     
-    const queryBuilder = new QueryBuilder(resourceType, searchParams)
-    
-    // if (searchParams) {
-    //
-    //   this.count = searchParams._count ? searchParams._count : 20
-    //   this.offset = searchParams._offset ? searchParams._offset : 0
-    //
-    //   if (searchParams._id) {
-    //     this.appendId(searchParams._id)
-    //   }
-    //
-    //   if (searchParams.identifier) {
-    //     this.appendIdentifier(searchParams.identifier)
-    //   }
-    //
-    //   if (searchParams._profile) {
-    //     this.appendProfile(searchParams._profile)
-    //   }
-    //
-    //   if (searchParams._tag) {
-    //     this.appendTag(searchParams._tag)
-    //   }
-    //
-    //   if (searchParams._security) {
-    //     this.appendSecurity(searchParams._security)
-    //   }
-    //
-    //   if (searchParams._text || searchParams._content) {
-    //
-    //     const term = searchParams._text ?? searchParams._content
-    //
-    //     if (typeof term !== 'string') {
-    //       throw new Error('Invalid search term')
-    //     }
-    //
-    //     const type = searchParams._text ? '_text' : '_content'
-    //     this.filter = text(term, type)
-    //   }
-    // }
-    
-   // const query = this.transform(this.filter)
+  
+    const qb = new QueryBuilder(resourceType, searchParams)
+    const condition = qb.condition
     
     const resources = await this.fhirResourceModel
-    .find(queryBuilder.query)
-    .skip(queryBuilder.offset)
-    .limit(queryBuilder.count)
-    .sort(setSortOrder(searchParams['_sort']))
-    .select(queryBuilder.projection)
+    .find(condition)
+    .skip(qb.offset)
+    .limit(qb.count)
+    .sort(qb.sort)
+    .select(qb.projection)
     .lean()
     
-    const total = await this.fhirResourceModel.countDocuments(queryBuilder.query)
+    const total = await this.fhirResourceModel.countDocuments(condition)
 
     return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count, this.request)
   }
-  
 }
