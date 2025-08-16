@@ -134,11 +134,7 @@ export class SearchOperation extends Operation {
         return operation.getResponse()
       }
     }
-    //
-    // if (searchParameters?._summary && typeof searchParameters._summary === 'string') {
-    //   resource = await summary(resource, searchParameters._summary, this.structureDefinitonModel)
-    // }
-    
+   
     return FhirResponse.format(resource)
   }
   
