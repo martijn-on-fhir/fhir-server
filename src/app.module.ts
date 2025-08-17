@@ -16,9 +16,11 @@ import { FhirEventListener } from './events/fhir-event-listener'
 import { subscriptionSchema, SubscriptionSchema } from './schema/subscription-schema'
 import { SubscriptionController } from './subscription/subscription.controller';
 import { SubscriptionService } from './services/subscription/subscription.service';
+import { TerminusModule } from '@nestjs/terminus'
 
 @Module({
   imports: [
+    TerminusModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
