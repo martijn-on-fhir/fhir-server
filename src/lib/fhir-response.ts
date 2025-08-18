@@ -1,8 +1,8 @@
-import { FhirResourceDocument } from '../schema/fhir-resource-schema';
-import { v4 as uuidv4 } from 'uuid';
+import { FhirResourceDocument } from '../schema/fhir-resource-schema'
+import { v4 as uuidv4 } from 'uuid'
 import { ValidationResult } from '../interfaces/validation-result'
-import { Request } from 'express';
-import { IncomingMessage } from 'node:http';
+import { Request } from 'express'
+import { IncomingMessage } from 'node:http'
 
 /**
  * Handles formatting and bundling of FHIR resources for API responses.
@@ -19,7 +19,7 @@ export class FhirResponse {
     
     return {
       ...resource
-    };
+    }
   }
   
   /**
@@ -34,7 +34,7 @@ export class FhirResponse {
       issue: []
     }
     
-    for(const error of result.errors){
+    for (const error of result.errors) {
       
       const issue = {
         severity: 'error',
@@ -43,7 +43,7 @@ export class FhirResponse {
           text: error
         }
       } as never
-
+      
       response.issue.push(issue)
     }
     
@@ -85,7 +85,7 @@ export class FhirResponse {
           text: `${description}`
         }
       }]
-    };
+    }
   }
   
   /**
@@ -101,9 +101,26 @@ export class FhirResponse {
   static bundle(resources: FhirResourceDocument[], total: number, resourceType: string, offset: number = 0, count: number = 20, request?: Request): any {
     
     let hostUrl = ''
+    let url = request?.url.split('?')[0].substring(1)
+    const query = request?.query ?? null
     
-    if(request && request instanceof IncomingMessage){
-      hostUrl = request.get('secure') ?  `https://${request.get('host')}` : `http://${request.get('host')}`
+    if (query) {
+      
+      let count = 0
+      
+      for (const key in query) {
+        
+        if (key === '_offset' || key === '_count') {
+          delete query[key]
+        } else {
+          url += `${count === 0 ? '?' : '&'}${key}=${query[key]}`
+          count++
+        }
+      }
+    }
+    
+    if (request && request instanceof IncomingMessage) {
+      hostUrl = request.get('secure') ? `https://${request.get('host')}` : `http://${request.get('host')}`
     }
     
     return {
@@ -113,26 +130,26 @@ export class FhirResponse {
       total,
       link: [{
         relation: 'self',
-        url: `${hostUrl}/fhir/${resourceType}?_offset=${offset}&_count=${count}`,
+        url: `${hostUrl}/${url}${url?.includes('?') ? '&' : '?'}_offset=${offset}&_count=${count}`
       },
         
         ...(offset + count < total ? [{
           relation: 'next',
-          url: `${hostUrl}/fhir/${resourceType}?_offset=${offset + count}&_count=${count}`,
+          url: `${hostUrl}/${url}${url?.includes('?') ? '&' : '?'}_offset=${offset + count}&_count=${count}`
         }] : []),
         
         ...(offset > 0 ? [{
           relation: 'previous',
-          url: `${hostUrl}/fhir/${resourceType}?_offset=${Math.max(0, offset - count)}&_count=${count}`,
-        }] : []),
+          url: `${hostUrl}/${url}${url?.includes('?') ? '&' : '?'}_offset=${Math.max(0, offset - count)}&_count=${count}`
+        }] : [])
       ],
       entry: resources.map(resource => ({
         fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
         resource: FhirResponse.format(resource),
         search: {
-          mode: 'match',
-        },
-      })),
-    };
+          mode: 'match'
+        }
+      }))
+    }
   }
 }
