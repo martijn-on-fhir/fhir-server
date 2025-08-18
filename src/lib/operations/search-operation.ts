@@ -90,7 +90,7 @@ export class SearchOperation extends Operation {
       return error
     })
     
-    return FhirResponse.bundle(entities, total, '', this.offset, this.count, this.request)
+    return FhirResponse.bundle(entities, total, this.offset, this.count, this.request)
   }
   
   /**
@@ -161,6 +161,6 @@ export class SearchOperation extends Operation {
     
     const total = await this.fhirResourceModel.countDocuments(condition)
 
-    return FhirResponse.bundle(resources, total, resourceType, this.offset, this.count, this.request)
+    return FhirResponse.bundle(resources, total, qb.offset, qb.count, this.request)
   }
 }

@@ -92,13 +92,12 @@ export class FhirResponse {
    * Creates a FHIR Bundle resource containing multiple FHIR resources with pagination support.
    * @param resources - Array of FHIR resource documents to include in the bundle
    * @param total - Total number of available resources
-   * @param resourceType - The type of FHIR resources in the bundle
    * @param offset - Starting index for pagination (default: 0)
    * @param count - Number of resources per page (default: 20)
    * @param request
    * @returns A FHIR Bundle resource containing the requested resources and pagination links
    */
-  static bundle(resources: FhirResourceDocument[], total: number, resourceType: string, offset: number = 0, count: number = 20, request?: Request): any {
+  static bundle(resources: FhirResourceDocument[], total: number, offset: number = 0, count: number = 20, request?: Request): any {
     
     let hostUrl = ''
     let url = request?.url.split('?')[0].substring(1)
@@ -106,15 +105,15 @@ export class FhirResponse {
     
     if (query) {
       
-      let count = 0
+      let c = 0
       
       for (const key in query) {
         
         if (key === '_offset' || key === '_count') {
           delete query[key]
         } else {
-          url += `${count === 0 ? '?' : '&'}${key}=${query[key]}`
-          count++
+          url += `${c === 0 ? '?' : '&'}${key}=${query[key]}`
+          c++
         }
       }
     }
