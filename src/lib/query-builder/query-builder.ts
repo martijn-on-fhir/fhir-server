@@ -196,6 +196,10 @@ export class QueryBuilder {
       
       selectObject._id = 0
       
+      if(!selectObject.resourceType) {
+        selectObject.resourceType = 1
+      }
+      
       this._projection = selectObject
     }
   }
