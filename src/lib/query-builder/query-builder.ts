@@ -79,7 +79,7 @@ export class QueryBuilder {
     this._count = this._searchParams._count ? +this._searchParams._count : 20
     this._offset = this._searchParams._offset ? +this._searchParams._offset : 0
     
-    set(this._condition, 'resourceType', this.resources.join(','))
+    set(this._condition, 'resourceType', this.resources.length > 1 ? { $in: this.resources } : this.resources[0])
     
     this.init()
   }
