@@ -2,6 +2,11 @@ import { SearchParameters } from '../../interfaces/search-parameters'
 import { set } from 'lodash-es'
 import { SortOrder } from 'mongoose'
 
+/**
+ * A class to build database queries with configurable parameters such as resources, search conditions,
+ * projection of fields, pagination, and sorting. QueryBuilder is designed to support complex query logic
+ * and dynamic construction of search conditions based on input parameters.
+ */
 export class QueryBuilder {
   
   /**
@@ -50,6 +55,11 @@ export class QueryBuilder {
   allowedParams: string[] = ['_count', '_sort', '_elements', '_include', '_summary']
   
   /**
+   * List of defined search parameters for the query builder according fhir hl7 secification
+   */
+  definedParams: string[] = ['_id', '_count', '_sort', '_elements', '_include', '_summary', '_security', '_tag', 'identifier', '_profile', '_text']
+  
+  /**
    * Creates an instance of the class.
    *
    * @param {string | string[]} resource - A single resource or an array of resources.
@@ -91,20 +101,30 @@ export class QueryBuilder {
       
       let name: string
       
-      if (key.startsWith('_')) {
-        name = key.substring(1).charAt(0).toUpperCase() + key.substring(2)
-      } else {
-        name = key.charAt(0).toUpperCase() + key.substring(1)
-      }
-      
-      const fnc = `append${name}`
-      
-      if (typeof (this as any)[fnc] === 'function') {
-        this[fnc]()
+      if(this.definedParams.includes(key)) {
+        
+        if (key.startsWith('_')) {
+          name = key.substring(1).charAt(0).toUpperCase() + key.substring(2)
+        } else {
+          name = key.charAt(0).toUpperCase() + key.substring(1)
+        }
+        
+        const fnc = `append${name}`
+        
+        if (typeof (this as any)[fnc] === 'function') {
+          this[fnc]()
+        }
       }
     }
   }
   
+  /**
+   * Processes the `_summary` parameter in the search parameters and modifies the `_projection` property based on its value.
+   * This method evaluates the `_summary` string, and depending on its content (`count`, `text`, `data`, `true`, or `false`),
+   * adjusts the fields included or excluded in the `_projection`.
+   *
+   * @return {void} This method does not return any value. It updates the `_projection` property of the object in-place.
+   */
   appendSummary(): void {
     
     if (this._searchParams._summary && typeof this._searchParams._summary === 'string') {
