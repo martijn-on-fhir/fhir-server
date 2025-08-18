@@ -89,7 +89,7 @@ export class FhirResponse {
   }
   
   /**
-   * Creates a FHIR Bundle resource containing multiple FHIR resources with pagination support.
+   * Creates a FHIR Bundle resource containing multiple FHIR resources with pagination support
    * @param resources - Array of FHIR resource documents to include in the bundle
    * @param total - Total number of available resources
    * @param offset - Starting index for pagination (default: 0)
