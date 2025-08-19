@@ -1,5 +1,6 @@
 import {AccessDecision} from "../../interfaces/access-decision";
 import {IncomingMessage} from "node:http";
+import {last} from 'lodash-es'
 import * as jose from 'jose';
 
 /**
@@ -91,23 +92,19 @@ export class FhirScopeAuthorization {
 
         const requiredPermission = permissionMap[this._operation]
 
-        // Check each scope for the required permission
         for (const scope of this._scope) {
 
-            if (this.scopeGrantsPermission(scope, this._resource, requiredPermission)) {
+            const decision: boolean = this.scopeGrantsPermission(scope, this._resource, requiredPermission)
+
+            if (decision) {
                 return { allowed: true, reasons: [`Granted by scope: ${scope}`] };
-            } else {
-                return {
-                    allowed: false,
-                    reasons: [`No scope grants ${this._operation} permission for ${this._resource}`]
-                };
             }
         }
 
         return {
             allowed: false,
             reasons: [`No scope grants ${this._operation} permission for ${this._resource}`]
-        };
+        }
     }
 
     /**
@@ -165,9 +162,8 @@ export class FhirScopeAuthorization {
 
         if(!path || typeof path !== 'string') return;
 
-        const pathParts = path.split('/')
-        const resource = pathParts[pathParts.length - 1]
-        this._resource = resource
+        const entities = path.split('/').filter(r => r !== '')
+        this._resource = entities.length > 2 ? entities[1] : last(entities)
     }
 
     /**
