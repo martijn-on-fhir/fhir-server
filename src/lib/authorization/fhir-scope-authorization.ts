@@ -13,18 +13,25 @@ import * as jose from 'jose';
  */
 export class FhirScopeAuthorization {
 
+    /** HTTP method of the incoming request */
     private _method: 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+    /** Identifier of the user making the request */
     private _userId: string
 
+    /** OAuth2 scopes extracted from the authorization token */
     private _scope: string | string[]
 
+    /** The incoming HTTP request being authorized */
     private _request: IncomingMessage
 
+    /** The FHIR resource type being accessed */
     private _resource: string
 
+    /** The FHIR operation being performed */
     private _operation: 'read' | 'create' | 'update' | 'delete';
 
+    /** The authorization decision and associated metadata */
     private _decision: AccessDecision
 
     /**
@@ -128,13 +135,11 @@ export class FhirScopeAuthorization {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [context, resourcePermission] = scopeParts;
-        const permissionParts = resourcePermission.split('.');
+        const entities = resourcePermission.split('.');
 
-        if (permissionParts.length !== 2) return false;
+        if (entities.length !== 2) return false;
 
-        const [scopeResource, scopePermissions] = permissionParts;
-
-        // Check resource match (exact or wildcard)
+        const [scopeResource, scopePermissions] = entities;
         const resourceMatches = scopeResource === resourceType || scopeResource === '*';
         const permissionMatches = scopePermissions === '*' || scopePermissions.includes(permission);
 
