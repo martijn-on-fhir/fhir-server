@@ -3,6 +3,9 @@
     "oauth": {
       "enabled": true,
       "introspect": "http://localhost/introspect"
+    },
+    "smartOnFhir": {
+      "enabled": true
     }
   },
   "terminology": {

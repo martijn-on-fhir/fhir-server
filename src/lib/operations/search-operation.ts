@@ -63,37 +63,6 @@ export class SearchOperation extends Operation {
     }
 
     /**
-     * Searches for FHIR resources by their resource types.
-     * Allows searching across multiple resource types in a single query.
-     *
-     * @returns Promise resolving to a FHIR Bundle containing matching resources
-     * @throws Returns error if the database query fails
-     * @param resourceType
-     * @param searchParams
-     */
-    async findByType(resourceType: string[], searchParams: SearchParameters): Promise<any> {
-
-        if (searchParams._type) {
-            delete searchParams._type
-        }
-
-        const qb = new QueryBuilder(resourceType, searchParams)
-        const condition = qb.condition
-
-        const resources = await this.fhirResourceModel
-            .find(condition)
-            .skip(qb.offset)
-            .limit(qb.count)
-            .sort(qb.sort)
-            .select(qb.projection)
-            .lean()
-
-        const total = await this.fhirResourceModel.countDocuments(condition)
-
-        return FhirResponse.bundle(resources, total, qb.offset, qb.count, this.request)
-    }
-
-    /**
      * Retrieves a specific FHIR resource by its type and ID.
      *
      * @param resourceType - The type of FHIR resource to search for (e.g., 'Patient', 'Observation')
@@ -107,8 +76,7 @@ export class SearchOperation extends Operation {
         const qb = new QueryBuilder(resourceType, searchParameters, id)
         const resource = await this.fhirResourceModel.findOne({
             resourceType, id
-        })
-            .select(qb.projection)
+        }).select(qb.projection)
             .lean()
 
         if (!resource) {
@@ -147,6 +115,37 @@ export class SearchOperation extends Operation {
      * @returns Promise resolving to a FHIR Bundle containing matching resources
      */
     async find(resourceType: string, searchParams: SearchParameters): Promise<SearchResult> {
+
+        const qb = new QueryBuilder(resourceType, searchParams)
+        const condition = qb.condition
+
+        const resources = await this.fhirResourceModel
+            .find(condition)
+            .skip(qb.offset)
+            .limit(qb.count)
+            .sort(qb.sort)
+            .select(qb.projection)
+            .lean()
+
+        const total = await this.fhirResourceModel.countDocuments(condition)
+
+        return FhirResponse.bundle(resources, total, qb.offset, qb.count, this.request)
+    }
+
+    /**
+     * Searches for FHIR resources by their resource types.
+     * Allows searching across multiple resource types in a single query.
+     *
+     * @returns Promise resolving to a FHIR Bundle containing matching resources
+     * @throws Returns error if the database query fails
+     * @param resourceType
+     * @param searchParams
+     */
+    async findByType(resourceType: string[], searchParams: SearchParameters): Promise<any> {
+
+        if (searchParams._type) {
+            delete searchParams._type
+        }
 
         const qb = new QueryBuilder(resourceType, searchParams)
         const condition = qb.condition

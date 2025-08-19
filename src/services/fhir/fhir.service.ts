@@ -93,7 +93,8 @@ export class FhirService {
     
     const resources = searchParams._type.split(',').map(type => type.trim())
     const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
-    return operation.findByType(resources, searchParams)
+
+      return operation.findByType(resources, searchParams)
   }
   
   /**
