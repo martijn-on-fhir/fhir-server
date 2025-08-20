@@ -55,7 +55,7 @@ export class FhirScopeAuthorization {
         }
 
         this._request = request;
-        this._method = request.method as 'GET' | 'POST' | 'PUT' | 'DELETE'
+        this._method = request.method?.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE'
 
         this.setScope()
         this.setOperation()

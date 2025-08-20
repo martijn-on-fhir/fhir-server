@@ -17,6 +17,7 @@ import { subscriptionSchema, SubscriptionSchema } from './schema/subscription-sc
 import { SubscriptionController } from './subscription/subscription.controller';
 import { SubscriptionService } from './services/subscription/subscription.service';
 import { TerminusModule } from '@nestjs/terminus'
+import {ProvenanceDocument, ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { TerminusModule } from '@nestjs/terminus'
       { name: StructureDefinitionSchema.name, schema: structureDefinitionSchema },
       { name: ValueSetSchema.name, schema: valueSetSchema },
       { name: SubscriptionSchema.name, schema: subscriptionSchema },
+      { name: ProvenanceResource.name, schema: provenanceSchema },
     ]),
     EventEmitterModule.forRoot()
   ],
