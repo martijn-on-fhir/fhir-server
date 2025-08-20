@@ -86,8 +86,6 @@ export class FhirService {
 
             return operation.find(resourceType, searchParams)
 
-
-
         } catch (error) {
             throw new Error(`Error searching ${resourceType}: ${error.message}`)
         }
