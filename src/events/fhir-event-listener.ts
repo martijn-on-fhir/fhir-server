@@ -1,5 +1,9 @@
 import {OnEvent} from '@nestjs/event-emitter'
 import {Injectable} from '@nestjs/common'
+import {ProvenanceBuilder} from "../lib/provenance-builder/provenance-builder";
+import {InjectModel} from "@nestjs/mongoose";
+import {ProvenanceDocument, ProvenanceResource} from "../schema/provenance-schema";
+import {Model} from "mongoose";
 
 export enum FhirEvent {
     CREATED = 'fhir.created',
@@ -12,19 +16,25 @@ export enum FhirEvent {
 @Injectable()
 export class FhirEventListener {
 
+    provenanceBuilder: ProvenanceBuilder
+
+    constructor(@InjectModel(ProvenanceResource.name) private provenanceModel: Model<ProvenanceDocument>) {
+        this.provenanceBuilder = new ProvenanceBuilder(provenanceModel)
+    }
+
     @OnEvent('fhir.created')
     handleFhirCreatedEvent(payload: any): void {
-        console.log('FHIR resource created:', payload);
+        this.provenanceBuilder.registerCreateOperation(payload)
     }
 
     @OnEvent('fhir.updated')
     handleFhirUpdatedEvent(payload: any): void {
-        console.log('FHIR resource updated:', payload);
+        this.provenanceBuilder.registerUpdateOperation(payload)
     }
 
     @OnEvent('fhir.deleted')
     handleFhirDeletedEvent(payload: any): void {
-        console.log('FHIR resource deleted:', payload);
+        this.provenanceBuilder.registerDeleteOperation(payload)
     }
 
     @OnEvent('fhir.validated')
@@ -34,6 +44,6 @@ export class FhirEventListener {
 
     @OnEvent('fhir.search')
     handleFhirSearchEvent(payload: any): void {
-        console.log('FHIR resource searched:', payload);
+        this.provenanceBuilder.registerSearchOperation(payload)
     }
 }
