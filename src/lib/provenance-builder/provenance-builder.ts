@@ -10,6 +10,7 @@ export class ProvenanceBuilder {
     registerSearchOperation(payload: any): void {
 
         console.log(payload)
+
         const resource = new this.model({
             id: uuidv4(),
             resourceType: 'Provenance',
@@ -38,6 +39,7 @@ export class ProvenanceBuilder {
     }
 
     private addAgent(model: any): void {
+
         model.agent =  [
             {
                 type: {
