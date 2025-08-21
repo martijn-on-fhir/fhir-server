@@ -1,5 +1,6 @@
 import {AccessDecision} from "../../interfaces/access-decision";
 import {IncomingMessage} from "node:http";
+import {last} from 'lodash-es'
 import * as jose from 'jose';
 
 /**
@@ -12,18 +13,25 @@ import * as jose from 'jose';
  */
 export class FhirScopeAuthorization {
 
+    /** HTTP method of the incoming request */
     private _method: 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+    /** Identifier of the user making the request */
     private _userId: string
 
+    /** OAuth2 scopes extracted from the authorization token */
     private _scope: string | string[]
 
+    /** The incoming HTTP request being authorized */
     private _request: IncomingMessage
 
+    /** The FHIR resource type being accessed */
     private _resource: string
 
+    /** The FHIR operation being performed */
     private _operation: 'read' | 'create' | 'update' | 'delete';
 
+    /** The authorization decision and associated metadata */
     private _decision: AccessDecision
 
     /**
@@ -47,7 +55,7 @@ export class FhirScopeAuthorization {
         }
 
         this._request = request;
-        this._method = request.method as 'GET' | 'POST' | 'PUT' | 'DELETE'
+        this._method = request.method?.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE'
 
         this.setScope()
         this.setOperation()
@@ -91,23 +99,19 @@ export class FhirScopeAuthorization {
 
         const requiredPermission = permissionMap[this._operation]
 
-        // Check each scope for the required permission
         for (const scope of this._scope) {
 
-            if (this.scopeGrantsPermission(scope, this._resource, requiredPermission)) {
+            const decision: boolean = this.scopeGrantsPermission(scope, this._resource, requiredPermission)
+
+            if (decision) {
                 return { allowed: true, reasons: [`Granted by scope: ${scope}`] };
-            } else {
-                return {
-                    allowed: false,
-                    reasons: [`No scope grants ${this._operation} permission for ${this._resource}`]
-                };
             }
         }
 
         return {
             allowed: false,
             reasons: [`No scope grants ${this._operation} permission for ${this._resource}`]
-        };
+        }
     }
 
     /**
@@ -131,13 +135,11 @@ export class FhirScopeAuthorization {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [context, resourcePermission] = scopeParts;
-        const permissionParts = resourcePermission.split('.');
+        const entities = resourcePermission.split('.');
 
-        if (permissionParts.length !== 2) return false;
+        if (entities.length !== 2) return false;
 
-        const [scopeResource, scopePermissions] = permissionParts;
-
-        // Check resource match (exact or wildcard)
+        const [scopeResource, scopePermissions] = entities;
         const resourceMatches = scopeResource === resourceType || scopeResource === '*';
         const permissionMatches = scopePermissions === '*' || scopePermissions.includes(permission);
 
@@ -165,9 +167,8 @@ export class FhirScopeAuthorization {
 
         if(!path || typeof path !== 'string') return;
 
-        const pathParts = path.split('/')
-        const resource = pathParts[pathParts.length - 1]
-        this._resource = resource
+        const entities = path.split('/').filter(r => r !== '')
+        this._resource = entities.length > 2 ? entities[1] : last(entities)
     }
 
     /**
