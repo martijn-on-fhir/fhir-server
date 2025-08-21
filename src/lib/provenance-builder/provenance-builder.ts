@@ -38,7 +38,7 @@ export class ProvenanceBuilder {
 
     }
 
-    private addAgent(model: any): void {
+    private addAgent(model: Model<ProvenanceDocument>): void {
 
         model.agent =  [
             {
@@ -54,7 +54,7 @@ export class ProvenanceBuilder {
         ]
     }
 
-    private addTarget(model: any): void {
+    private addTarget(model: Model<ProvenanceDocument>): void {
 
         model.target = [{
             reference: payload.resourceType + '/' + payload.id
@@ -68,7 +68,7 @@ export class ProvenanceBuilder {
      * @param {string} activity - The activity to be added to the model. Allowed values include 'read'.
      * @return {void} This method does not return any value.
      */
-    private addActivity(model: any, activity: string): void {
+    private addActivity(model: Model<ProvenanceDocument>, activity: string): void {
 
         switch (activity) {
 
