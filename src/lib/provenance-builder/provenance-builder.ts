@@ -12,34 +12,12 @@ export class ProvenanceBuilder {
         const resource = new this.model({
             id: uuidv4(),
             resourceType: 'Provenance',
-            target: [
-                {
-                    reference: payload.resourceType + '/' + payload.id
-                }
-            ],
-            recorded: new Date(),
-            agent: [
-                {
-                    type: {
-                        coding: [
-                            {
-                                system: 'http://terminology.hl7.org/CodeSystem/provenance-participant-type',
-                                code: 'author'
-                            }
-                        ]
-                    }
-                }
-            ],
-            activity: {
-                coding: [
-                    {
-                        system: "http://terminology.hl7.org/CodeSystem/v3-DataOperation",
-                        code: "READ",
-                        display: "read"
-                    }
-                ]
-            },
+            recorded: new Date()
         })
+
+        this.addAgent(resource)
+        this.addTarget(resource)
+        this.addActivity(resource, 'read')
 
         resource.save()
     }
@@ -56,5 +34,53 @@ export class ProvenanceBuilder {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     registerDeleteOperation(payload: any): void {
 
+    }
+
+    private addAgent(model: any): void {
+        model.agent =  [
+            {
+                type: {
+                    coding: [
+                        {
+                            system: 'http://terminology.hl7.org/CodeSystem/provenance-participant-type',
+                            code: 'author'
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+    private addTarget(model: any): void {
+
+        model.target = [{
+            reference: payload.resourceType + '/' + payload.id
+        }]
+    }
+
+    /**
+     * Adds the specified activity to the provided model.
+     *
+     * @param {any} model - The model object to which the activity will be added.
+     * @param {string} activity - The activity to be added to the model. Allowed values include 'read'.
+     * @return {void} This method does not return any value.
+     */
+    private addActivity(model: any, activity: string): void {
+
+        switch (activity) {
+
+            case 'read': {
+                model.activity = {
+                    coding: [
+                        {
+                            system: "http://terminology.hl7.org/CodeSystem/v3-DataOperation",
+                            code: "READ",
+                            display: "read"
+                        }
+                    ]
+                }
+                break
+            }
+        }
     }
 }
