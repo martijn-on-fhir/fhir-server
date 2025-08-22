@@ -114,12 +114,11 @@ fhirResourceSchema.index({ resourceType: 1, 'patient.reference': 1 }) // Voor En
 
 // Pre-save hook voor meta.lastUpdated en meta.versionId
 fhirResourceSchema.pre('save', function(next) {
-  // Zorg dat id aanwezig is
+
   if (!this.id) {
     this.id = uuidv4()
   }
-  
-  // Meta bijwerken
+
   this.meta = this.meta || {}
   this.meta.lastUpdated = new Date()
   
