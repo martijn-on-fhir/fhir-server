@@ -15,7 +15,7 @@ export class FhirResponse {
      * @param resource - The FHIR resource document to format
      * @returns The formatted FHIR resource with combined metadata
      */
-    static format(resource): object {
+    static format(resource: FhirResourceDocument): Record<string, unknown> {
 
         return {
             ...resource
@@ -29,7 +29,16 @@ export class FhirResponse {
      */
     static notValid(result: ValidationResult): object {
 
-        const response = {
+        const response: {
+            resourceType: string,
+            issue: Array<{
+                severity: string,
+                code: string,
+                details: {
+                    text: string
+                }
+            }>
+        } = {
             resourceType: 'OperationOutcome',
             issue: []
         }
@@ -55,7 +64,7 @@ export class FhirResponse {
      * @param description - Description of the resource that was not found
      * @returns An OperationOutcome resource with not-found error details
      */
-    static notFound(description): object {
+    static notFound(description: string): object {
 
         return {
             resourceType: 'OperationOutcome',
@@ -74,13 +83,13 @@ export class FhirResponse {
      * @param description - Description of why the request was not acceptable
      * @returns An OperationOutcome resource with not-acceptable error details
      */
-    static notAcceptable(description): object {
+    static notAcceptable(description: string): object {
 
         return {
             resourceType: 'OperationOutcome',
             issue: [{
                 severity: 'error',
-                code: 'not-accaptable',
+                code: 'not-acceptable',
                 details: {
                     text: `${description}`
                 }
