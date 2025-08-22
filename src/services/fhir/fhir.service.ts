@@ -55,6 +55,14 @@ export class FhirService {
         try {
 
             const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
+
+            this.eventEmitter.emit(FhirEvent.READ, {
+                resourceType: resourceType,
+                id: id,
+                searchParams: searchParams,
+                request: this.request,
+            })
+
             return await operation.findById(resourceType, id, searchParams)
 
         } catch (error) {
@@ -82,6 +90,8 @@ export class FhirService {
 
             this.eventEmitter.emit(FhirEvent.SEARCH, {
                 resourceType: resourceType,
+                searchParams: searchParams,
+                request: this.request,
             })
 
             return operation.find(resourceType, searchParams)
@@ -105,6 +115,12 @@ export class FhirService {
 
         const resources = searchParams._type.split(',').map(type => type.trim())
         const operation = new SearchOperation(this.fhirResourceModel, this.request, this.structureDefinitonModel)
+
+        this.eventEmitter.emit(FhirEvent.SEARCH, {
+            resourceType: searchParams._type,
+            searchParams: searchParams,
+            request: this.request,
+        })
 
         return operation.findByType(resources, searchParams)
     }

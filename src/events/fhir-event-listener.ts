@@ -10,6 +10,7 @@ export enum FhirEvent {
     UPDATED = 'fhir.updated',
     DELETED = 'fhir.deleted',
     VALIDATED = 'fhir.validated',
+    READ = 'fhir.read',
     SEARCH = 'fhir.search',
 }
 
@@ -24,17 +25,17 @@ export class FhirEventListener {
 
     @OnEvent('fhir.created')
     handleFhirCreatedEvent(payload: any): void {
-        this.provenanceBuilder.registerCreateOperation(payload)
+        this.provenanceBuilder.register(payload, 'create')
     }
 
     @OnEvent('fhir.updated')
     handleFhirUpdatedEvent(payload: any): void {
-        this.provenanceBuilder.registerUpdateOperation(payload)
+        this.provenanceBuilder.register(payload,'update')
     }
 
     @OnEvent('fhir.deleted')
     handleFhirDeletedEvent(payload: any): void {
-        this.provenanceBuilder.registerDeleteOperation(payload)
+        this.provenanceBuilder.register(payload, 'delete')
     }
 
     @OnEvent('fhir.validated')
@@ -42,8 +43,13 @@ export class FhirEventListener {
         console.log('FHIR resource validated:', payload);
     }
 
+    @OnEvent('fhir.read')
+    handleFhirReadEvent(payload: any): void {
+        this.provenanceBuilder.register(payload, 'read')
+    }
+
     @OnEvent('fhir.search')
     handleFhirSearchEvent(payload: any): void {
-        this.provenanceBuilder.registerSearchOperation(payload)
+        this.provenanceBuilder.register(payload, 'execute')
     }
 }
