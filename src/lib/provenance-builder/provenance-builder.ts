@@ -17,47 +17,100 @@ export class ProvenanceBuilder {
             recorded: new Date()
         })
 
+        this.addReason(resource)
         this.addAgent(resource)
         this.addTarget(resource)
         this.addActivity(resource, 'read')
 
         resource.save()
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     registerCreateOperation(payload: any): void {
 
-    }
+        console.log(payload)
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const resource = new this.model({
+            id: uuidv4(),
+            resourceType: 'Provenance',
+            recorded: new Date()
+        })
+
+        this.addReason(resource)
+        this.addAgent(resource)
+        this.addTarget(resource)
+        this.addActivity(resource, 'create')
+
+        resource.save()
+    }
+     
     registerUpdateOperation(payload: any): void {
+
+        console.log(payload)
+
+        const resource = new this.model({
+            id: uuidv4(),
+            resourceType: 'Provenance',
+            recorded: new Date()
+        })
+
+        this.addReason(resource)
+        this.addAgent(resource)
+        this.addTarget(resource)
+        this.addActivity(resource, 'update')
+
+        resource.save()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     registerDeleteOperation(payload: any): void {
 
+        const resource = new this.model({
+            id: uuidv4(),
+            resourceType: 'Provenance',
+            recorded: new Date()
+        })
+
+        this.addReason(resource)
+        this.addAgent(resource)
+        this.addTarget(resource)
+        this.addActivity(resource, 'delete')
+
+        resource.save()
     }
 
-    private addAgent(model: Model<ProvenanceDocument>): void {
+    private addReason(model: any): void {
 
-        model.agent =  [
-            {
-                type: {
+        model.reason = [{
+            system: "http://terminology.hl7.org/ValueSet/v3-PurposeOfUse",
+            code: "PATADMIN",
+            display: "Patient Administration"
+        }]
+    }
+
+    private addAgent(model: any): void {
+
+        model.agent = [{
+            role: [
+                {
                     coding: [
                         {
-                            system: 'http://terminology.hl7.org/CodeSystem/provenance-participant-type',
-                            code: 'author'
+                            system: "https://profiles.ihe.net/ITI/BALP/CodeSystem/UserAgentTypes",
+                            code: "UserOauthAgent",
+                            display: "User OAuth Agent participant"
                         }
                     ]
                 }
+            ],
+            whoReference: {
+                display: "Unkown systen"
             }
-        ]
+        }]
     }
 
-    private addTarget(model: Model<ProvenanceDocument>): void {
+    private addTarget(model: any): void {
 
         model.target = [{
-            reference: payload.resourceType + '/' + payload.id
+            reference: 'payload.resourceType' + '/' + ' payload.id'
         }]
     }
 
@@ -68,7 +121,7 @@ export class ProvenanceBuilder {
      * @param {string} activity - The activity to be added to the model. Allowed values include 'read'.
      * @return {void} This method does not return any value.
      */
-    private addActivity(model: Model<ProvenanceDocument>, activity: string): void {
+    private addActivity(model: any, activity: string): void {
 
         switch (activity) {
 
