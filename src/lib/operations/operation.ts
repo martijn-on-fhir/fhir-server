@@ -14,8 +14,7 @@ export class Operation {
     
     const exists = await  this.fhirResourceModel.findOne({
       resourceType,
-      id,
-      'resource.active': true,
+      id
     });
     
     return exists;

@@ -125,9 +125,6 @@ fhirResourceSchema.pre('save', function(next) {
   
   if (!this.meta.versionId) {
     this.meta.versionId = '1'
-  } else if (this.isModified() && !this.isNew) {
-    const current = Number(this.meta.versionId)
-    this.meta.versionId = String(isNaN(current) ? 1 : current + 1)
   }
   
   if(this.meta.security && this.meta.security.length === 0) {

@@ -145,7 +145,7 @@ export class FhirService {
 
             this.eventEmitter.emit(FhirEvent.CREATED, {
                 resourceType: resourceType,
-                result
+                request: this.request,
             })
 
             return result
@@ -185,7 +185,8 @@ export class FhirService {
 
             this.eventEmitter.emit(FhirEvent.UPDATED, {
                 resourceType: resourceType,
-                id
+                id,
+                request: this.request
             })
 
             return result
@@ -216,7 +217,8 @@ export class FhirService {
 
             this.eventEmitter.emit(FhirEvent.DELETED, {
                 resourceType: resourceType,
-                id
+                id,
+                request: this.request
             })
 
             return result
