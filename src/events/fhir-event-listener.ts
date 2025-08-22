@@ -38,11 +38,6 @@ export class FhirEventListener {
         this.provenanceBuilder.register(payload, 'delete')
     }
 
-    @OnEvent('fhir.validated')
-    handleFhirValidatedEvent(payload: any): void {
-        console.log('FHIR resource validated:', payload);
-    }
-
     @OnEvent('fhir.read')
     handleFhirReadEvent(payload: any): void {
         this.provenanceBuilder.register(payload, 'read')
