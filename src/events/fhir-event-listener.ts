@@ -9,7 +9,6 @@ export enum FhirEvent {
     CREATED = 'fhir.created',
     UPDATED = 'fhir.updated',
     DELETED = 'fhir.deleted',
-    VALIDATED = 'fhir.validated',
     READ = 'fhir.read',
     SEARCH = 'fhir.search',
 }

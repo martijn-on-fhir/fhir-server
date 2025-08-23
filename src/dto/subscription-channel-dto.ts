@@ -10,7 +10,7 @@ export class SubscriptionChannelDto {
     example: SubscriptionChannelType.REST_HOOK
   })
   @IsEnum(SubscriptionChannelType)
-  type: SubscriptionChannelType;
+  type: string;
   
   @ApiPropertyOptional({
     description: 'Endpoint URL for rest-hook or websocket',
