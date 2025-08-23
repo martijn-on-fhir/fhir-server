@@ -19,6 +19,7 @@ import {SubscriptionService} from './services/subscription/subscription.service'
 import {TerminusModule} from '@nestjs/terminus'
 import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
+import {SubscriptionEventListener} from "./events/subscription-event-listener";
 
 @Module({
     imports: [
@@ -51,7 +52,7 @@ import {SubscriptionController} from "./subscription/subscription.controller";
         EventEmitterModule.forRoot()
     ],
     controllers: [AppController, FhirController, SubscriptionController],
-    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionService],
+    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener, SubscriptionService],
     exports: [MongooseModule],
 })
 export class AppModule {

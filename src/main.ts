@@ -13,7 +13,8 @@ async function bootstrap(): Promise<void> {
   app.useStaticAssets(join(__dirname, "..", "static"));
   
   const config = new DocumentBuilder()
-  .setTitle("Fhir Service")
+  .setTitle("Fhir Server API")
+  .setDescription("Opensource Fhir Server API")
   .setVersion("1.0")
   .setExternalDoc("Insomnia | Postman Collection", "./api-json")
   .setContact('Martijn on Fhir', 'https://github.com/martijn-on-fhir/fhir-server', '')
