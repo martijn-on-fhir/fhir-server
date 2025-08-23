@@ -1,4 +1,11 @@
 {
+  "mongodb": {
+    "host": "localhost",
+    "port": 27017,
+    "database": "fhir-server",
+    "username": "",
+    "password": ""
+  },
   "authorization": {
     "oauth": {
       "enabled": true,

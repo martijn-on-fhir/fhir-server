@@ -21,6 +21,17 @@ import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
 import {SubscriptionEventListener} from "./events/subscription-event-listener";
 
+const getConnectionString = (): string => {
+
+    const config: any = configuration()
+
+    if (config.mongodb.username && config.mongodb.password) {
+        return `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}?authSource=admin`
+    } else{
+        return `mongodb://${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}`
+    }
+}
+
 @Module({
     imports: [
         TerminusModule,
@@ -36,7 +47,7 @@ import {SubscriptionEventListener} from "./events/subscription-event-listener";
             isGlobal: true,
             load: [configuration]
         }),
-        MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
+        MongooseModule.forRoot(getConnectionString(), {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
@@ -52,7 +63,8 @@ import {SubscriptionEventListener} from "./events/subscription-event-listener";
         EventEmitterModule.forRoot()
     ],
     controllers: [AppController, FhirController, SubscriptionController],
-    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener, SubscriptionService],
+    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
+        SubscriptionService],
     exports: [MongooseModule],
 })
 export class AppModule {
