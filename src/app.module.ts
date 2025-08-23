@@ -21,6 +21,16 @@ import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
 import {SubscriptionEventListener} from "./events/subscription-event-listener";
 
+/**
+ * Generates a MongoDB connection string based on the provided configuration object.
+ *
+ * The function retrieves the database connection configuration and constructs
+ * a MongoDB connection URI. If the configuration specifies both a username and
+ * a password, an authenticated connection string is returned. Otherwise, an
+ * unauthenticated connection string is returned.
+ *
+ * @returns {string} The MongoDB connection URI.
+ */
 const getConnectionString = (): string => {
 
     const config: any = configuration()
