@@ -14,12 +14,13 @@ import configuration from './config/configuration'
 import {EventEmitterModule} from '@nestjs/event-emitter'
 import {FhirEventListener} from './events/fhir-event-listener'
 import {subscriptionSchema, SubscriptionSchema} from './schema/subscription-schema'
-
 import {SubscriptionService} from './services/subscription/subscription.service';
 import {TerminusModule} from '@nestjs/terminus'
 import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
 import {SubscriptionEventListener} from "./events/subscription-event-listener";
+import { CronJobsService } from './services/cron-jobs/cron-jobs.service';
+import {ScheduleModule} from "@nestjs/schedule";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -70,11 +71,13 @@ const getConnectionString = (): string => {
             {name: SubscriptionSchema.name, schema: subscriptionSchema},
             {name: ProvenanceResource.name, schema: provenanceSchema},
         ]),
-        EventEmitterModule.forRoot()
+        EventEmitterModule.forRoot(),
+        ScheduleModule.forRoot()
     ],
     controllers: [AppController, FhirController, SubscriptionController],
     providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService],
+        SubscriptionService,
+        CronJobsService],
     exports: [MongooseModule],
 })
 export class AppModule {
