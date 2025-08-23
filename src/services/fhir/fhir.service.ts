@@ -23,6 +23,7 @@ import {SearchResult} from '../../interfaces/search-result'
 import {SearchParameters} from '../../interfaces/search-parameters'
 import {REQUEST} from '@nestjs/core'
 import {Request} from 'express'
+import {ResourceEvent} from "../../events/subscription-event-listener";
 
 /**
  * Service for handling FHIR resources operations including CRUD and search functionality.
@@ -141,14 +142,20 @@ export class FhirService {
             }
 
             const operation = new CreateOperation(this.fhirResourceModel)
-            const result = await operation.execute(resourceType, resourceData)
+            const entity = await operation.execute(resourceType, resourceData)
 
             this.eventEmitter.emit(FhirEvent.CREATED, {
                 resourceType: resourceType,
                 request: this.request,
             })
 
-            return result
+            this.eventEmitter.emit(ResourceEvent.CREATED, {
+                resourceType: resourceType,
+                id: entity.id,
+                resource: entity
+            })
+
+            return entity
 
         } catch (error: any) {
 
@@ -181,7 +188,7 @@ export class FhirService {
             }
 
             const operation = new UpdateOperation(this.fhirResourceModel)
-            const result = await operation.execute(resourceType, id, resourceData)
+            const entity = await operation.execute(resourceType, id, resourceData)
 
             this.eventEmitter.emit(FhirEvent.UPDATED, {
                 resourceType: resourceType,
@@ -189,7 +196,13 @@ export class FhirService {
                 request: this.request
             })
 
-            return result
+            this.eventEmitter.emit(ResourceEvent.UPDATED, {
+                resourceType: resourceType,
+                id: entity.id,
+                resource: entity
+            })
+
+            return entity
 
         } catch (error) {
 
@@ -219,6 +232,11 @@ export class FhirService {
                 resourceType: resourceType,
                 id,
                 request: this.request
+            })
+
+            this.eventEmitter.emit(ResourceEvent.DELETED, {
+                resourceType: resourceType,
+                id: id
             })
 
             return result
