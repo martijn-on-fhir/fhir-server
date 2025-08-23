@@ -21,6 +21,27 @@ import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
 import {SubscriptionEventListener} from "./events/subscription-event-listener";
 
+/**
+ * Generates a MongoDB connection string based on the provided configuration object.
+ *
+ * The function retrieves the database connection configuration and constructs
+ * a MongoDB connection URI. If the configuration specifies both a username and
+ * a password, an authenticated connection string is returned. Otherwise, an
+ * unauthenticated connection string is returned.
+ *
+ * @returns {string} The MongoDB connection URI.
+ */
+const getConnectionString = (): string => {
+
+    const config: any = configuration()
+
+    if (config.mongodb.username && config.mongodb.password) {
+        return `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}?authSource=admin`
+    } else{
+        return `mongodb://${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}`
+    }
+}
+
 @Module({
     imports: [
         TerminusModule,
@@ -36,7 +57,7 @@ import {SubscriptionEventListener} from "./events/subscription-event-listener";
             isGlobal: true,
             load: [configuration]
         }),
-        MongooseModule.forRoot("mongodb://localhost:27017/fhir-server", {
+        MongooseModule.forRoot(getConnectionString(), {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
@@ -52,7 +73,8 @@ import {SubscriptionEventListener} from "./events/subscription-event-listener";
         EventEmitterModule.forRoot()
     ],
     controllers: [AppController, FhirController, SubscriptionController],
-    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener, SubscriptionService],
+    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
+        SubscriptionService],
     exports: [MongooseModule],
 })
 export class AppModule {
