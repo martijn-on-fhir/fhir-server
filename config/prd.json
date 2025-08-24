@@ -25,6 +25,11 @@
   "cron": {
     "metrics": {
       "enabled": true
+    },
+    "backup": {
+      "enabled": false,
+      "directory": "./export",
+      "interval": "30 9 * * *"
     }
   }
 }
