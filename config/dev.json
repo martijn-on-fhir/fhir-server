@@ -25,5 +25,10 @@
   "oauth": {
     "enabled": true,
     "introspection": "http://localhost:5000"
+  },
+  "cron": {
+    "metrics": {
+      "enabled": true
+    }
   }
 }

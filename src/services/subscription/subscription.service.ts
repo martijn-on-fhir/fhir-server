@@ -8,8 +8,6 @@ import { ResourceChangeEvent } from '../../interfaces/resource-change-event'
 import axios from 'axios'
 import {CreateSubscriptionDto} from "../../dto/create-subscription-dto";
 
-
-
 /**
  * Service for managing FHIR Subscriptions, handling creation, updates, and notifications
  * for different subscription types (REST Hook, WebSocket, Email).
