@@ -5,7 +5,7 @@ export type SystemDocument = SystemSchema & Document;
 
 @Schema({
     collection: 'system',
-    timestamps: { createdAt: false},
+    timestamps: { createdAt: true, updatedAt: false},
     strict: false, // Toestaan van alle FHIR resource eigenschappen
     versionKey: false,
 })
