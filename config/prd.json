@@ -21,5 +21,10 @@
     "baseUrl": "",
     "username": "",
     "password": ""
+  },
+  "cron": {
+    "metrics": {
+      "enabled": true
+    }
   }
 }
