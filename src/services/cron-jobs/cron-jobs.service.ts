@@ -1,8 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {Cron, CronExpression, Timeout} from "@nestjs/schedule";
+import {Usage} from "../../lib/system/usage";
+import {InjectModel} from "@nestjs/mongoose";
+import {Model} from "mongoose";
+import {SystemDocument, SystemSchema} from "../../schema/system-schema";
 
 @Injectable()
 export class CronJobsService {
+
+    constructor(@InjectModel(SystemSchema.name) private systemModel: Model<SystemDocument>) {
+    }
 
     @Timeout(10000)
     afterApplicationStart(): void {
@@ -11,7 +18,11 @@ export class CronJobsService {
 
     @Cron(CronExpression.EVERY_MINUTE)
     handleEveryMinute(): void {
-        console.log('Task running every minute');
+
+        const usage = new Usage().snapshot()
+
+        const model = new this.systemModel(usage)
+        model.save()
     }
 
     @Cron(CronExpression.EVERY_HOUR)
