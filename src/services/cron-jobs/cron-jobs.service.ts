@@ -22,7 +22,7 @@ export class CronJobsService {
      * @param schedulerRegistry
      */
     constructor(@InjectModel(SystemSchema.name) private systemModel: Model<SystemDocument>, private readonly _config: ConfigService,
-                private schedulerRegistry: SchedulerRegistry, @InjectModel(SystemSchema.name) private systemModel: Model<SystemDocument>) {
+                private schedulerRegistry: SchedulerRegistry) {
 
         const actions = this._config.get('cron')
 
@@ -85,7 +85,7 @@ export class CronJobsService {
     }
 
     @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
-    handleFirstDayOfMonth(): void {
+    async handleFirstDayOfMonth(): Promise<void> {
 
         // delete all records older than one month
         const oneMonthAgo = new Date();
