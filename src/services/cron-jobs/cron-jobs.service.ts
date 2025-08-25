@@ -113,10 +113,10 @@ export class CronJobsService {
      */
     private handleBackup(properties: { enable: boolean, directory: string, interval: string }): void {
 
-        const job = new CronJob(`${properties.interval}`, () => {
+        const job = new CronJob(`${properties.interval}`, async () => {
 
-            const backup = new Backup(properties.directory)
-            backup.execute()
+            const backup = new Backup(properties.directory, this._config.get("mongodb"))
+            await backup.execute()
         });
 
         this.schedulerRegistry.addCronJob('backup', job);
