@@ -22,6 +22,7 @@ import {SubscriptionEventListener} from "./events/subscription-event-listener";
 import { CronJobsService } from './services/cron-jobs/cron-jobs.service';
 import {ScheduleModule} from "@nestjs/schedule";
 import {systemSchema, SystemSchema} from "./schema/system-schema";
+import {FsLoggerService} from "./services/logger/fs-logger.service";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -78,8 +79,7 @@ const getConnectionString = (): string => {
     ],
     controllers: [AppController, FhirController, SubscriptionController],
     providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService,
-        CronJobsService],
+        SubscriptionService,  CronJobsService, FsLoggerService],
     exports: [MongooseModule],
 })
 export class AppModule {

@@ -7,6 +7,7 @@ import {SystemDocument, SystemSchema} from "../../schema/system-schema";
 import {ConfigService} from "@nestjs/config";
 import {CronJob} from "cron";
 import {Backup} from "../../lib/backup/backup";
+import {FsLoggerService} from "../logger/fs-logger.service";
 
 /**
  * Service responsible for managing scheduled tasks and cron jobs within the application.
@@ -20,10 +21,12 @@ export class CronJobsService {
      * @param systemModel - Mongoose model for system metrics storage
      * @param _config - Configuration service for accessing application settings
      * @param schedulerRegistry
+     * @param logger
      */
     constructor(@InjectModel(SystemSchema.name) private systemModel: Model<SystemDocument>, private readonly _config: ConfigService,
-                private schedulerRegistry: SchedulerRegistry) {
+                private schedulerRegistry: SchedulerRegistry, private readonly logger: FsLoggerService) {
 
+        this.logger.setContext(Object.getPrototypeOf(this).constructor.name)
         const actions = this._config.get('cron')
 
         for (const name of Object.keys(actions)) {
@@ -46,7 +49,7 @@ export class CronJobsService {
      */
     @Timeout(10000)
     afterApplicationStart(): void {
-        console.log('cron job executed')
+        this.logger.log('Cron job executed')
     }
 
     /**
@@ -72,7 +75,7 @@ export class CronJobsService {
      */
     @Cron(CronExpression.EVERY_HOUR)
     handleEveryHour(): void {
-        console.log('Task running every hour');
+        this.logger.log('Task running every hour');
     }
 
     /**
@@ -81,7 +84,7 @@ export class CronJobsService {
      */
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     handleEveryDay(): void {
-        console.log('Task running every day');
+        this.logger.log('Task running every day');
     }
 
     @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
@@ -99,7 +102,7 @@ export class CronJobsService {
      */
     @Cron(CronExpression.EVERY_WEEK)
     handleEveryWeek(): void {
-        console.log('Task running every week');
+        this.logger.log('Task running every week');
     }
 
     /**
