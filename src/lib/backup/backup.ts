@@ -32,12 +32,12 @@ export class Backup {
      */
     async execute(): Promise<void> {
 
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupPath = join(this.directory, `fhir-backup-${timestamp}`);
-        const args = this.buildMongodumpArgs(backupPath);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+        const backupPath = join(this.directory, `fhir-backup-${timestamp}`)
+        const args = this.buildMongodumpArgs(backupPath)
 
-        await this.executeMongodump(args);
-        await this.createBackupMetadata(backupPath, this.config);
+        await this.executeMongodump(args)
+        await this.createBackupMetadata(backupPath, this.config)
     }
 
     /**
@@ -52,14 +52,15 @@ export class Backup {
         username?: string;
         password?: string;
     }): Promise<void> {
-        await this.ensureDirectoryExists(this.directory);
 
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupPath = join(this.directory, `fhir-resources-${timestamp}`);
-        const args = this.buildMongodumpArgs(backupPath, 'resources');
+        await this.ensureDirectoryExists(this.directory)
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+        const backupPath = join(this.directory, `fhir-resources-${timestamp}`)
+        const args = this.buildMongodumpArgs(backupPath, 'resources')
 
         await this.executeMongodump(args);
-        await this.createBackupMetadata(backupPath, config, 'resources');
+        await this.createBackupMetadata(backupPath, config, 'resources')
     }
 
     /**
@@ -71,24 +72,25 @@ export class Backup {
      */
     private buildMongodumpArgs(outputPath?: string | null, collection?: string): string[] {
 
-        const args: string[] = [];
+        const args: string[] = []
 
-        args.push('--host', `${this.config.host}:${this.config.port}`);
-        args.push('--db', this.config.database);
+        args.push('--host', `${this.config.host}:${this.config.port}`)
+        args.push('--db', this.config.database)
 
         // Authenticatie indien aanwezig
         if (this.config.username && this.config.password) {
-            args.push('--username', this.config.username);
-            args.push('--password', this.config.password);
-            args.push('--authenticationDatabase', 'admin');
+
+            args.push('--username', this.config.username)
+            args.push('--password', this.config.password)
+            args.push('--authenticationDatabase', 'admin')
         }
 
         if (collection) {
-            args.push('--collection', collection);
+            args.push('--collection', collection)
         }
 
         if (outputPath) {
-            args.push('--out', outputPath);
+            args.push('--out', outputPath)
         }
 
         return args
@@ -100,39 +102,41 @@ export class Backup {
      * @returns Promise dat resolved wanneer command klaar is
      */
     private executeMongodump(args: string[]): Promise<void> {
+
         return new Promise((resolve, reject) => {
+
             const mongodump: ChildProcess = spawn('mongodump', args, {
                 stdio: ['inherit', 'pipe', 'pipe']
-            });
+            })
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            let stdout = '';
-            let stderr = '';
+            let stdout = ''
+            let stderr = ''
 
             mongodump.stdout?.on('data', (data) => {
-                const output = data.toString();
-                stdout += output;
-                console.log(output);
-            });
+                const output = data.toString()
+                stdout += output
+                console.log(output)
+            })
 
             mongodump.stderr?.on('data', (data) => {
-                const output = data.toString();
-                stderr += output;
-                console.error(output);
-            });
+                const output = data.toString()
+                stderr += output
+                console.error(output)
+            })
 
             mongodump.on('close', (code) => {
                 if (code === 0) {
                     console.log('mongodump completed successfully');
-                    resolve();
+                    resolve()
                 } else {
-                    reject(new Error(`mongodump exited with code ${code}. stderr: ${stderr}`));
+                    reject(new Error(`mongodump exited with code ${code}. stderr: ${stderr}`))
                 }
-            });
+            })
 
             mongodump.on('error', (error) => {
-                reject(new Error(`Failed to start mongodump: ${error.message}`));
-            });
+                reject(new Error(`Failed to start mongodump: ${error.message}`))
+            })
         });
     }
 
@@ -144,6 +148,7 @@ export class Backup {
      */
     private async createBackupMetadata(backupPath: string, config: any, collection?: string): Promise<void> {
         try {
+
             const metadata = {
                 backupDate: new Date().toISOString(),
                 backupType: collection ? 'collection' : 'database',
@@ -153,17 +158,16 @@ export class Backup {
                 port: config.port,
                 tool: 'mongodump',
                 path: backupPath
-            };
+            }
 
             const metadataPath = collection
                 ? join(backupPath, 'backup_metadata.json')
-                : join(backupPath, config.database, 'backup_metadata.json');
+                : join(backupPath, config.database, 'backup_metadata.json')
 
-            await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8');
-            console.log('Backup metadata created');
+            await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8')
 
         } catch (error) {
-            console.error('Error creating backup metadata:', error);
+            console.error('Error creating backup metadata:', error)
         }
     }
 
@@ -172,11 +176,12 @@ export class Backup {
      * @param dirPath - Path to directory
      */
     private async ensureDirectoryExists(dirPath: string): Promise<void> {
+
         try {
-            await fs.access(dirPath);
+            await fs.access(dirPath)
         } catch {
-            await fs.mkdir(dirPath, {recursive: true});
-            console.log(`Created directory: ${dirPath}`);
+            await fs.mkdir(dirPath, {recursive: true})
+            console.log(`Created directory: ${dirPath}`)
         }
     }
 }
