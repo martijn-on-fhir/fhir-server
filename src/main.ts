@@ -4,10 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import {FsLoggerService} from "./services/logger/fs-logger.service";
 
 async function bootstrap(): Promise<void> {
   
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+        logger: new FsLoggerService(),
+  });
   
   app.use(helmet());
   app.useStaticAssets(join(__dirname, "..", "static"));
