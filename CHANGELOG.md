@@ -1,3 +1,10 @@
+## [0.2.1-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.0...v0.2.1-beta.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* **subscription:** remove redundant regex escaping test in SubscriptionController ([d3d6db9](https://github.com/martijn-on-fhir/fhir-server/commit/d3d6db9b265705f17e6a1b0d1969dcbd132e05da))
+
 # [0.2.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.1.0...v0.2.0) (2025-08-26)
 
 
