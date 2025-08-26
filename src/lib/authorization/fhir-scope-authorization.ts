@@ -240,6 +240,12 @@ export class FhirScopeAuthorization {
         if (!token) return;
 
         const decoded = jose.decodeJwt(token);
+        
+        // Validate token expiration
+        if (decoded.exp && decoded.exp < Date.now() / 1000) {
+            return; // Token is expired, don't set scope
+        }
+        
         this._scope = (decoded.scope as string || '').split(' ')
     }
 }
