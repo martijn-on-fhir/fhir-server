@@ -19,10 +19,12 @@ import {TerminusModule} from '@nestjs/terminus'
 import {ProvenanceResource, provenanceSchema} from "./schema/provenance-schema";
 import {SubscriptionController} from "./subscription/subscription.controller";
 import {SubscriptionEventListener} from "./events/subscription-event-listener";
-import { CronJobsService } from './services/cron-jobs/cron-jobs.service';
+import {CronJobsService} from './services/cron-jobs/cron-jobs.service';
 import {ScheduleModule} from "@nestjs/schedule";
 import {systemSchema, SystemSchema} from "./schema/system-schema";
 import {FsLoggerService} from "./services/logger/fs-logger.service";
+import {APP_GUARD} from "@nestjs/core";
+import {SecurityGuard} from "./guards/security/security.guard";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -40,7 +42,7 @@ const getConnectionString = (): string => {
 
     if (config.mongodb.username && config.mongodb.password) {
         return `mongodb://${config.mongodb.username}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}?authSource=admin`
-    } else{
+    } else {
         return `mongodb://${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.database}`
     }
 }
@@ -78,8 +80,14 @@ const getConnectionString = (): string => {
         ScheduleModule.forRoot()
     ],
     controllers: [AppController, FhirController, SubscriptionController],
-    providers: [FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService,  CronJobsService, FsLoggerService],
+    providers: [
+        FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
+        SubscriptionService, CronJobsService, FsLoggerService,
+        {
+            provide: APP_GUARD,
+            useClass: SecurityGuard,
+        },
+    ],
     exports: [MongooseModule],
 })
 export class AppModule {

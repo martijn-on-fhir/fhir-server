@@ -30,4 +30,5 @@ export class FhirAuthorizerGuard implements CanActivate {
             return true;
         }
     }
+
 }

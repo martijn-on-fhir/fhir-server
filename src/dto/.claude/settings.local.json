@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/C:\\projects\\fhir-server\\src\\lib\\authorization/**)",
+      "Read(/C:\\projects\\fhir-server\\src\\guards\\authorizer/**)",
+      "Read(/C:\\projects\\fhir-server\\src\\interfaces/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
