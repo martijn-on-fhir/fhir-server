@@ -1,3 +1,11 @@
+# [0.2.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.1.0...v0.2.0) (2025-08-26)
+
+
+### Features
+
+* **tests:** add comprehensive unit tests for FHIR service, terminology service, logger, and utils ([3749902](https://github.com/martijn-on-fhir/fhir-server/commit/3749902a2cb175a6638492ef3cfb5bad39b94562))
+* **tests:** add comprehensive unit tests for FHIR service, terminology service, logger, and utils ([c20b77a](https://github.com/martijn-on-fhir/fhir-server/commit/c20b77a4a6e8c51c56dd9c60ac24fde87aac9b67))
+
 # [0.1.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.0.1...v0.1.0) (2025-08-26)
 
 
