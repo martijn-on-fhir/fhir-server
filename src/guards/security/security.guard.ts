@@ -16,12 +16,10 @@ export class SecurityGuard implements CanActivate {
      * XML/XXE patterns, and NoSQL injection attempts
      */
     private readonly suspiciousPatterns = [
-       
+
         // SQL Injection patterns
         /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b|\bALTER\b)/i,
         /('|(\\x27)|(\\x2D){2})/,
-        // eslint-disable-next-line no-control-regex
-        /(|\x00)/,
 
         // XSS patterns
         /<script[^>]*>.*?<\/script>/gi,
@@ -31,7 +29,6 @@ export class SecurityGuard implements CanActivate {
         /onload|onerror|onclick|onmouseover|onmouseout|onfocus|onblur/i,
 
         // Command injection
-        /(\||&||\$\(|`)/,
         /(nc |netcat |wget |curl |bash |sh |cmd |powershell |exec)/i,
 
         // Path traversal
@@ -60,13 +57,13 @@ export class SecurityGuard implements CanActivate {
 
     /** Maximum allowed request size in bytes (10MB) */
     private readonly maxRequestSize = 10 * 1024 * 1024 // 10MB
-    
+
     /** Maximum allowed header size in bytes (8KB) */
     private readonly maxHeaderSize = 8 * 1024 // 8KB
-    
+
     /** Maximum allowed URL length in characters */
     private readonly maxUrlLength = 2048
-    
+
     /** Maximum allowed number of headers in a request */
     private readonly maxHeaderCount = 50
 
@@ -76,11 +73,11 @@ export class SecurityGuard implements CanActivate {
      * @returns True if all security checks pass, false otherwise
      */
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-        
+
         const request: Request = context.switchToHttp().getRequest()
 
         try {
-           
+
             this.validateRequestSize(request)
             this.validateHeaders(request)
             this.validateUrl(request)
@@ -102,9 +99,9 @@ export class SecurityGuard implements CanActivate {
      * @throws {BadRequestException} If the request size exceeds maxRequestSize
      */
     private validateRequestSize(request: Request): void {
-        
+
         const contentLength = parseInt(request.headers['content-length'] || '0')
-       
+
         if (contentLength > this.maxRequestSize) {
             throw new BadRequestException('Request too large')
         }
@@ -117,9 +114,9 @@ export class SecurityGuard implements CanActivate {
      * @throws {ForbiddenException} If suspicious or blocked headers are detected
      */
     private validateHeaders(request: Request): void {
-        
+
         const headerCount = Object.keys(request.headers).length
-        
+
         if (headerCount > this.maxHeaderCount) {
             throw new BadRequestException('Too many headers')
         }
@@ -147,7 +144,7 @@ export class SecurityGuard implements CanActivate {
      * @throws {ForbiddenException} If suspicious patterns or path traversal attempts are detected
      */
     private validateUrl(request: Request): void {
-        
+
         const fullUrl = request.protocol + '://' + request.get('host') + request.originalUrl
 
         if (fullUrl.length > this.maxUrlLength) {
@@ -169,12 +166,12 @@ export class SecurityGuard implements CanActivate {
      * @throws {ForbiddenException} If suspicious user agent is detected
      */
     private validateUserAgent(request: Request): void {
-        
+
         const userAgent = request.headers['user-agent']
 
         if (typeof userAgent === 'string') {
 
-            const suspiciousUAPatterns = [/sqlmap/i,  /nmap/i,  /nikto/i, /scanner/i, /bot.*bot/i, /crawler.*crawler/i]
+            const suspiciousUAPatterns = [/sqlmap/i, /nmap/i, /nikto/i, /scanner/i, /bot.*bot/i, /crawler.*crawler/i]
 
             if (suspiciousUAPatterns.some(pattern => pattern.test(userAgent))) {
                 throw new ForbiddenException('Suspicious user agent detected')
@@ -188,7 +185,7 @@ export class SecurityGuard implements CanActivate {
      * @throws {ForbiddenException} If suspicious patterns are detected
      */
     private checkForSuspiciousPatterns(request: Request): void {
-        
+
         const checkString = JSON.stringify({
             query: request.query,
             body: request.body,
@@ -206,13 +203,13 @@ export class SecurityGuard implements CanActivate {
      * @throws {BadRequestException} If content type is not supported
      */
     private validateContentType(request: Request): void {
-        
+
         if (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') {
 
             const contentType = request.headers['content-type']
 
             if (contentType) {
-                
+
                 const allowedTypes = [
                     'application/json',
                     'application/fhir+json',
