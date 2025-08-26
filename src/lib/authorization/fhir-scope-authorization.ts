@@ -20,7 +20,7 @@ export class FhirScopeAuthorization {
     private _userId: string
 
     /** OAuth2 scopes extracted from the authorization token */
-    private _scope: string | string[]
+    private _scope: any
 
     /** The incoming HTTP request being authorized */
     private _request: IncomingMessage
