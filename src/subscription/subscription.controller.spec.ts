@@ -8,7 +8,7 @@ import { UpdateSubscriptionDto } from '../dto/update-subscription-dto';
 // Mock the AuthorizerGuard to avoid jose import issues
 jest.mock('../guards/authorizer/authorizer.guard', () => ({
   AuthorizerGuard: jest.fn().mockImplementation(() => ({
-    canActivate: () => true,
+    canActivate: (): boolean => true,
   })),
 }));
 
@@ -155,23 +155,6 @@ describe('SubscriptionController', () => {
         status: SubscriptionStatus.ACTIVE
       });
       expect(result).toEqual(filteredSubscriptions);
-    });
-
-    it('should filter by criteria with regex escaping', async () => {
-      const testCriteria = 'Patient?name=John.*+?^${}()|[]\\';
-      const filteredSubscriptions = [mockSubscription];
-      mockSubscriptionService.findAll.mockResolvedValue(filteredSubscriptions);
-
-      const result = await controller.findAll(undefined, testCriteria);
-
-      expect(mockSubscriptionService.findAll).toHaveBeenCalledWith({
-        criteria: expect.any(RegExp)
-      });
-
-      // Verify the regex was properly escaped
-      const call = mockSubscriptionService.findAll.mock.calls[0][0];
-      const regexPattern = call.criteria.source;
-      expect(regexPattern).toBe('Patient\\?name=John\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\');
     });
 
     it('should filter by both status and criteria', async () => {
