@@ -1,4 +1,4 @@
-# [0.2.0-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.1.0...v0.2.0-beta.1) (2025-08-26)
+# [0.2.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.1.0...v0.2.0) (2025-08-26)
 
 
 ### Features
