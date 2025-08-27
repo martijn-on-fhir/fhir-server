@@ -26,6 +26,9 @@
     "export:resource": "node dist/cli/export.js",
     "import:resource": "node dist/cli/import.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:staged": "lint-staged",
+    "test:changed": "jest --bail --findRelatedTests --passWithNoTests",
+    "tscheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -33,12 +36,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
-    "tscheck": "tsc --noEmit"
+    "prepare": "husky"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run tscheck",
-      "pre-push": "npm run lint"
+      "pre-commit": "npm run lint:staged && npm run tscheck && npm run test:changed",
+      "pre-push": "npm run test && npm run lint"
     }
   },
   "dependencies": {
