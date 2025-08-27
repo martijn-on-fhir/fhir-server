@@ -259,7 +259,7 @@ export class FhirScopeAuthorization {
             }
             
             this._scope = (decoded.scope as string || '').split(' ')
-        } catch (error) {
+        } catch  {
             // If JWT decoding fails, don't set scope (access will be denied)
             return;
         }

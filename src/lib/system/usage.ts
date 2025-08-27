@@ -6,13 +6,13 @@ import * as process from 'process'
  */
 export class Usage {
 
-    /** Resident Set Size (RSS) memory usage in kilobytes */
+    /** Resident Set Size (RSS) memory usage in megabytes */
     private _rss: number
 
-    /** Heap memory usage in kilobytes */
+    /** Heap memory usage in megabytes */
     private _heap: number
 
-    /** External memory usage in kilobytes */
+    /** External memory usage in megabytes */
     private _external: number
 
     /** CPU usage statistics for system and user time */
@@ -40,7 +40,7 @@ export class Usage {
 
     /**
      * Returns the current system usage metrics as an object
-     * @returns Object containing RSS, heap, external memory and CPU usage statistics
+     * @returns Object containing RSS, heap, external memory (in MB) and CPU usage statistics (in MB)
      */
     snapshot(): object {
         return {

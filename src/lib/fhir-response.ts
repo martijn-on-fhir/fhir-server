@@ -103,7 +103,7 @@ export class FhirResponse {
      * @param total - Total number of available resources
      * @param offset - Starting index for pagination (default: 0)
      * @param count - Number of resources per page (default: 20)
-     * @param request
+     * @param request - Express request object for building pagination URLs
      * @returns A FHIR Bundle resource containing the requested resources and pagination links
      */
     static bundle(resources: FhirResourceDocument[], total: number, offset: number = 0, count: number = 20, request?: Request): any {
