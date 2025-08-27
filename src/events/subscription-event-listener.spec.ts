@@ -195,11 +195,11 @@ describe('SubscriptionEventListener', () => {
     });
   });
 
-  describe('handleResourcDeletedEvent', () => {
+  describe('handleResourceDeletedEvent', () => {
     it('should handle resource deleted event', () => {
       const payload = ResourceEvent.DELETED;
 
-      listener.handleResourcDeletedEvent(payload);
+      listener.handleResourceDeletedEvent(payload);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(payload);
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);
@@ -217,7 +217,7 @@ describe('SubscriptionEventListener', () => {
         timestamp: '2023-08-27T10:00:00Z'
       };
 
-      listener.handleResourcDeletedEvent(deletePayload as any);
+      listener.handleResourceDeletedEvent(deletePayload as any);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(deletePayload);
     });
@@ -230,7 +230,7 @@ describe('SubscriptionEventListener', () => {
       ];
 
       cascadingDeletes.forEach(deleteEvent => {
-        listener.handleResourcDeletedEvent(deleteEvent as any);
+        listener.handleResourceDeletedEvent(deleteEvent as any);
       });
 
       expect(mockConsoleLog).toHaveBeenCalledTimes(3);
@@ -254,8 +254,8 @@ describe('SubscriptionEventListener', () => {
         status: 'removed'
       };
 
-      listener.handleResourcDeletedEvent(softDelete as any);
-      listener.handleResourcDeletedEvent(hardDelete as any);
+      listener.handleResourceDeletedEvent(softDelete as any);
+      listener.handleResourceDeletedEvent(hardDelete as any);
 
       expect(mockConsoleLog).toHaveBeenCalledTimes(2);
       expect(mockConsoleLog).toHaveBeenNthCalledWith(1, softDelete);
@@ -275,7 +275,7 @@ describe('SubscriptionEventListener', () => {
         criteria: 'status=inactive AND lastModified<2023-01-01'
       };
 
-      listener.handleResourcDeletedEvent(bulkDeletePayload as any);
+      listener.handleResourceDeletedEvent(bulkDeletePayload as any);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(bulkDeletePayload);
     });
@@ -285,13 +285,13 @@ describe('SubscriptionEventListener', () => {
     it('should have correctly named event handler methods', () => {
       expect(typeof listener.handleResourceCreatedEvent).toBe('function');
       expect(typeof listener.handleResourceUpdatedEvent).toBe('function');
-      expect(typeof listener.handleResourcDeletedEvent).toBe('function');
+      expect(typeof listener.handleResourceDeletedEvent).toBe('function');
     });
 
-    it('should have the typo in handleResourcDeletedEvent method name', () => {
+    it('should have the typo in handleResourceDeletedEvent method name', () => {
       // This test documents the existing typo - should be "Resource" not "Resourc"
-      expect(listener.handleResourcDeletedEvent).toBeDefined();
-      expect(typeof listener.handleResourcDeletedEvent).toBe('function');
+      expect(listener.handleResourceDeletedEvent).toBeDefined();
+      expect(typeof listener.handleResourceDeletedEvent).toBe('function');
     });
 
     it('should accept any parameter type for event handlers', () => {
@@ -299,7 +299,7 @@ describe('SubscriptionEventListener', () => {
       // but actually receives event data, these should not throw
       expect(() => listener.handleResourceCreatedEvent('test' as any)).not.toThrow();
       expect(() => listener.handleResourceUpdatedEvent({ data: 'test' } as any)).not.toThrow();
-      expect(() => listener.handleResourcDeletedEvent(123 as any)).not.toThrow();
+      expect(() => listener.handleResourceDeletedEvent(123 as any)).not.toThrow();
     });
   });
 
@@ -323,7 +323,7 @@ describe('SubscriptionEventListener', () => {
       const events = [
         { handler: 'handleResourceCreatedEvent', payload: ResourceEvent.CREATED },
         { handler: 'handleResourceUpdatedEvent', payload: ResourceEvent.UPDATED },
-        { handler: 'handleResourcDeletedEvent', payload: ResourceEvent.DELETED }
+        { handler: 'handleResourceDeletedEvent', payload: ResourceEvent.DELETED }
       ];
 
       const iterations = 100;
@@ -370,7 +370,7 @@ describe('SubscriptionEventListener', () => {
     it('should handle null and undefined payloads without errors', () => {
       expect(() => listener.handleResourceCreatedEvent(null as any)).not.toThrow();
       expect(() => listener.handleResourceUpdatedEvent(undefined as any)).not.toThrow();
-      expect(() => listener.handleResourcDeletedEvent(null as any)).not.toThrow();
+      expect(() => listener.handleResourceDeletedEvent(null as any)).not.toThrow();
 
       expect(mockConsoleLog).toHaveBeenCalledTimes(3);
       expect(mockConsoleLog).toHaveBeenNthCalledWith(1, null);
@@ -415,7 +415,7 @@ describe('SubscriptionEventListener', () => {
         }
       };
 
-      expect(() => listener.handleResourcDeletedEvent(specialPayload as any)).not.toThrow();
+      expect(() => listener.handleResourceDeletedEvent(specialPayload as any)).not.toThrow();
       expect(mockConsoleLog).toHaveBeenCalledWith(specialPayload);
     });
 
@@ -482,7 +482,7 @@ describe('SubscriptionEventListener', () => {
         timestamp: new Date().toISOString()
       };
 
-      listener.handleResourcDeletedEvent(deleteEvent as any);
+      listener.handleResourceDeletedEvent(deleteEvent as any);
 
       // Verify all events were processed
       expect(mockConsoleLog).toHaveBeenCalledTimes(4);
@@ -546,7 +546,7 @@ describe('SubscriptionEventListener', () => {
     it('should log exact payload for deleted events', () => {
       const testPayload = { test: 'deleted-payload', date: new Date().toISOString() };
 
-      listener.handleResourcDeletedEvent(testPayload as any);
+      listener.handleResourceDeletedEvent(testPayload as any);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(testPayload);
       expect(mockConsoleLog).toHaveBeenCalledTimes(1);

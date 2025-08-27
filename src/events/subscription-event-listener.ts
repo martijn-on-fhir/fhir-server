@@ -21,7 +21,7 @@ export class SubscriptionEventListener {
     }
 
     @OnEvent('resource.deleted')
-    handleResourcDeletedEvent(payload: ResourceEvent): void {
+    handleResourceDeletedEvent(payload: ResourceEvent): void {
         console.log(payload)
     }
 }
