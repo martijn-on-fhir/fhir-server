@@ -390,7 +390,7 @@ describe('SubscriptionEventListener', () => {
     });
 
     it('should handle very deep nested objects', () => {
-      let deepObject: any = { eventType: ResourceEvent.UPDATED };
+      const deepObject: any = { eventType: ResourceEvent.UPDATED };
       let current = deepObject;
 
       // Create 100 levels of nesting
@@ -431,7 +431,7 @@ describe('SubscriptionEventListener', () => {
     });
 
     it('should handle function payloads', () => {
-      const functionPayload = () => ResourceEvent.CREATED;
+      const functionPayload = (): string => ResourceEvent.CREATED;
 
       expect(() => listener.handleResourceCreatedEvent(functionPayload as any)).not.toThrow();
       expect(mockConsoleLog).toHaveBeenCalledWith(functionPayload);
