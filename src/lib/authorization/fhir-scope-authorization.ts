@@ -99,6 +99,14 @@ export class FhirScopeAuthorization {
 
         const requiredPermission = permissionMap[this._operation]
 
+        // If no scope is set, deny access
+        if (!this._scope || this._scope.length === 0) {
+            return {
+                allowed: false,
+                reasons: [`No scope grants ${this._operation} permission for ${this._resource}`]
+            }
+        }
+
         for (const scope of this._scope) {
 
             const decision: boolean = this.scopeGrantsPermission(scope, this._resource, requiredPermission)
@@ -163,7 +171,10 @@ export class FhirScopeAuthorization {
      */
     private setResource(): void {
 
-        const path = this._request['path'].includes('?') ? this._request['path'].split('?')[0] : this._request['path']
+        const requestPath = this._request['path'];
+        if (!requestPath || typeof requestPath !== 'string') return;
+        
+        const path = requestPath.includes('?') ? requestPath.split('?')[0] : requestPath;
 
         if(!path || typeof path !== 'string') return;
 
@@ -232,20 +243,25 @@ export class FhirScopeAuthorization {
      */
     private setScope(): void {
 
-        if (this._request.headers.authorization === undefined) return;
+        if (!this._request.headers || this._request.headers.authorization === undefined) return;
 
         const token = this._request.headers.authorization.startsWith('Bearer') ? this._request.headers.authorization.substring(7) :
             this._request.headers.authorization;
 
         if (!token) return;
 
-        const decoded = jose.decodeJwt(token);
-        
-        // Validate token expiration
-        if (decoded.exp && decoded.exp < Date.now() / 1000) {
-            return; // Token is expired, don't set scope
+        try {
+            const decoded = jose.decodeJwt(token);
+            
+            // Validate token expiration
+            if (decoded.exp && decoded.exp < Date.now() / 1000) {
+                return; // Token is expired, don't set scope
+            }
+            
+            this._scope = (decoded.scope as string || '').split(' ')
+        } catch (error) {
+            // If JWT decoding fails, don't set scope (access will be denied)
+            return;
         }
-        
-        this._scope = (decoded.scope as string || '').split(' ')
     }
 }
