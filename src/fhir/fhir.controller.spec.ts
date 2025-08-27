@@ -1,15 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FhirController } from './fhir.controller';
-import { FhirService } from '../services/fhir/fhir.service';
-import { ValidationService } from '../services/validation/validation.service';
-import { CreateResourceDto } from '../dto/create-resource-dto';
-import { UpdateResourceDto } from '../dto/update-resource-dto';
-import { ValidateResourceDto } from '../dto/validate-resource-dto';
-import { SearchResult } from '../interfaces/search-result';
-import { SearchParameters } from '../interfaces/search-parameters';
-import { ValidationResult } from '../interfaces/validation-result';
-import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
-import { FhirAuthorizerGuard } from '../guards/fhir-authorizer/fhir-authorizer.guard';
+import {Test, TestingModule} from '@nestjs/testing';
+import {FhirController} from './fhir.controller';
+import {FhirService} from '../services/fhir/fhir.service';
+import {ValidationService} from '../services/validation/validation.service';
+import {CreateResourceDto} from '../dto/create-resource-dto';
+import {UpdateResourceDto} from '../dto/update-resource-dto';
+import {ValidateResourceDto} from '../dto/validate-resource-dto';
+import {SearchResult} from '../interfaces/search-result';
+import {SearchParameters} from '../interfaces/search-parameters';
+import {ValidationResult} from '../interfaces/validation-result';
 
 // Mock the guards to avoid jose import issues
 jest.mock('../guards/authorizer/authorizer.guard', () => ({
