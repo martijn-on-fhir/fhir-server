@@ -43,7 +43,7 @@ export class SecurityGuard implements CanActivate {
         /SYSTEM|PUBLIC/i,
 
         // NoSQL injection
-        /(\$where|\$ne|\$in|\$nin|\$or|\$and|\$not|\$nor|\$exists|\$type|\$mod|\$regex|\$text|\$search)/i,
+        /(\$where|\$ne|\$in|\$nin|\$or|\$and|\$not|\$nor|\$exists|\$type|\$mod|\$regex|\$text|\$search)/i
     ]
 
     /**
@@ -132,12 +132,12 @@ export class SecurityGuard implements CanActivate {
             }
 
             if (typeof value === 'string' && this.containsSuspiciousPattern(value)) {
-                throw new ForbiddenException('Suspicious header content detected')
+                throw new ForbiddenException(`Suspicious header content detected: ${name} = ${value}`)
             }
         }
     }
 
-    /**
+    /**`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
      * Validates the request URL for length, suspicious patterns, and path traversal attempts
      * @param request - The incoming HTTP request
      * @throws {BadRequestException} If URL is too long
