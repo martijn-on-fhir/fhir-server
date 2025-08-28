@@ -116,13 +116,11 @@ export class Backup {
             mongodump.stdout?.on('data', (data) => {
                 const output = data.toString()
                 stdout += output
-                console.log(output)
             })
 
             mongodump.stderr?.on('data', (data) => {
                 const output = data.toString()
                 stderr += output
-                console.error(output)
             })
 
             mongodump.on('close', (code) => {
@@ -181,7 +179,6 @@ export class Backup {
             await fs.access(dirPath)
         } catch {
             await fs.mkdir(dirPath, {recursive: true})
-            console.log(`Created directory: ${dirPath}`)
         }
     }
 }
