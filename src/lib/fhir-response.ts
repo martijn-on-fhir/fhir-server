@@ -22,6 +22,17 @@ export class FhirResponse {
         }
     }
 
+    static forbidden(description: string): object {
+        return {
+            resourceType: 'OperationOutcome',
+            issue: [{
+                severity: 'error',
+                code: 'forbidden',
+                details: { text: description }
+            }]
+        }
+    }
+
     /**
      * Creates an OperationOutcome resource for invalid FHIR resources.
      * @param result - The validation result containing errors
