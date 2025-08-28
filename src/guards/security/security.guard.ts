@@ -35,12 +35,13 @@ export class SecurityGuard implements CanActivate {
         /(\.\.\/|\.\.\\)/,
         /(%2e%2e%2f|%2e%2e%5c)/i,
 
-        // LDAP injection
-        /(\*|\(|\)|\\|\||&)/,
+        // LDAP injection disabled for FHIR compatibility (pipes are legitimate in FHIR identifiers)
+        // /\(\s*\|\s*\(\s*\w+\s*=\s*\*\s*\)\s*\(\s*\w+\s*=\s*\*\s*\)\s*\)/
 
-        // XML/XXE patterns
+        // XML/XXE patterns (refined to avoid false positives with FHIR NamingSystem)
         /<!ENTITY/i,
-        /SYSTEM|PUBLIC/i,
+        /<!DOCTYPE.*SYSTEM/i,
+        /<!DOCTYPE.*PUBLIC/i,
 
         // NoSQL injection
         /(\$where|\$ne|\$in|\$nin|\$or|\$and|\$not|\$nor|\$exists|\$type|\$mod|\$regex|\$text|\$search)/i
