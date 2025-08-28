@@ -30,6 +30,7 @@ export class Matches {
      * @returns Array of matching subscription documents
      */
     async findMatchingSubscriptions(): Promise<SubscriptionDocument[]> {
+
         const resourceType = this.resource.resourceType as string;
         
         // Get active subscriptions for this resource type
@@ -54,6 +55,7 @@ export class Matches {
      * @returns True if resource matches the criteria
      */
     public matchesCriteria(criteria: string): boolean {
+
         const [resourceType, queryString] = criteria.split('?');
         
         if (resourceType !== this.resource.resourceType) {
@@ -73,6 +75,7 @@ export class Matches {
      * @returns True if all parameters match the resource
      */
     private evaluateQueryParameters(queryString: string): boolean {
+
         const params = new URLSearchParams(queryString);
         
         for (const [key, value] of params) {
@@ -91,6 +94,7 @@ export class Matches {
      * @returns True if parameter matches
      */
     private matchParameter(param: string, value: string): boolean {
+
         switch (param) {
             case '_profile':
                 return this.matchProfile(value);
@@ -113,7 +117,9 @@ export class Matches {
      * @returns True if resource has the profile in meta.profile
      */
     private matchProfile(profileUrl: string): boolean {
+
         const meta = this.resource.meta as any;
+
         return meta?.profile?.includes(profileUrl) || false;
     }
 
@@ -157,8 +163,10 @@ export class Matches {
      * @returns True if active status matches
      */
     private matchActive(activeValue: string): boolean {
+
         const active = this.resource.active as boolean;
         const expectedActive = activeValue === 'true';
+
         return active === expectedActive;
     }
 }

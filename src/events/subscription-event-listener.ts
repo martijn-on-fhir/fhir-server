@@ -33,7 +33,7 @@ export class SubscriptionEventListener {
         const matcher = this.matchesFactory.create(payload.resource);
         const matchingSubscriptions = await matcher.findMatchingSubscriptions();
         
-        console.log(`Resource ${payload.resourceType}/${payload.resourceId} created`);
+        console.log(`Resource ${payload.resourceType}/${payload.resource.id} created`);
         console.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,
                    matchingSubscriptions.map(sub => sub.criteria));
     }
