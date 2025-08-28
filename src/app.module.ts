@@ -25,6 +25,7 @@ import {systemSchema, SystemSchema} from "./schema/system-schema";
 import {FsLoggerService} from "./services/logger/fs-logger.service";
 import {APP_GUARD} from "@nestjs/core";
 import {SecurityGuard} from "./guards/security/security.guard";
+import {MatchesFactory} from "./lib/subscriptions/matches-factory";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -82,7 +83,7 @@ const getConnectionString = (): string => {
     controllers: [AppController, FhirController, SubscriptionController],
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService, CronJobsService, FsLoggerService,
+        SubscriptionService, CronJobsService, FsLoggerService, MatchesFactory,
         {
             provide: APP_GUARD,
             useClass: SecurityGuard,
