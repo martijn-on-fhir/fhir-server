@@ -33,6 +33,17 @@ export class FhirResponse {
         }
     }
 
+    static badRequest(description: string): object {
+        return {
+            resourceType: 'OperationOutcome',
+            issue: [{
+                severity: 'error',
+                code: 'bad request',
+                details: { text: description }
+            }]
+        }
+    }
+
     /**
      * Creates an OperationOutcome resource for invalid FHIR resources.
      * @param result - The validation result containing errors

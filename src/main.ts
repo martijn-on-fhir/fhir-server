@@ -6,6 +6,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import {FsLoggerService} from "./services/logger/fs-logger.service";
 import { FhirForbiddenExceptionFilter } from './filters/fhir-forbidden-exception.filter';
+import {FhirBadRequestExceptionFilter} from "./filters/fhir-bad-request-exception.filter";
 
 async function bootstrap(): Promise<void> {
   
@@ -16,7 +17,8 @@ async function bootstrap(): Promise<void> {
   app.use(helmet());
   app.useStaticAssets(join(__dirname, "..", "static"));
   
-  app.useGlobalFilters(new FhirForbiddenExceptionFilter());
+  app.useGlobalFilters(new FhirForbiddenExceptionFilter(),
+      new FhirBadRequestExceptionFilter())
   
   const config = new DocumentBuilder()
   .setTitle("Fhir Server API")
