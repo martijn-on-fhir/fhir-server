@@ -1,9 +1,16 @@
-## [0.2.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.0...v0.2.1) (2025-08-26)
+## [0.2.2-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.1...v0.2.2-beta.1) (2025-08-28)
 
 
 ### Bug Fixes
 
-* **subscription:** remove redundant regex escaping test in SubscriptionController ([d3d6db9](https://github.com/martijn-on-fhir/fhir-server/commit/d3d6db9b265705f17e6a1b0d1969dcbd132e05da))
+*  Eslint issues ([17c2c9d](https://github.com/martijn-on-fhir/fhir-server/commit/17c2c9dfe0f4ce9c5d81d7af9806d313bf30c7a5))
+
+## [0.2.1-beta.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.1-beta.1...v0.2.1-beta.2) (2025-08-28)
+
+
+### Bug Fixes
+
+*  Eslint issues ([17c2c9d](https://github.com/martijn-on-fhir/fhir-server/commit/17c2c9dfe0f4ce9c5d81d7af9806d313bf30c7a5))
 
 ## [0.2.1-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.0...v0.2.1-beta.1) (2025-08-26)
 

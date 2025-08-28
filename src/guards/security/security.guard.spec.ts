@@ -262,8 +262,8 @@ describe('SecurityGuard', () => {
         'custom-header': '<script>alert("xss")</script>'
       };
 
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow(ForbiddenException);
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow('Suspicious header content detected');
+      expect(() => guard.canActivate(mockExecutionContext))
+        .toThrow(new ForbiddenException('Suspicious header content detected: custom-header = <script>alert("xss")</script>'));
     });
   });
 
