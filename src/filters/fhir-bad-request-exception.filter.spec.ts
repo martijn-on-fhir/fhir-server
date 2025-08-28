@@ -1,5 +1,5 @@
 import {Test, TestingModule} from '@nestjs/testing';
-import {BadRequestException, ForbiddenException} from '@nestjs/common';
+import {BadRequestException} from '@nestjs/common';
 import {ArgumentsHost} from '@nestjs/common';
 import {FhirBadRequestExceptionFilter} from "./fhir-bad-request-exception.filter";
 
