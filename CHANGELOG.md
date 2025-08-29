@@ -1,11 +1,11 @@
+## [0.3.1-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.0...v0.3.1-beta.1) (2025-08-29)
+
+
+### Bug Fixes
+
+* Refactor include-operation to improve resource handling and query efficiency ([49f9d6f](https://github.com/martijn-on-fhir/fhir-server/commit/49f9d6fa994da7dad0c3ca9e57873061daabc16a))
+
 # [0.3.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.2...v0.3.0) (2025-08-29)
-
-
-### Features
-
-* **subscription:** First implementation subscription response ([4c1405e](https://github.com/martijn-on-fhir/fhir-server/commit/4c1405e4576b9d5b2a39040be29c6b194704436d))
-
-# [0.3.0-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.2.2-beta.1...v0.3.0-beta.1) (2025-08-28)
 
 
 ### Features

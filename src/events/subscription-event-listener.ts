@@ -2,6 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {OnEvent} from "@nestjs/event-emitter";
 import {MatchesFactory} from "../lib/subscriptions/matches-factory";
 import {ResourceChangeEvent} from "../interfaces/resource-change-event";
+import {FsLoggerService} from "../services/logger/fs-logger.service";
 
 export enum ResourceEvent {
     CREATED = 'resource.created',
@@ -19,7 +20,7 @@ export class SubscriptionEventListener {
      * Initializes listener with matches factory dependency
      * @param matchesFactory Factory for creating subscription matchers
      */
-    constructor(private matchesFactory: MatchesFactory) {}
+    constructor(private matchesFactory: MatchesFactory, private readonly logger: FsLoggerService) {}
 
     /**
      * Handles resource creation events and finds matching subscriptions
@@ -33,9 +34,8 @@ export class SubscriptionEventListener {
         const matcher = this.matchesFactory.create(payload.resource);
         const matchingSubscriptions = await matcher.findMatchingSubscriptions();
         
-        console.log(`Resource ${payload.resourceType}/${payload.resource.id} created`);
-        console.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,
-                   matchingSubscriptions.map(sub => sub.criteria));
+        this.logger.log(`Resource ${payload.resourceType}/${payload.resource.id} created`);
+        this.logger.log(`Found ${matchingSubscriptions.length} matching subscriptions:`, 'Subscription Eventlistener')
     }
 
     /**
@@ -44,14 +44,14 @@ export class SubscriptionEventListener {
      */
     @OnEvent('resource.updated')
     async handleResourceUpdatedEvent(payload: ResourceChangeEvent): Promise<void> {
+
         if(!payload.resource) return;
 
         const matcher = this.matchesFactory.create(payload.resource);
         const matchingSubscriptions = await matcher.findMatchingSubscriptions();
         
-        console.log(`Resource ${payload.resourceType}/${payload.resourceId} updated`);
-        console.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,
-                   matchingSubscriptions.map(sub => sub.criteria));
+        this.logger.log(`Resource ${payload.resourceType}/${payload.resourceId} updated`);
+        this.logger.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,'Subscription Eventlistener');
     }
 
     /**
@@ -67,8 +67,7 @@ export class SubscriptionEventListener {
         const matcher = this.matchesFactory.create(resourceToCheck);
         const matchingSubscriptions = await matcher.findMatchingSubscriptions();
         
-        console.log(`Resource ${payload.resourceType}/${payload.resourceId} deleted`);
-        console.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,
-                   matchingSubscriptions.map(sub => sub.criteria));
+        this.logger.log(`Resource ${payload.resourceType}/${payload.resourceId} deleted`);
+        this.logger.log(`Found ${matchingSubscriptions.length} matching subscriptions:`,'Subscription Eventlistener')
     }
 }

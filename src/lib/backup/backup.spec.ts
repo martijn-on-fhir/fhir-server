@@ -279,7 +279,6 @@ describe('Backup', () => {
       });
     });
 
-
     it('should reject on non-zero exit code', async () => {
       const testArgs = ['--host', 'invalid'];
       

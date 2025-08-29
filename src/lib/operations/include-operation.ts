@@ -29,7 +29,7 @@ export class IncludeOperation {
    */
   constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>, private readonly request: Request) {
     
-    this.resource = this.model.resource
+    this.resource = this.model
     this.collection = []
   }
   
@@ -141,10 +141,10 @@ export class IncludeOperation {
     
     const entity = await this.fhirResourceModel.findOne({
       resourceType: resource, 'id': id,
-    }).exec();
+    }).lean().exec();
     
     if(entity){
-      return entity.id === id ? entity.id : undefined
+      return entity.id === id ? entity : undefined
     }
   }
   
