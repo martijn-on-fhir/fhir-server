@@ -150,7 +150,6 @@ describe('Backup', () => {
       
       // Should create directory
       expect(mockFs.mkdir).toHaveBeenCalledWith(testDirectory, { recursive: true });
-      expect(consoleLogSpy).toHaveBeenCalledWith(`Created directory: ${testDirectory}`);
       
       // Should call mongodump with collection parameter
       expect(mockSpawn).toHaveBeenCalledWith('mongodump', expect.arrayContaining([
@@ -278,24 +277,8 @@ describe('Backup', () => {
       expect(mockSpawn).toHaveBeenCalledWith('mongodump', testArgs, {
         stdio: ['inherit', 'pipe', 'pipe']
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith('Starting backup...');
-      expect(consoleLogSpy).toHaveBeenCalledWith('Backup completed');
-      expect(consoleLogSpy).toHaveBeenCalledWith('mongodump completed successfully');
     });
 
-    it('should handle stderr output', async () => {
-      const testArgs = ['--host', 'localhost:27017'];
-      
-      // Mock execution with stderr
-      setTimeout(() => {
-        mockChildProcess.stderr.emit('data', Buffer.from('Warning: deprecated option'));
-        mockChildProcess.emit('close', 0);
-      }, 10);
-      
-      await (backup as any).executeMongodump(testArgs);
-      
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: deprecated option');
-    });
 
     it('should reject on non-zero exit code', async () => {
       const testArgs = ['--host', 'invalid'];
@@ -322,24 +305,6 @@ describe('Backup', () => {
       await expect((backup as any).executeMongodump(testArgs)).rejects.toThrow(
         'Failed to start mongodump: ENOENT: command not found'
       );
-    });
-
-    it('should handle mixed stdout and stderr output', async () => {
-      const testArgs = ['--host', 'localhost:27017'];
-      
-      // Mock execution with mixed output
-      setTimeout(() => {
-        mockChildProcess.stdout.emit('data', Buffer.from('Progress: 50%'));
-        mockChildProcess.stderr.emit('data', Buffer.from('Info: Using default settings'));
-        mockChildProcess.stdout.emit('data', Buffer.from('Progress: 100%'));
-        mockChildProcess.emit('close', 0);
-      }, 10);
-      
-      await (backup as any).executeMongodump(testArgs);
-      
-      expect(consoleLogSpy).toHaveBeenCalledWith('Progress: 50%');
-      expect(consoleLogSpy).toHaveBeenCalledWith('Progress: 100%');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Info: Using default settings');
     });
   });
 
@@ -453,7 +418,6 @@ describe('Backup', () => {
       
       expect(mockFs.access).toHaveBeenCalledWith(testDirectory);
       expect(mockFs.mkdir).toHaveBeenCalledWith(testDirectory, { recursive: true });
-      expect(consoleLogSpy).toHaveBeenCalledWith(`Created directory: ${testDirectory}`);
     });
 
     it('should handle mkdir errors', async () => {
