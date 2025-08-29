@@ -9,6 +9,7 @@ import {IncludeOperation} from './include-operation'
 import {Request} from 'express'
 import {StructureDefinitionDocument} from '../../schema/structure-definition.schema'
 import {QueryBuilder} from '../query-builder/query-builder'
+import {RevIncludeOperation} from "./rev-include-operation";
 
 /**
  * Handles FHIR search operations for resources in the database.
@@ -101,6 +102,12 @@ export class SearchOperation extends Operation {
             if (this.includes.length >= 1) {
                 return operation.getResponse()
             }
+        }
+
+        if(searchParameters?._revinclude){
+
+            const operation = new RevIncludeOperation(resource, this.fhirResourceModel, this.request)
+            this.revIncludes = await operation.execute(searchParameters._revinclude)
         }
 
         return FhirResponse.format(resource)
