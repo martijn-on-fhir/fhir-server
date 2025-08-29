@@ -19,6 +19,7 @@ describe('FhirResponse', () => {
     }
   } as any;
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockRequest = Object.assign(Object.create(require('http').IncomingMessage.prototype), {
     url: '/fhir/Patient?name=Doe&_count=10&_offset=0',
     query: { name: 'Doe', _count: '10', _offset: '0' },
@@ -117,7 +118,7 @@ describe('FhirResponse', () => {
           {
             severity: 'error',
             code: 'invalid',
-            details: { 
+            details: {
               text: {
                 path: 'Patient.name',
                 severity: 'error',
@@ -129,7 +130,7 @@ describe('FhirResponse', () => {
           {
             severity: 'error',
             code: 'invalid',
-            details: { 
+            details: {
               text: {
                 path: 'Patient.birthDate',
                 severity: 'error',
@@ -292,6 +293,7 @@ describe('FhirResponse', () => {
     });
 
     it('should handle URL without query parameters', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mockRequestNoQuery = Object.assign(Object.create(require('http').IncomingMessage.prototype), {
         url: '/fhir/Patient',
         query: null,
@@ -314,6 +316,7 @@ describe('FhirResponse', () => {
     });
 
     it('should handle secure connections', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
       const secureRequest = Object.assign(Object.create(require('http').IncomingMessage.prototype), {
         url: '/fhir/Patient?name=Doe&_count=10&_offset=0',
         query: { name: 'Doe', _count: '10', _offset: '0' },
@@ -389,6 +392,7 @@ describe('FhirResponse', () => {
     });
 
     it('should handle secure connections', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
       const secureRequest = Object.assign(Object.create(require('http').IncomingMessage.prototype), {
         url: '/fhir/Patient?name=Doe&_count=10&_offset=0',
         query: { name: 'Doe', _count: '10', _offset: '0' },

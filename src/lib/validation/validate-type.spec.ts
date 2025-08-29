@@ -1,5 +1,4 @@
 import { ValidateType } from './validate-type';
-import { ValidationError } from '../../interfaces/validation-error';
 
 describe('ValidateType', () => {
   let validator: ValidateType;

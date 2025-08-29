@@ -6,7 +6,6 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { getModelToken } from '@nestjs/mongoose';
 import { SystemSchema } from '../../schema/system-schema';
 import { Usage } from '../../lib/system/usage';
-import { CronJob } from 'cron';
 
 // Mock the Usage class
 jest.mock('../../lib/system/usage');
