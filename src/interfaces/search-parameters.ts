@@ -14,7 +14,7 @@ export interface SearchParameters {
   _offset?: number
   _sort?: string
   _include?: string | string[]
-  _rev_include?: string | string[],
+  _revinclude?: string | string[],
   identifier?: string
   _profile?: string
   _summary?: SummaryType

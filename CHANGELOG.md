@@ -1,3 +1,13 @@
+# [0.4.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.2...v0.4.0) (2025-08-29)
+
+
+### Features
+
+* Add revinclude operation support and update search parameters ([c7a5485](https://github.com/martijn-on-fhir/fhir-server/commit/c7a54851f4537dd6996827103eece7d78bba4f5b))
+* Implement FHIR _revinclude parameter support ([538a74e](https://github.com/martijn-on-fhir/fhir-server/commit/538a74e026d390c1e3b975d360434ba0ff79a0d9))
+
+## [0.3.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.1...v0.3.2) (2025-08-29)
+
 ## [0.3.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.0...v0.3.1) (2025-08-29)
 
 

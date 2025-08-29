@@ -1,11 +1,8 @@
 import { Model } from 'mongoose'
 import { FhirResourceDocument } from '../../schema/fhir-resource-schema'
 import { searchParameterMap } from '../search-parameter-map'
-import { IncludeInstruction } from '../../interfaces/include-instruction'
-import { BadRequestException } from '@nestjs/common'
+import { OperationHelpers } from './operation-helpers'
 import * as fhirPath from 'fhirpath'
-import { v4 as uuidv4 } from 'uuid';
-import { SearchResult } from '../../interfaces/search-result'
 import { Request } from 'express';
 
 /**
@@ -42,7 +39,7 @@ export class IncludeOperation {
   async execute(includes: string | string[]): Promise<any[]> {
     
     const entities = Array.isArray(includes) ? includes : [includes]
-    const instructions = entities.map(this.parseInstruction)
+    const instructions = entities.map(OperationHelpers.parseInstruction)
     const references = new Map<string, { resource: string, id: string }>()
     
     for (const instruction of instructions) {
@@ -91,47 +88,6 @@ export class IncludeOperation {
   }
   
   /**
-   * Formats and returns the search results as a FHIR Bundle resource.
-   * Creates a Bundle containing the primary resource and any included referenced resources.
-   * The Bundle follows the FHIR searchset structure with appropriate search modes for
-   * primary and included resources.
-   */
-  getResponse(): SearchResult {
-    
-    const hostUrl = this.request.get('secure') ?  `https://${this.request.get('host')}` : `http://${this.request.get('host')}`
-    
-    const response = {
-      id: uuidv4(),
-      resourceType: "Bundle",
-      type: "searchset",
-      total: 1,
-      entry: [
-        {
-          fullUrl: `${hostUrl}/fhir/${this.resource.resourceType}/${this.resource.id}`,
-          resource: this.resource,
-          search: {
-            mode: "match",
-            score: 1
-          }
-        }
-      ]
-    }
-    
-    for(const resource of this.collection){
-      
-      const entry = {
-        fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
-        resource: resource,
-        search: { mode: "include", score: 1 }
-      }
-      
-      response.entry.push(entry)
-    }
-    
-    return response
-  }
-  
-  /**
    * Retrieves a referenced resource by its type and ID.
    * @param resource - The type of the referenced resource
    * @param id - The ID of the referenced resource
@@ -145,32 +101,6 @@ export class IncludeOperation {
     
     if(entity){
       return entity.id === id ? entity : undefined
-    }
-  }
-  
-  /**
-   * Parses an include instruction string into structured format.
-   * Format: sourceResource:searchParameter[:targetResource[:modifier]]
-   * @param include - The include instruction string to parse
-   * @returns Parsed include instruction object
-   * @throws BadRequestException if the include format is invalid
-   */
-  private parseInstruction(include: string): IncludeInstruction {
-    
-    const parts = include.split(':')
-    
-    if (parts.length < 2) {
-      throw new BadRequestException(`Invalid _include format: ${include}`)
-    }
-    
-    const [sourceResource, searchParameter, targetResource, modifier] = parts
-    
-    return {
-      sourceResource,
-      searchParameter,
-      targetResource: targetResource !== '*' ? targetResource : undefined,
-      modifier,
-      iterate: modifier === 'iterate'
     }
   }
 }
