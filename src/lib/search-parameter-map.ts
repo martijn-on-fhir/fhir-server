@@ -1,3 +1,8 @@
+/**
+ * Maps FHIR resource search parameters to their FHIRPath expressions and target resources.
+ * Used by include operations to resolve reference paths for different resource types.
+ * Key format: "ResourceType:searchParameter"
+ */
 export const searchParameterMap = new Map<string, any>([
  
   // Patient includes

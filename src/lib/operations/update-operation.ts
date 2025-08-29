@@ -6,12 +6,23 @@ import {FhirResponse} from '../fhir-response';
 
 export class UpdateOperation extends Operation {
 
+    /**
+     * Sets up the update operation with the FHIR resource model for database access.
+     * @param fhirResourceModel - Mongoose model for FHIR resources
+     */
     constructor(fhirResourceModel: Model<FhirResourceDocument>) {
 
         super(fhirResourceModel);
         this.fhirResourceModel = fhirResourceModel;
     }
 
+    /**
+     * Updates a FHIR resource in the database with version conflict checking.
+     * @param resourceType - The type of FHIR resource to update
+     * @param id - The unique identifier of the resource
+     * @param resourceData - The new resource data to apply
+     * @returns The updated FHIR resource
+     */
     async execute(resourceType: string, id: string, resourceData: any): Promise<any> {
 
         const entity = await this.exists(resourceType, id);
@@ -35,8 +46,7 @@ export class UpdateOperation extends Operation {
             const newVersionId = String(parseInt(entity.meta.versionId) + 1);
             const data = this.prepareResourceForUpdate(resourceType, id, resourceData)
 
-            data.meta.versionId = newVersionId;
-            data.meta.lastUpdated = new Date();
+            data.meta = { ...data.meta, versionId: newVersionId, lastUpdated: new Date() };
 
             const updatedResource = await this.fhirResourceModel.findOneAndUpdate(
                 {id, resourceType},

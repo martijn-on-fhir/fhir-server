@@ -22,7 +22,7 @@ export class IncludeOperation {
    * Creates an instance of IncludeOperation.
    * @param model - The source model containing the primary resource
    * @param fhirResourceModel - Mongoose model for FHIR resources
-   * @param request
+   * @param request - Express request object for context
    */
   constructor(private readonly model: any, private readonly fhirResourceModel: Model<FhirResourceDocument>, private readonly request: Request) {
     
