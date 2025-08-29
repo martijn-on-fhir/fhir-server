@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.0...v0.3.1) (2025-08-29)
+
+
+### Bug Fixes
+
+* Refactor include-operation to improve resource handling and query efficiency ([49f9d6f](https://github.com/martijn-on-fhir/fhir-server/commit/49f9d6fa994da7dad0c3ca9e57873061daabc16a))
+
 ## [0.3.1-beta.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.0...v0.3.1-beta.1) (2025-08-29)
 
 
