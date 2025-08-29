@@ -6,28 +6,44 @@ import { SubscriptionChannelDto } from './subscription-channel-dto'
 
 export class UpdateSubscriptionDto {
   
-  @ApiPropertyOptional({ enum: SubscriptionStatus })
+  @ApiPropertyOptional({
+    description: 'Subscription status',
+    enum: SubscriptionStatus,
+    example: SubscriptionStatus.ACTIVE
+  })
   @IsOptional()
   @IsEnum(SubscriptionStatus)
   status?: SubscriptionStatus;
   
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'FHIRPath criteria for subscription',
+    example: 'Patient?active=true'
+  })
   @IsOptional()
   @IsString()
   criteria?: string;
   
-  @ApiPropertyOptional({ type: SubscriptionChannelDto })
+  @ApiPropertyOptional({
+    description: 'Channel information',
+    type: SubscriptionChannelDto
+  })
   @IsOptional()
   @ValidateNested()
   @Type(() => SubscriptionChannelDto)
   channel?: SubscriptionChannelDto;
   
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Human readable description',
+    example: 'Updated notification for active patients'
+  })
   @IsOptional()
   @IsString()
   reason?: string;
   
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'When to end subscription',
+    example: '2025-12-31T23:59:59Z'
+  })
   @IsOptional()
   @IsDateString()
   end?: string;
