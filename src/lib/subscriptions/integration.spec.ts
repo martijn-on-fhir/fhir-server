@@ -5,11 +5,13 @@ import { MatchesFactory } from './matches-factory';
 import { SubscriptionDocument, SubscriptionSchema, SubscriptionStatus } from '../../schema/subscription-schema';
 import { SubscriptionEventListener } from '../../events/subscription-event-listener';
 import { ResourceChangeEvent } from '../../interfaces/resource-change-event';
+import {FsLoggerService} from "../../services/logger/fs-logger.service";
 
 describe('Subscription Matching Integration', () => {
   let matchesFactory: MatchesFactory;
   let eventListener: SubscriptionEventListener;
   let mockSubscriptionModel: jest.Mocked<Model<SubscriptionDocument>>;
+    let mockLogger: jest.Mocked<FsLoggerService>;
 
   const mockBloodPressureSubscription: Partial<SubscriptionDocument> = {
     _id: 'bp-sub-001' as any,
@@ -127,6 +129,13 @@ describe('Subscription Matching Integration', () => {
       exec: jest.fn()
     } as any;
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn()
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MatchesFactory,
@@ -134,20 +143,20 @@ describe('Subscription Matching Integration', () => {
         {
           provide: getModelToken(SubscriptionSchema.name),
           useValue: mockSubscriptionModel
+        },
+        {
+          provide: FsLoggerService,
+          useValue: mockLogger
         }
       ],
     }).compile();
 
     matchesFactory = module.get<MatchesFactory>(MatchesFactory);
     eventListener = module.get<SubscriptionEventListener>(SubscriptionEventListener);
-
-    // Mock console.log to capture output
-    jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    jest.restoreAllMocks();
   });
 
   describe('End-to-End Blood Pressure Monitoring', () => {
@@ -199,10 +208,10 @@ describe('Subscription Matching Integration', () => {
       await eventListener.handleResourceCreatedEvent(createEvent);
 
       // Verify: Correct logging output
-      expect(console.log).toHaveBeenCalledWith('Resource Observation/bp-reading-001 created');
-      expect(console.log).toHaveBeenCalledWith(
+      expect(mockLogger.log).toHaveBeenCalledWith('Resource Observation/bp-reading-001 created');
+      expect(mockLogger.log).toHaveBeenCalledWith(
         'Found 1 matching subscriptions:',
-        ['Observation?_profile=http://nictiz.nl/fhir/StructureDefinition/nl-core-BloodPressure']
+        'Subscription Eventlistener'
       );
     });
   });

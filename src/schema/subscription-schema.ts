@@ -129,7 +129,6 @@ export const subscriptionSchema = SchemaFactory.createForClass(SubscriptionSchem
 
 // Indexes voor performance
 subscriptionSchema.index({ resourceType: 1 })
-subscriptionSchema.index({ resourceType: 1, criteria: 1 })
 subscriptionSchema.index({ status: 1, criteria: 1 })
 subscriptionSchema.index({ errorCount: 1 })
 
