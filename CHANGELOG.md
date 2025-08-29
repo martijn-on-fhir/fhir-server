@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.0...v0.4.1) (2025-08-29)
+
+
+### Bug Fixes
+
+* Resolve object mutation in UpdateOperation causing test failures ([972e0ba](https://github.com/martijn-on-fhir/fhir-server/commit/972e0bad1ba08f330534e58b9691c13bce4ab4af))
+
 # [0.4.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.3.2...v0.4.0) (2025-08-29)
 
 
