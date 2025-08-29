@@ -1,6 +1,6 @@
 {
   "name": "fhir-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Basic fhir server with validation support through structure definitions and terminology servers",
   "author": "Martijn Schimmel",
   "private": false,
