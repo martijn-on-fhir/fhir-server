@@ -184,4 +184,39 @@ export class FhirResponse {
 
         return response
     }
+
+    static concat(resource: any, collection: any[], request: any): object{
+
+        const hostUrl = request.get('secure') ?  `https://${request.get('host')}` : `http://${request.get('host')}`
+
+        const response = {
+            id: uuidv4(),
+            resourceType: "Bundle",
+            type: "searchset",
+            total: 1,
+            entry: [
+                {
+                    fullUrl: `${hostUrl}/fhir/${resource.resourceType}/${resource.id}`,
+                    resource,
+                    search: {
+                        mode: "match",
+                        score: 1
+                    }
+                }
+            ]
+        }
+
+        for(const entity of collection){
+
+            const entry = {
+                fullUrl: `${hostUrl}/fhir/${entity.resourceType}/${resource.id}`,
+                resource: resource,
+                search: { mode: "include", score: 1 }
+            }
+
+            response.entry.push(entry)
+        }
+
+        return response
+    }
 }

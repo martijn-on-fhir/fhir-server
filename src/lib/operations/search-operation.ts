@@ -98,19 +98,21 @@ export class SearchOperation extends Operation {
             const operation = new IncludeOperation(resource, this.fhirResourceModel, this.request)
 
             this.includes = await operation.execute(searchParameters._include)
-
-            if (this.includes.length >= 1) {
-                return operation.getResponse()
-            }
         }
 
-        if(searchParameters?._revinclude){
+        if (searchParameters?._revinclude) {
 
             const operation = new RevIncludeOperation(resource, this.fhirResourceModel, this.request)
             this.revIncludes = await operation.execute(searchParameters._revinclude)
         }
 
-        return FhirResponse.format(resource)
+        const collection = [...this.includes, ...this.revIncludes]
+
+        if (Array.isArray(collection) && collection.length >= 1) {
+            return FhirResponse.concat(resource, collection, this.request)
+        } else {
+            return FhirResponse.format(resource)
+        }
     }
 
     /**

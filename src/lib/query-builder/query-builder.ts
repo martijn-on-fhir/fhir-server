@@ -52,7 +52,7 @@ export class QueryBuilder {
   /**
    * List of allowed search parameters for the query builder when id is set (single resource)
    */
-  allowedParams: string[] = ['_count', '_sort', '_elements', '_include', '_summary']
+  allowedParams: string[] = ['_count', '_sort', '_elements', '_include', '_summary', '_revinclude']
   
   /**
    * List of defined search parameters for the query builder according fhir hl7 secification
