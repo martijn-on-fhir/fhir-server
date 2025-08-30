@@ -1,3 +1,5 @@
+## [0.7.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.7.0...v0.7.1) (2025-08-30)
+
 # [0.7.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.6.0...v0.7.0) (2025-08-30)
 
 

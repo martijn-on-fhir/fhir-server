@@ -1,7 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Request } from 'express'
 import * as ipaddr from 'ipaddr.js'
+import {FsLoggerService} from "../../services/logger/fs-logger.service";
 
 interface IpWhitelistConfig {
   enabled: boolean
@@ -18,13 +19,12 @@ interface IpWhitelistConfig {
 @Injectable()
 export class IpWhitelistGuard implements CanActivate {
 
-  private readonly logger = new Logger(IpWhitelistGuard.name)
   private readonly config: IpWhitelistConfig
   private readonly allowedIPs: Set<string> = new Set()
   private readonly allowedRanges: Array<{ network: any; prefix: number }> = []
 
-  constructor(private readonly configService: ConfigService) {
-    // Load configuration with defaults
+  constructor(private readonly configService: ConfigService, private readonly logger: FsLoggerService) {
+
     const defaultConfig: IpWhitelistConfig = {
       enabled: false,
       allowedIPs: [],
@@ -33,7 +33,6 @@ export class IpWhitelistGuard implements CanActivate {
     }
     
     this.config = this.configService.get<IpWhitelistConfig>('security.ipWhitelist', defaultConfig) || defaultConfig
-
     this.initializeAllowedIPs()
     this.logger.log(`IP Whitelist Guard initialized: ${this.config.enabled ? 'ENABLED' : 'DISABLED'}`)
   }
@@ -67,6 +66,7 @@ export class IpWhitelistGuard implements CanActivate {
           
           this.allowedRanges.push({ network, prefix })
           this.logger.debug(`Added CIDR range: ${ipEntry}`)
+
         } else {
           // Single IP address
           const processedIP = ipaddr.process(ipEntry).toString()
@@ -132,7 +132,9 @@ export class IpWhitelistGuard implements CanActivate {
       }
 
       return false
+
     } catch (error) {
+
       this.logger.debug(`Error processing IP ${clientIP}: ${error.message}`)
       return false
     }
@@ -172,7 +174,8 @@ export class IpWhitelistGuard implements CanActivate {
     }
 
     this.logger.debug(`Access granted for IP: ${clientIP}`)
-    return true
+
+      return true
   }
 
   /**
