@@ -1,3 +1,17 @@
+# [0.7.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.6.0...v0.7.0) (2025-08-30)
+
+
+### Features
+
+* Add IP whitelist guard for enhanced security ([da98897](https://github.com/martijn-on-fhir/fhir-server/commit/da988971985b6e5191328ad8c2a81684624b644d))
+
+# [0.6.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.5.0...v0.6.0) (2025-08-30)
+
+
+### Features
+
+* Add comprehensive HttpException filter with FHIR OperationOutcome responses ([5f11568](https://github.com/martijn-on-fhir/fhir-server/commit/5f11568fcdc497586f9649480714337de867632d))
+
 # [0.5.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.4...v0.5.0) (2025-08-30)
 
 

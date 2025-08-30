@@ -26,6 +26,18 @@
     "enabled": true,
     "introspection": "http://localhost:5000"
   },
+  "security": {
+    "ipWhitelist": {
+      "enabled": false,
+      "allowedIPs": [
+        "192.168.0.0/16",
+        "10.0.0.0/8",
+        "172.16.0.0/12"
+      ],
+      "allowLocalhost": true,
+      "logBlockedAttempts": true
+    }
+  },
   "cron": {
     "metrics": {
       "enabled": true

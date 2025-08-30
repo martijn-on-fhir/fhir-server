@@ -25,6 +25,7 @@ import {systemSchema, SystemSchema} from "./schema/system-schema";
 import {FsLoggerService} from "./services/logger/fs-logger.service";
 import {APP_GUARD} from "@nestjs/core";
 import {SecurityGuard} from "./guards/security/security.guard";
+import {IpWhitelistGuard} from "./guards/ip-whitelist/ip-whitelist.guard";
 import {MatchesFactory} from "./lib/subscriptions/matches-factory";
 
 /**
@@ -84,6 +85,10 @@ const getConnectionString = (): string => {
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
         SubscriptionService, CronJobsService, FsLoggerService, MatchesFactory,
+        {
+            provide: APP_GUARD,
+            useClass: IpWhitelistGuard,
+        },
         {
             provide: APP_GUARD,
             useClass: SecurityGuard,

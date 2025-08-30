@@ -1,6 +1,6 @@
 {
   "name": "fhir-server",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "Basic fhir server with validation support through structure definitions and terminology servers",
   "author": "Martijn Schimmel",
   "private": false,
@@ -52,6 +52,7 @@
     "csrf-csrf": "^4.0.3",
     "fhirpath": "^4.5.1",
     "helmet": "^8.1.0",
+    "ipaddr.js": "^2.2.0",
     "jose": "^6.0.12",
     "lodash-es": "^4.17.21",
     "mongoose": "^8.16.4",
