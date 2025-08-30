@@ -22,6 +22,11 @@ export class FhirResponse {
         }
     }
 
+    /**
+     * Creates an OperationOutcome resource for forbidden access errors
+     * @param description - Error message describing why access was forbidden
+     * @returns FHIR OperationOutcome with forbidden error details
+     */
     static forbidden(description: string): object {
         return {
             resourceType: 'OperationOutcome',
@@ -33,6 +38,11 @@ export class FhirResponse {
         }
     }
 
+    /**
+     * Creates an OperationOutcome resource for bad request errors
+     * @param description - Error message describing what was wrong with the request
+     * @returns FHIR OperationOutcome with bad request error details
+     */
     static badRequest(description: string): object {
         return {
             resourceType: 'OperationOutcome',
@@ -185,6 +195,13 @@ export class FhirResponse {
         return response
     }
 
+    /**
+     * Creates a Bundle with a primary resource and related resources included
+     * @param resource - The main FHIR resource to include
+     * @param collection - Additional related resources to include
+     * @param request - Express request object for URL construction
+     * @returns FHIR Bundle containing the main resource and includes
+     */
     static concat(resource: any, collection: any[], request: any): object{
 
         const hostUrl = request.get('secure') ?  `https://${request.get('host')}` : `http://${request.get('host')}`

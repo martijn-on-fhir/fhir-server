@@ -1,3 +1,18 @@
+# [0.5.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.4...v0.5.0) (2025-08-30)
+
+
+### Features
+
+* Add JSDoc comments and monthly cleanup cron job ([cfa43e9](https://github.com/martijn-on-fhir/fhir-server/commit/cfa43e9f5c2cea1a31e2f1f0a58f7c1f1f0d69d6))
+* Add JSDoc comments and monthly cleanup cron job ([bcf5afd](https://github.com/martijn-on-fhir/fhir-server/commit/bcf5afd73a0d01914cc7ceb5d70e2e2f0101a039))
+
+## [0.4.4](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.3...v0.4.4) (2025-08-30)
+
+
+### Bug Fixes
+
+* Use MongoDB-compatible language code in FHIR resource schema test ([33a45c0](https://github.com/martijn-on-fhir/fhir-server/commit/33a45c0b56d8aaf1523052fd7d8bae9acb7fcee8))
+
 ## [0.4.3](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.2...v0.4.3) (2025-08-29)
 
 ## [0.4.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.1...v0.4.2) (2025-08-29)
