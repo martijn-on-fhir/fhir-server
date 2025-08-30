@@ -87,6 +87,10 @@ export class CronJobsService {
         this.logger.log('Task running every day');
     }
 
+    /**
+     * Monthly cleanup task that removes old system metrics records
+     * Executes on the first day of each month at midnight
+     */
     @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
     async handleFirstDayOfMonth(): Promise<void> {
 

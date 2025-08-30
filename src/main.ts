@@ -8,6 +8,9 @@ import {FsLoggerService} from "./services/logger/fs-logger.service";
 import { FhirForbiddenExceptionFilter } from './filters/fhir-forbidden-exception.filter';
 import {FhirBadRequestExceptionFilter} from "./filters/fhir-bad-request-exception.filter";
 
+/**
+ * Bootstraps the FHIR server application with security, documentation, and global filters
+ */
 async function bootstrap(): Promise<void> {
   
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
