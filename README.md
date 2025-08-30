@@ -215,7 +215,7 @@ docker run -p 3000:3000 -e ENV_NAME=production fhir-server
 
 ## 📄 License
 
-This project is licensed under the UNLICENSED License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE.md) file for details.
 
 ## 🔗 Resources
 
