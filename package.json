@@ -60,6 +60,7 @@
     "mongoose": "^8.16.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "unzipper": "^0.12.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -83,6 +84,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
+    "@types/unzipper": "^0.10.11",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9.18.0",
