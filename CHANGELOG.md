@@ -1,3 +1,10 @@
+## [0.4.4](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.3...v0.4.4) (2025-08-30)
+
+
+### Bug Fixes
+
+* Use MongoDB-compatible language code in FHIR resource schema test ([33a45c0](https://github.com/martijn-on-fhir/fhir-server/commit/33a45c0b56d8aaf1523052fd7d8bae9acb7fcee8))
+
 ## [0.4.3](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.2...v0.4.3) (2025-08-29)
 
 ## [0.4.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.4.1...v0.4.2) (2025-08-29)
