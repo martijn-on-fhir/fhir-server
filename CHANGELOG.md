@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.7.1...v0.8.0) (2025-08-30)
+
+
+### Features
+
+* Optimize export script for enterprise-scale data processing ([351bfaf](https://github.com/martijn-on-fhir/fhir-server/commit/351bfaf625034af3d3800d5ab8e0e4f41f624df9))
+
 ## [0.7.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.7.0...v0.7.1) (2025-08-30)
 
 # [0.7.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.6.0...v0.7.0) (2025-08-30)
