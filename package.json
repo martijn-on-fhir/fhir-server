@@ -1,7 +1,7 @@
 {
   "name": "fhir-server",
-  "version": "0.8.0",
-  "description": "Basic fhir server with validation support through structure definitions and terminology servers",
+  "version": "0.8.1",
+  "description": "Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resource validation, terminology services, subscription support, IP whitelisting, automated backups, and scalable MongoDB storage for healthcare interoperability",
   "author": "Martijn Schimmel",
   "private": false,
   "license": "UNLICENSED",
