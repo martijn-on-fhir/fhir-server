@@ -50,11 +50,7 @@ const main = async (): Promise<void> => {
           const resource = JSON.parse(content);
           
           await model.create({
-            id: resource.id,
-            resourceType: resource.resourceType,
-            resource: resource,
-            createdAt: new Date(),
-            tags: ['imported']
+            ...resource
           });
           
           console.log(`Imported: ${fullPath}`);

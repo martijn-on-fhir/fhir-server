@@ -44,7 +44,7 @@
     },
     "backup": {
       "enabled": false,
-      "directory": "./export",
+      "directory": "./backup",
       "interval": "30 9 * * *"
     }
   }
