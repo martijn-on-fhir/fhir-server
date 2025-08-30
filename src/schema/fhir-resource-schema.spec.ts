@@ -221,7 +221,7 @@ describe('FhirResourceSchema', () => {
         id: 'test-patient-base',
         resourceType: 'Patient',
         implicitRules: 'http://example.org/rules',
-        language: 'en-US',
+        language: 'en',
         text: {
           status: 'generated',
           div: '<div>Patient summary</div>'
@@ -235,7 +235,7 @@ describe('FhirResourceSchema', () => {
       await resource.save()
 
       expect(resource.implicitRules).toBe('http://example.org/rules')
-      expect(resource.language).toBe('en-US')
+      expect(resource.language).toBe('en')
       expect(resource.text?.status).toBe('generated')
       expect(resource.text?.div).toBe('<div>Patient summary</div>')
       expect(resource.contained).toHaveLength(1)
