@@ -251,6 +251,7 @@ describe('SearchParameterService', () => {
     });
 
     describe('findByUrl', () => {
+
         it('should return SearchParameter by URL', async () => {
             mockModel.findOne = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockSearchParameter)
@@ -258,7 +259,7 @@ describe('SearchParameterService', () => {
 
             const result = await service.findByUrl('http://hl7.org/fhir/SearchParameter/Patient-name');
 
-            expect(mockModel.findOne).toHaveBeenCalledWith({url: 'http://hl7.org/fhir/SearchParameter/Patient-name'});
+            expect(mockModel.findOne).toHaveBeenCalledWith({url: {"$eq": 'http://hl7.org/fhir/SearchParameter/Patient-name'}});
             expect(result).toEqual(mockSearchParameter);
         });
 

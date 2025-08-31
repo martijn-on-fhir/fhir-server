@@ -204,7 +204,7 @@ const main = async (): Promise<void> => {
         }
       }
     } else {
-      // No ZIP files found, try to process directory structure
+
       console.log('No ZIP files found, processing directory structure...');
       await processDirectory(exportDir);
     }
