@@ -30,6 +30,8 @@ import {MatchesFactory} from "./lib/subscriptions/matches-factory";
 import {searchParameterSchema, SearchParameterSchema} from "./schema/search-parameter.schema";
 import {SearchParameterController} from "./search-parameter/search-parameter.controller";
 import {SearchParameterService} from "./services/search-parameter/search-parameter.service";
+import {StructureDefinitionController} from "./structure-definition/structure-definition.controller";
+import {StructureDefinitionService} from "./services/structure-definition/structure-definition.service";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -85,10 +87,10 @@ const getConnectionString = (): string => {
         EventEmitterModule.forRoot(),
         ScheduleModule.forRoot()
     ],
-    controllers: [AppController, FhirController, SubscriptionController, SearchParameterController],
+    controllers: [AppController, FhirController, SubscriptionController, SearchParameterController, StructureDefinitionController],
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory,
+        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory, StructureDefinitionService,
         {
             provide: APP_GUARD,
             useClass: IpWhitelistGuard,
