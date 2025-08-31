@@ -1,3 +1,10 @@
+# [0.11.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.10.0...v0.11.0) (2025-08-31)
+
+
+### Features
+
+* Add complete CRUD operations for ValueSet resources ([d81b399](https://github.com/martijn-on-fhir/fhir-server/commit/d81b3999fa3812b0bd4ba93e7f36f6b34efaf825))
+
 # [0.10.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.9.1...v0.10.0) (2025-08-31)
 
 
