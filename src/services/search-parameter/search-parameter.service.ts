@@ -71,7 +71,7 @@ export class SearchParameterService {
    * @throws NotFoundException if SearchParameter not found
    */
   async findByUrl(url: string): Promise<SearchParameterDocument> {
-    const searchParameter = await this.searchParameterModel.findOne({ url }).exec();
+    const searchParameter = await this.searchParameterModel.findOne({ url: { $eq: url } }).exec();
     
     if (!searchParameter) {
       throw new NotFoundException(`SearchParameter with URL '${url}' not found`);
