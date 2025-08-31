@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.8.3...v0.9.0) (2025-08-31)
+
+
+### Features
+
+* Add comprehensive FHIR SearchParameter management system ([bace156](https://github.com/martijn-on-fhir/fhir-server/commit/bace156b7e638d6ac02e46d406a0bc562fd593cc))
+
 ## [0.8.3](https://github.com/martijn-on-fhir/fhir-server/compare/v0.8.2...v0.8.3) (2025-08-30)
 
 ## [0.8.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.8.1...v0.8.2) (2025-08-30)
