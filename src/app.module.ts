@@ -32,6 +32,8 @@ import {SearchParameterController} from "./search-parameter/search-parameter.con
 import {SearchParameterService} from "./services/search-parameter/search-parameter.service";
 import {StructureDefinitionController} from "./structure-definition/structure-definition.controller";
 import {StructureDefinitionService} from "./services/structure-definition/structure-definition.service";
+import {ValueSetController} from "./value-set/value-set.controller";
+import {ValueSetService} from "./services/value-set/value-set.service";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -87,10 +89,10 @@ const getConnectionString = (): string => {
         EventEmitterModule.forRoot(),
         ScheduleModule.forRoot()
     ],
-    controllers: [AppController, FhirController, SubscriptionController, SearchParameterController, StructureDefinitionController],
+    controllers: [AppController, FhirController, SubscriptionController, SearchParameterController, StructureDefinitionController, ValueSetController],
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory, StructureDefinitionService,
+        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory, StructureDefinitionService, ValueSetService,
         {
             provide: APP_GUARD,
             useClass: IpWhitelistGuard,
