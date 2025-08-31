@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.9.1...v0.10.0) (2025-08-31)
+
+
+### Features
+
+* Add complete CRUD operations for StructureDefinition resources ([51bb74d](https://github.com/martijn-on-fhir/fhir-server/commit/51bb74d67522ad746b37b0ac353017674f3096aa))
+
 ## [0.9.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.9.0...v0.9.1) (2025-08-31)
 
 # [0.9.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.8.3...v0.9.0) (2025-08-31)
