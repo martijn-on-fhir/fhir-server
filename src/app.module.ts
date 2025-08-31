@@ -27,6 +27,9 @@ import {APP_GUARD} from "@nestjs/core";
 import {SecurityGuard} from "./guards/security/security.guard";
 import {IpWhitelistGuard} from "./guards/ip-whitelist/ip-whitelist.guard";
 import {MatchesFactory} from "./lib/subscriptions/matches-factory";
+import {searchParameterSchema, SearchParameterSchema} from "./schema/search-parameter.schema";
+import {SearchParameterController} from "./search-parameter/search-parameter.controller";
+import {SearchParameterService} from "./services/search-parameter/search-parameter.service";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -76,15 +79,16 @@ const getConnectionString = (): string => {
             {name: ValueSetSchema.name, schema: valueSetSchema},
             {name: SubscriptionSchema.name, schema: subscriptionSchema},
             {name: ProvenanceResource.name, schema: provenanceSchema},
-            {name: SystemSchema.name, schema: systemSchema}
+            {name: SystemSchema.name, schema: systemSchema},
+            {name: SearchParameterSchema.name, schema: searchParameterSchema}
         ]),
         EventEmitterModule.forRoot(),
         ScheduleModule.forRoot()
     ],
-    controllers: [AppController, FhirController, SubscriptionController],
+    controllers: [AppController, FhirController, SubscriptionController, SearchParameterController],
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService, CronJobsService, FsLoggerService, MatchesFactory,
+        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory,
         {
             provide: APP_GUARD,
             useClass: IpWhitelistGuard,

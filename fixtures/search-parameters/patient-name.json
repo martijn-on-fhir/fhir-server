@@ -1,0 +1,41 @@
+{
+  "resourceType": "SearchParameter",
+  "id": "Patient-name",
+  "url": "http://hl7.org/fhir/SearchParameter/Patient-name",
+  "version": "4.0.1",
+  "name": "name",
+  "status": "active",
+  "experimental": false,
+  "date": "2019-11-01T09:29:23+11:00",
+  "publisher": "HL7 (FHIR Project)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://hl7.org/fhir"
+        },
+        {
+          "system": "email",
+          "value": "fhir@lists.hl7.org"
+        }
+      ]
+    }
+  ],
+  "description": "A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text",
+  "code": "name",
+  "base": [
+    "Patient"
+  ],
+  "type": "string",
+  "expression": "Patient.name",
+  "xpath": "f:Patient/f:name",
+  "xpathUsage": "normal",
+  "multipleOr": true,
+  "multipleAnd": true,
+  "modifier": [
+    "missing",
+    "exact",
+    "contains"
+  ]
+}
