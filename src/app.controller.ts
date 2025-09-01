@@ -2,6 +2,10 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { HealthCheckService, HealthCheck, MemoryHealthIndicator, HealthCheckResult, HealthIndicatorResult, MongooseHealthIndicator } from '@nestjs/terminus'
 
+/**
+ * Main application controller handling health checks and version info.
+ * Provides endpoints for monitoring service status and FHIR version information.
+ */
 @ApiTags('Health Check')
 @Controller()
 export class AppController {

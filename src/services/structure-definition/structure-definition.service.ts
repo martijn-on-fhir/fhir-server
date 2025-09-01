@@ -5,6 +5,10 @@ import { StructureDefinitionDocument, StructureDefinitionSchema } from '../../sc
 import { CreateStructureDefinitionDto } from '../../dto/create-structure-definition-dto';
 import { UpdateStructureDefinitionDto } from '../../dto/update-structure-definition-dto';
 
+/**
+ * Service for managing FHIR StructureDefinition resources.
+ * Handles CRUD operations for structure definitions with MongoDB storage.
+ */
 @Injectable()
 export class StructureDefinitionService {
 
@@ -13,6 +17,11 @@ export class StructureDefinitionService {
     private structureDefinitionModel: Model<StructureDefinitionDocument>
   ) {}
 
+  /**
+   * Creates a new StructureDefinition resource.
+   * @param createDto - Data for the new structure definition
+   * @returns Created StructureDefinition document
+   */
   async create(createDto: CreateStructureDefinitionDto): Promise<StructureDefinitionDocument> {
     
     await this.validateUrlUniqueness(createDto.url);
@@ -29,10 +38,21 @@ export class StructureDefinitionService {
     return structureDefinition.save();
   }
 
+  /**
+   * Retrieves all StructureDefinition resources matching the filter.
+   * @param filter - MongoDB filter criteria
+   * @returns Array of StructureDefinition documents
+   */
   async findAll(filter: any = {}): Promise<StructureDefinitionDocument[]> {
     return this.structureDefinitionModel.find(filter).sort({ url: 1 }).exec();
   }
 
+  /**
+   * Finds a StructureDefinition by its canonical URL.
+   * @param url - Canonical URL of the structure definition
+   * @returns StructureDefinition document
+   * @throws NotFoundException if not found
+   */
   async findByUrl(url: string): Promise<StructureDefinitionDocument> {
     const structureDefinition = await this.structureDefinitionModel.findOne({ url: { $eq: url } }).exec();
     
@@ -43,6 +63,13 @@ export class StructureDefinitionService {
     return structureDefinition;
   }
 
+  /**
+   * Retrieves a single StructureDefinition by ID.
+   * @param id - StructureDefinition ID
+   * @returns StructureDefinition document
+   * @throws BadRequestException if ID is invalid
+   * @throws NotFoundException if not found
+   */
   async findOne(id: string): Promise<StructureDefinitionDocument> {
     
     if (!Types.ObjectId.isValid(id)) {
@@ -58,6 +85,12 @@ export class StructureDefinitionService {
     return structureDefinition;
   }
 
+  /**
+   * Updates an existing StructureDefinition with new data.
+   * @param id - StructureDefinition ID
+   * @param updateDto - Update data
+   * @returns Updated StructureDefinition document
+   */
   async update(id: string, updateDto: UpdateStructureDefinitionDto): Promise<StructureDefinitionDocument> {
     
     const structureDefinition = await this.findOne(id);
@@ -71,6 +104,11 @@ export class StructureDefinitionService {
     return structureDefinition.save();
   }
 
+  /**
+   * Deletes a StructureDefinition by ID.
+   * @param id - StructureDefinition ID
+   * @throws NotFoundException if not found
+   */
   async delete(id: string): Promise<void> {
     
     const result = await this.structureDefinitionModel.findByIdAndDelete(id).exec();
@@ -80,6 +118,12 @@ export class StructureDefinitionService {
     }
   }
 
+  /**
+   * Validates that the URL is unique across structure definitions.
+   * @param url - URL to validate
+   * @param excludeId - ID to exclude from validation
+   * @throws BadRequestException if URL already exists
+   */
   private async validateUrlUniqueness(url: string, excludeId?: string): Promise<void> {
     const query: any = { url };
     

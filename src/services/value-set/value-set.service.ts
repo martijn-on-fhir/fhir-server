@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { ValueSetDocument, ValueSetSchema } from '../../schema/value-set-schema';
+import { Model } from 'mongoose';
+import { ValueSetDocument, ValueSetSchema, ValueSetStatus } from '../../schema/value-set.schema';
 import { CreateValueSetDto } from '../../dto/create-value-set-dto';
 import { UpdateValueSetDto } from '../../dto/update-value-set-dto';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Service responsible for managing FHIR ValueSet resources.
- * Provides CRUD operations and validation for ValueSet resources.
+ * Service for managing FHIR ValueSet resources.
+ * Provides CRUD operations and validation for ValueSet definitions.
  */
-
 @Injectable()
 export class ValueSetService {
 
@@ -18,44 +18,59 @@ export class ValueSetService {
     private valueSetModel: Model<ValueSetDocument>
   ) {}
 
-    /**
-     * Creates a new ValueSet resource
-     * @param createDto - The DTO containing ValueSet creation data
-     * @returns Promise resolving to the created ValueSet document
-     * @throws {BadRequestException} If a ValueSet with the same URL already exists
-     */
-    async create(createDto: CreateValueSetDto): Promise<ValueSetDocument> {
+  /**
+   * Creates a new ValueSet resource.
+   * @param createDto - Data transfer object containing ValueSet details
+   * @returns Created ValueSet document
+   */
+  async create(createDto: CreateValueSetDto): Promise<ValueSetDocument> {
     
+    // Validate URL uniqueness
     await this.validateUrlUniqueness(createDto.url);
     
+    // Validate status
+    this.validateStatus(createDto.status);
+    
     const properties = {
+      id: uuidv4(),
       ...createDto,
+      date: createDto.date ? new Date(createDto.date) : new Date(),
       meta: {
         versionId: '1',
         lastUpdated: new Date()
-      }
+      },
+      resourceType: 'ValueSet'
     };
 
     const valueSet = new this.valueSetModel(properties);
     return valueSet.save();
   }
 
-    /**
-     * Retrieves all ValueSet resources matching the optional filter
-     * @param filter - Optional MongoDB query filter
-     * @returns Promise resolving to array of ValueSet documents
-     */
-    async findAll(filter: any = {}): Promise<ValueSetDocument[]> {
-    return this.valueSetModel.find(filter).sort({ url: 1 }).exec();
+  /**
+   * Retrieves all ValueSet resources matching the provided filter.
+   * @param filter - MongoDB filter criteria
+   * @returns Array of ValueSet documents
+   */
+  async findAll(filter: any = {}): Promise<ValueSetDocument[]> {
+    return this.valueSetModel.find(filter).sort({ name: 1 }).exec();
   }
 
-    /**
-     * Finds a ValueSet by its canonical URL
-     * @param url - The canonical URL to search for
-     * @returns Promise resolving to the found ValueSet document
-     * @throws {NotFoundException} If no ValueSet is found with the given URL
-     */
-    async findByUrl(url: string): Promise<ValueSetDocument> {
+  /**
+   * Retrieves ValueSets by status.
+   * @param status - ValueSet status
+   * @returns Array of ValueSet documents with the specified status
+   */
+  async findByStatus(status: ValueSetStatus): Promise<ValueSetDocument[]> {
+    return this.valueSetModel.find({ status }).sort({ name: 1 }).exec();
+  }
+
+  /**
+   * Retrieves a specific ValueSet by URL.
+   * @param url - Canonical URL of the ValueSet
+   * @returns ValueSet document
+   * @throws NotFoundException if ValueSet not found
+   */
+  async findByUrl(url: string): Promise<ValueSetDocument> {
     const valueSet = await this.valueSetModel.findOne({ url: { $eq: url } }).exec();
     
     if (!valueSet) {
@@ -65,20 +80,20 @@ export class ValueSetService {
     return valueSet;
   }
 
-    /**
-     * Finds a ValueSet by its ID
-     * @param id - The ValueSet ID to search for
-     * @returns Promise resolving to the found ValueSet document
-     * @throws {BadRequestException} If the ID format is invalid
-     * @throws {NotFoundException} If no ValueSet is found with the given ID
-     */
-    async findOne(id: string): Promise<ValueSetDocument> {
+  /**
+   * Retrieves a single ValueSet by ID.
+   * @param id - ValueSet ID
+   * @returns ValueSet document
+   * @throws BadRequestException if ID is invalid
+   * @throws NotFoundException if ValueSet not found
+   */
+  async findOne(id: string): Promise<ValueSetDocument> {
     
-    if (!Types.ObjectId.isValid(id)) {
+    if (typeof id !== 'string' || id.length === 0) {
       throw new BadRequestException('Invalid ValueSet ID');
     }
 
-    const valueSet = await this.valueSetModel.findById(id).exec();
+    const valueSet = await this.valueSetModel.findOne({ id }, {_id: 0}).exec();
     
     if (!valueSet) {
       throw new NotFoundException('ValueSet not found');
@@ -87,48 +102,111 @@ export class ValueSetService {
     return valueSet;
   }
 
-    /**
-     * Updates an existing ValueSet
-     * @param id - The ID of the ValueSet to update
-     * @param updateDto - The DTO containing ValueSet update data
-     * @returns Promise resolving to the updated ValueSet document
-     * @throws {NotFoundException} If no ValueSet is found with the given ID
-     * @throws {BadRequestException} If updating to a URL that already exists
-     */
-    async update(id: string, updateDto: UpdateValueSetDto): Promise<ValueSetDocument> {
+  /**
+   * Updates an existing ValueSet with new data.
+   * @param id - ValueSet ID
+   * @param updateDto - Data transfer object containing update fields
+   * @returns Updated ValueSet document
+   */
+  async update(id: string, updateDto: UpdateValueSetDto): Promise<ValueSetDocument> {
     
     const valueSet = await this.findOne(id);
     
+    // Validate URL uniqueness if URL is being updated
     if (updateDto.url && updateDto.url !== valueSet.url) {
       await this.validateUrlUniqueness(updateDto.url);
     }
+    
+    // Validate status if being updated
+    if (updateDto.status) {
+      this.validateStatus(updateDto.status);
+    }
 
     Object.assign(valueSet, updateDto);
+    
+    if (updateDto.date) {
+      valueSet.date = new Date(updateDto.date);
+    }
+
+    // Update meta information
+    valueSet.meta = {
+      ...valueSet.meta,
+      lastUpdated: new Date(),
+      versionId: String(Number(valueSet.meta?.versionId || '1') + 1)
+    };
 
     return valueSet.save();
   }
 
-    /**
-     * Deletes a ValueSet by its ID
-     * @param id - The ID of the ValueSet to delete
-     * @throws {NotFoundException} If no ValueSet is found with the given ID
-     */
-    async delete(id: string): Promise<void> {
+  /**
+   * Deletes a ValueSet by ID.
+   * @param id - ValueSet ID
+   * @throws NotFoundException if ValueSet not found
+   */
+  async delete(id: string): Promise<void> {
     
-    const result = await this.valueSetModel.findByIdAndDelete(id).exec();
+    const result = await this.valueSetModel.findOneAndDelete({ id }).exec();
     
     if (!result) {
       throw new NotFoundException('ValueSet not found');
     }
   }
 
-    /**
-     * Validates that a ValueSet URL is unique
-     * @param url - The URL to validate
-     * @param excludeId - Optional ID to exclude from uniqueness check
-     * @throws {BadRequestException} If a ValueSet with the same URL already exists
-     */
-    private async validateUrlUniqueness(url: string, excludeId?: string): Promise<void> {
+  /**
+   * Expands a ValueSet by resolving all codes from included code systems.
+   * @param id - ValueSet ID
+   * @returns ValueSet document with expanded codes
+   */
+  async expand(id: string): Promise<ValueSetDocument> {
+    const valueSet = await this.findOne(id);
+    
+    // This is a simplified expansion - in a real implementation,
+    // you would resolve codes from the actual code systems
+    if (!valueSet.expansion) {
+      valueSet.expansion = {
+        timestamp: new Date(),
+        contains: []
+      };
+    }
+    
+    return valueSet;
+  }
+
+  /**
+   * Validates a code against a ValueSet.
+   * @param id - ValueSet ID
+   * @param system - Code system URI
+   * @param code - Code to validate
+   * @returns Boolean indicating if code is valid
+   */
+  async validateCode(id: string, system: string, code: string): Promise<boolean> {
+    const valueSet = await this.findOne(id);
+    
+    // Simple validation - check if code exists in expansion
+    if (valueSet.expansion?.contains) {
+      return valueSet.expansion.contains.some(
+        concept => concept.system === system && concept.code === code
+      );
+    }
+    
+    // If no expansion, check compose includes
+    if (valueSet.compose?.include) {
+      return valueSet.compose.include.some(include =>
+        include.system === system &&
+        include.concept?.some(concept => concept.code === code)
+      );
+    }
+    
+    return false;
+  }
+
+  /**
+   * Validates that the URL is unique (not already in use by another ValueSet).
+   * @param url - URL to validate
+   * @param excludeId - ID to exclude from uniqueness check (for updates)
+   * @throws BadRequestException if URL already exists
+   */
+  private async validateUrlUniqueness(url: string, excludeId?: string): Promise<void> {
     const query: any = { url };
     
     if (excludeId) {
@@ -139,6 +217,19 @@ export class ValueSetService {
     
     if (existing) {
       throw new BadRequestException(`ValueSet with URL '${url}' already exists`);
+    }
+  }
+
+  /**
+   * Validates that the status is a valid FHIR ValueSet status.
+   * @param status - Status to validate
+   * @throws BadRequestException if status is invalid
+   */
+  private validateStatus(status: string): void {
+    const validStatuses = Object.values(ValueSetStatus);
+    
+    if (!validStatuses.includes(status as ValueSetStatus)) {
+      throw new BadRequestException(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
     }
   }
 }

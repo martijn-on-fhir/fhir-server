@@ -2,8 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TerminologyService } from './terminology.service';
 import { ConfigService } from '@nestjs/config';
 import { getModelToken } from '@nestjs/mongoose';
-import { ValueSetSchema } from '../../schema/value-set-schema';
+
 import axios from 'axios';
+import {ValueSetSchema} from "../../schema/value-set.schema";
 
 // Mock axios
 jest.mock('axios');
@@ -15,9 +16,13 @@ describe('TerminologyService', () => {
   let mockValueSetModel: any;
 
   beforeEach(async () => {
+    const mockFindChain = {
+      lean: jest.fn().mockReturnThis(),
+      exec: jest.fn()
+    };
 
     mockValueSetModel = {
-      findOne: jest.fn(),
+      findOne: jest.fn().mockReturnValue(mockFindChain),
       create: jest.fn(),
     };
 
@@ -75,32 +80,30 @@ describe('TerminologyService', () => {
   describe('lookup', () => {
     it('should strip version from valueSet URL when pipe is present', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test|1.0.0';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
       service.enabled = false;
 
       await service.lookup(valueSetUrl);
 
-      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: 'http://example.com/ValueSet/test' });
+      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: 'http://example.com/ValueSet/test' }, {_id: 0});
     });
 
     it('should return cached expansion when document exists', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
       const mockDocument = {
-        toObject: jest.fn().mockReturnValue({
-          expansion: [{ code: 'cached-code', display: 'Cached Display' }]
-        })
+        expansion: [{ code: 'cached-code', display: 'Cached Display' }]
       };
-      mockValueSetModel.findOne.mockResolvedValue(mockDocument);
+      mockValueSetModel.findOne().exec.mockResolvedValue(mockDocument);
 
       const result = await service.lookup(valueSetUrl);
 
       expect(result).toEqual([{ code: 'cached-code', display: 'Cached Display' }]);
-      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: valueSetUrl });
+      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: valueSetUrl }, {_id: 0});
     });
 
     it('should return null when service is disabled and no cached document', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
       service.enabled = false;
 
       const result = await service.lookup(valueSetUrl);
@@ -110,7 +113,7 @@ describe('TerminologyService', () => {
 
     it('should fetch from terminology server when enabled and not cached', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
       
       const mockTokenResponse = {
         data: { access_token: 'test-token' }
@@ -134,18 +137,19 @@ describe('TerminologyService', () => {
 
       expect(result).toEqual([{ code: 'server-code', display: 'Server Display' }]);
       expect(mockedAxios.request).toHaveBeenCalledTimes(2);
-      expect(mockValueSetModel.create).toHaveBeenCalledWith({
+      expect(mockValueSetModel.create).toHaveBeenCalledWith(expect.objectContaining({
+        id: expect.any(String),
         url: valueSetUrl,
-        version: '1.0.0',
         resourceType: 'ValueSet',
-        expansion: [{ code: 'server-code', display: 'Server Display' }],
-        value: mockExpansionResponse.data,
-      });
+        expansion: {
+          contains: [{ code: 'server-code', display: 'Server Display' }]
+        }
+      }));
     });
 
     it('should reuse existing token for subsequent requests', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
       service.token = 'existing-token';
       
       const mockExpansionResponse = {
@@ -175,7 +179,7 @@ describe('TerminologyService', () => {
 
     it('should return null when expansion request fails', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
       
       const mockTokenResponse = {
         data: { access_token: 'test-token' }
@@ -193,31 +197,15 @@ describe('TerminologyService', () => {
     it('should not create document when cached document exists', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
       const mockDocument = {
-        toObject: jest.fn().mockReturnValue({ expansion: [] })
+        expansion: []
       };
-      mockValueSetModel.findOne.mockResolvedValue(mockDocument);
+      mockValueSetModel.findOne().exec.mockResolvedValue(mockDocument);
       
-      const mockTokenResponse = {
-        data: { access_token: 'test-token' }
-      };
-      
-      const mockExpansionResponse = {
-        data: {
-          url: valueSetUrl,
-          resourceType: 'ValueSet',
-          expansion: {
-            contains: [{ code: 'server-code', display: 'Server Display' }]
-          }
-        }
-      };
+      const result = await service.lookup(valueSetUrl);
 
-      mockedAxios.request
-        .mockResolvedValueOnce(mockTokenResponse)
-        .mockResolvedValueOnce(mockExpansionResponse);
-
-      await service.lookup(valueSetUrl);
-
+      expect(result).toEqual([]);
       expect(mockValueSetModel.create).not.toHaveBeenCalled();
+      expect(mockedAxios.request).not.toHaveBeenCalled();
     });
   });
 
@@ -225,17 +213,17 @@ describe('TerminologyService', () => {
     it('should find document by URL', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/test';
       const mockDocument = { url: valueSetUrl };
-      mockValueSetModel.findOne.mockResolvedValue(mockDocument);
+      mockValueSetModel.findOne().exec.mockResolvedValue(mockDocument);
 
       const result = await (service as any)._find(valueSetUrl);
 
       expect(result).toBe(mockDocument);
-      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: valueSetUrl });
+      expect(mockValueSetModel.findOne).toHaveBeenCalledWith({ url: valueSetUrl }, {_id: 0});
     });
 
     it('should return null when document not found', async () => {
       const valueSetUrl = 'http://example.com/ValueSet/nonexistent';
-      mockValueSetModel.findOne.mockResolvedValue(null);
+      mockValueSetModel.findOne().exec.mockResolvedValue(null);
 
       const result = await (service as any)._find(valueSetUrl);
 

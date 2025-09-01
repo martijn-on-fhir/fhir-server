@@ -1,9 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
+import {v4 as uuidv4} from 'uuid'
 
 export type FhirResourceDocument = FhirResource & Document;
 
+/**
+ * Mongoose schema for FHIR resources supporting all FHIR R4 resource types.
+ * Uses a flexible schema design with discriminator patterns to handle various resource types
+ * while maintaining consistent indexing and metadata handling.
+ */
 @Schema({
   collection: 'resources',
   timestamps: { createdAt: false, updatedAt: false },

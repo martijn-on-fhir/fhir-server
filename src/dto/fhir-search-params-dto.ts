@@ -2,6 +2,10 @@ import { IsOptional, IsString, IsArray, IsEnum, IsNumberString } from 'class-val
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * DTO for FHIR search parameters.
+ * Handles common search parameters like pagination, includes, and result formatting.
+ */
 export class FhirSearchParamsDto {
   
   @ApiPropertyOptional({

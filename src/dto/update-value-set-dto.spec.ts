@@ -1,6 +1,12 @@
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { UpdateValueSetDto } from './update-value-set-dto';
+import { ValueSetStatus } from '../schema/value-set.schema';
 
+/**
+ * Validates UpdateValueSetDto class for FHIR ValueSet partial updates
+ * Tests optional field validation, partial update scenarios, and type inheritance from CreateValueSetDto
+ */
 describe('UpdateValueSetDto', () => {
   let dto: UpdateValueSetDto;
 
@@ -25,54 +31,60 @@ describe('UpdateValueSetDto', () => {
       expect(errors).toHaveLength(0);
     });
 
-    it('should pass validation with only expansion provided', async () => {
-      dto.expansion = [
-        {
-          system: 'http://hl7.org/fhir/administrative-gender',
-          code: 'unknown',
-          display: 'Unknown'
-        }
-      ];
+    it('should pass validation with only status provided', async () => {
+      dto.status = ValueSetStatus.DRAFT;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
-    it('should pass validation with only value provided', async () => {
-      dto.value = {
-        resourceType: 'ValueSet',
-        id: 'updated-set',
-        name: 'UpdatedSet',
-        status: 'draft'
+    it('should pass validation with only name provided', async () => {
+      dto.name = 'UpdatedValueSet';
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass validation with only title provided', async () => {
+      dto.title = 'Updated Value Set';
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass validation with only description provided', async () => {
+      dto.description = 'Updated description for the value set';
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass validation with compose provided', async () => {
+      const dtoData = {
+        compose: {
+          include: [{
+            system: 'http://hl7.org/fhir/administrative-gender',
+            concept: [
+              { code: 'male', display: 'Male' },
+              { code: 'female', display: 'Female' }
+            ]
+          }]
+        }
       };
 
-      const errors = await validate(dto);
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
       expect(errors).toHaveLength(0);
     });
 
-    it('should pass validation with only resourceType provided', async () => {
-      dto.resourceType = 'UpdatedValueSet';
-
-      const errors = await validate(dto);
-      expect(errors).toHaveLength(0);
-    });
-
-    it('should pass validation with all fields provided', async () => {
+    it('should pass validation with all main fields provided', async () => {
       dto.url = 'http://hl7.org/fhir/ValueSet/complete-update';
-      dto.resourceType = 'ValueSet';
-      dto.expansion = [
-        {
-          system: 'http://example.com',
-          code: 'test',
-          display: 'Test Code'
-        }
-      ];
-      dto.value = {
-        resourceType: 'ValueSet',
-        id: 'complete-update',
-        name: 'CompleteUpdate',
-        status: 'active'
-      };
+      dto.name = 'CompleteUpdate';
+      dto.title = 'Complete Update Value Set';
+      dto.status = ValueSetStatus.ACTIVE;
+      dto.description = 'A complete update test';
+      dto.publisher = 'Test Publisher';
+      dto.version = '2.0.0';
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -87,106 +99,160 @@ describe('UpdateValueSetDto', () => {
       expect(errors[0].constraints).toHaveProperty('isString');
     });
 
-    it('should fail validation when expansion is not an array', async () => {
-      (dto as any).expansion = 'invalid';
+    it('should fail validation when status is invalid', async () => {
+      (dto as any).status = 'invalid-status';
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('expansion');
-      expect(errors[0].constraints).toHaveProperty('isArray');
+      expect(errors[0].property).toBe('status');
+      expect(errors[0].constraints).toHaveProperty('isEnum');
     });
 
-    it('should fail validation when value is not an object', async () => {
-      (dto as any).value = 'invalid';
+    it('should fail validation when name is not a string', async () => {
+      (dto as any).name = 123;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('value');
-      expect(errors[0].constraints).toHaveProperty('isObject');
-    });
-
-    it('should fail validation when resourceType is not a string', async () => {
-      (dto as any).resourceType = 123;
-
-      const errors = await validate(dto);
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('resourceType');
+      expect(errors[0].property).toBe('name');
       expect(errors[0].constraints).toHaveProperty('isString');
     });
 
-    it('should pass validation with partial complex objects', async () => {
-      dto.url = 'http://hl7.org/fhir/ValueSet/partial-update';
-      dto.expansion = [
-        {
-          system: 'http://snomed.info/sct',
-          code: '12345',
-          display: 'New Concept',
-          abstract: false,
-          version: '2023-01'
-        }
-      ];
+    it('should fail validation when title is not a string', async () => {
+      (dto as any).title = 123;
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('title');
+      expect(errors[0].constraints).toHaveProperty('isString');
+    });
+
+    it('should fail validation when description is not a string', async () => {
+      (dto as any).description = 123;
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('description');
+      expect(errors[0].constraints).toHaveProperty('isString');
+    });
+
+    it('should pass validation with valid date string', async () => {
+      dto.date = '2023-12-01T00:00:00.000Z';
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
-    it('should pass validation with nested value object updates', async () => {
-      dto.value = {
-        resourceType: 'ValueSet',
+    it('should fail validation when date is invalid format', async () => {
+      (dto as any).date = 'invalid-date';
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('date');
+      expect(errors[0].constraints).toHaveProperty('isDateString');
+    });
+
+    it('should pass validation with boolean fields', async () => {
+      dto.experimental = true;
+      dto.immutable = false;
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should fail validation when experimental is not boolean', async () => {
+      (dto as any).experimental = 'yes';
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('experimental');
+      expect(errors[0].constraints).toHaveProperty('isBoolean');
+    });
+
+    it('should pass validation with contact details', async () => {
+      const dtoData = {
+        contact: [{
+          name: 'Test Contact',
+          telecom: ['http://example.com/contact']
+        }]
+      };
+
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass validation with identifier array', async () => {
+      const dtoData = {
+        identifier: [{
+          use: 'official',
+          system: 'http://example.com/identifiers',
+          value: 'VS-001'
+        }]
+      };
+
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass validation with complex compose structure', async () => {
+      const dtoData = {
         compose: {
-          include: [
-            {
-              system: 'http://example.com',
-              concept: [
-                {
-                  code: 'new-code',
-                  display: 'New Code Display'
-                }
-              ]
-            }
-          ],
-          exclude: [
-            {
-              system: 'http://example.com',
-              concept: [
-                {
-                  code: 'old-code',
-                  display: 'Deprecated Code'
-                }
-              ]
-            }
-          ]
+          lockedDate: '2023-01-01',
+          inactive: false,
+          include: [{
+            system: 'http://snomed.info/sct',
+            version: '2023-03',
+            concept: [
+              { code: '12345', display: 'Test Concept' }
+            ],
+            filter: [{
+              property: 'concept',
+              op: 'is-a',
+              value: 'TestValue'
+            }]
+          }],
+          exclude: [{
+            system: 'http://snomed.info/sct',
+            concept: [
+              { code: '67890', display: 'Excluded Concept' }
+            ]
+          }]
         }
       };
 
-      const errors = await validate(dto);
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
       expect(errors).toHaveLength(0);
     });
   });
 
+  /** Tests that UpdateValueSetDto behaves as Partial<CreateValueSetDto> */
   describe('partial type behavior', () => {
     it('should inherit validation from CreateValueSetDto', async () => {
-      (dto as any).url = [];
-      (dto as any).expansion = 'not an array';
-      (dto as any).value = 'not an object';
+      (dto as any).url = 123;
+      (dto as any).status = 'invalid';
+      (dto as any).name = false;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(3);
 
       const urlError = errors.find(error => error.property === 'url');
-      const expansionError = errors.find(error => error.property === 'expansion');
-      const valueError = errors.find(error => error.property === 'value');
+      const statusError = errors.find(error => error.property === 'status');
+      const nameError = errors.find(error => error.property === 'name');
 
       expect(urlError?.constraints).toHaveProperty('isString');
-      expect(expansionError?.constraints).toHaveProperty('isArray');
-      expect(valueError?.constraints).toHaveProperty('isObject');
+      expect(statusError?.constraints).toHaveProperty('isEnum');
+      expect(nameError?.constraints).toHaveProperty('isString');
     });
 
     it('should allow undefined values for all properties', async () => {
       dto.url = undefined;
-      dto.resourceType = undefined;
-      dto.expansion = undefined;
-      dto.value = undefined;
+      dto.name = undefined;
+      dto.title = undefined;
+      dto.status = undefined;
+      dto.description = undefined;
+      dto.compose = undefined;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -194,17 +260,18 @@ describe('UpdateValueSetDto', () => {
 
     it('should maintain type safety for valid partial updates', () => {
       dto.url = 'http://example.com/ValueSet/test';
-      dto.expansion = [{ system: 'test', code: 'test', display: 'test' }];
-      dto.value = { resourceType: 'ValueSet' };
-      dto.resourceType = 'ValueSet';
+      dto.status = ValueSetStatus.ACTIVE;
+      dto.name = 'TestValueSet';
+      dto.title = 'Test Value Set';
 
       expect(dto.url).toBe('http://example.com/ValueSet/test');
-      expect(dto.expansion).toHaveLength(1);
-      expect(dto.value.resourceType).toBe('ValueSet');
-      expect(dto.resourceType).toBe('ValueSet');
+      expect(dto.status).toBe(ValueSetStatus.ACTIVE);
+      expect(dto.name).toBe('TestValueSet');
+      expect(dto.title).toBe('Test Value Set');
     });
   });
 
+  /** Tests common FHIR ValueSet update scenarios */
   describe('use cases', () => {
     it('should support URL-only updates', async () => {
       dto.url = 'http://hl7.org/fhir/ValueSet/new-url';
@@ -214,61 +281,154 @@ describe('UpdateValueSetDto', () => {
       expect(dto.url).toBe('http://hl7.org/fhir/ValueSet/new-url');
     });
 
-    it('should support expansion-only updates', async () => {
-      dto.expansion = [
-        {
-          system: 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus',
-          code: 'M',
-          display: 'Married'
-        },
-        {
-          system: 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus',
-          code: 'S',
-          display: 'Single'
-        }
-      ];
+    it('should support status-only updates', async () => {
+      dto.status = ValueSetStatus.RETIRED;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
-      expect(dto.expansion).toHaveLength(2);
+      expect(dto.status).toBe(ValueSetStatus.RETIRED);
     });
 
-    it('should support value-only updates', async () => {
-      dto.value = {
-        resourceType: 'ValueSet',
-        id: 'marital-status',
-        name: 'MaritalStatus',
-        title: 'Marital Status Codes',
-        status: 'active',
-        description: 'Codes representing marital status'
-      };
+    it('should support metadata updates', async () => {
+      dto.name = 'UpdatedValueSet';
+      dto.title = 'Updated Value Set';
+      dto.description = 'An updated description';
+      dto.publisher = 'Updated Publisher';
+      dto.version = '2.1.0';
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
-      expect(dto.value.name).toBe('MaritalStatus');
-      expect(dto.value.status).toBe('active');
+      expect(dto.name).toBe('UpdatedValueSet');
+      expect(dto.title).toBe('Updated Value Set');
+      expect(dto.description).toBe('An updated description');
+      expect(dto.publisher).toBe('Updated Publisher');
+      expect(dto.version).toBe('2.1.0');
+    });
+
+    it('should support compose-only updates', async () => {
+      const dtoData = {
+        compose: {
+          include: [{
+            system: 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus',
+            concept: [
+              { code: 'M', display: 'Married' },
+              { code: 'S', display: 'Single' }
+            ]
+          }]
+        }
+      };
+
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
+      expect(errors).toHaveLength(0);
+      expect(validDto.compose?.include).toHaveLength(1);
+      expect(validDto.compose?.include?.[0].concept).toHaveLength(2);
     });
 
     it('should support mixed partial updates', async () => {
       dto.url = 'http://hl7.org/fhir/ValueSet/mixed-update';
-      dto.resourceType = 'CustomValueSet';
+      dto.status = ValueSetStatus.DRAFT;
+      dto.experimental = true;
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
       expect(dto.url).toBe('http://hl7.org/fhir/ValueSet/mixed-update');
-      expect(dto.resourceType).toBe('CustomValueSet');
-      expect(dto.expansion).toBeUndefined();
-      expect(dto.value).toBeUndefined();
+      expect(dto.status).toBe(ValueSetStatus.DRAFT);
+      expect(dto.experimental).toBe(true);
+      expect(dto.name).toBeUndefined();
+      expect(dto.compose).toBeUndefined();
     });
 
-    it('should handle empty arrays and objects in updates', async () => {
-      dto.expansion = [];
-      dto.value = {};
+    it('should support date and copyright updates', async () => {
+      dto.date = '2023-12-01T00:00:00.000Z';
+      dto.copyright = 'Updated copyright notice';
+      dto.purpose = 'Updated purpose statement';
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
-      expect(dto.expansion).toHaveLength(0);
-      expect(Object.keys(dto.value)).toHaveLength(0);
+      expect(dto.date).toBe('2023-12-01T00:00:00.000Z');
+      expect(dto.copyright).toBe('Updated copyright notice');
+      expect(dto.purpose).toBe('Updated purpose statement');
+    });
+
+    it('should handle empty objects and arrays in updates', async () => {
+      dto.contact = [];
+      dto.identifier = [];
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.contact).toHaveLength(0);
+      expect(dto.identifier).toHaveLength(0);
+    });
+
+    it('should support comprehensive updates', async () => {
+      const dtoData = {
+        url: 'http://hl7.org/fhir/ValueSet/comprehensive-update',
+        name: 'ComprehensiveUpdate',
+        title: 'Comprehensive Update Test',
+        status: ValueSetStatus.ACTIVE,
+        experimental: false,
+        date: '2023-12-01T00:00:00.000Z',
+        publisher: 'Test Organization',
+        contact: [{
+          name: 'Test Team',
+          telecom: ['mailto:test@example.com']
+        }],
+        description: 'A comprehensive test of update functionality',
+        immutable: false,
+        purpose: 'Testing comprehensive updates',
+        copyright: '© 2023 Test Organization',
+        compose: {
+          include: [{
+            system: 'http://test.com/codes',
+            concept: [
+              { code: 'test1', display: 'Test Code 1' },
+              { code: 'test2', display: 'Test Code 2' }
+            ]
+          }]
+        }
+      };
+
+      const validDto = plainToInstance(UpdateValueSetDto, dtoData);
+      const errors = await validate(validDto);
+      expect(errors).toHaveLength(0);
+      expect(validDto.name).toBe('ComprehensiveUpdate');
+      expect(validDto.status).toBe(ValueSetStatus.ACTIVE);
+      expect(validDto.compose?.include).toHaveLength(1);
+      expect(validDto.contact).toHaveLength(1);
+    });
+  });
+
+  describe('enum validation', () => {
+    it('should accept all valid ValueSetStatus values', async () => {
+      const validStatuses = [
+        ValueSetStatus.DRAFT,
+        ValueSetStatus.ACTIVE,
+        ValueSetStatus.RETIRED,
+        ValueSetStatus.UNKNOWN
+      ];
+
+      for (const status of validStatuses) {
+        dto = new UpdateValueSetDto();
+        dto.status = status;
+
+        const errors = await validate(dto);
+        expect(errors).toHaveLength(0);
+      }
+    });
+
+    it('should reject invalid status values', async () => {
+      const invalidStatuses = ['published', 'deprecated', 'superseded'];
+
+      for (const status of invalidStatuses) {
+        dto = new UpdateValueSetDto();
+        (dto as any).status = status;
+
+        const errors = await validate(dto);
+        expect(errors).toHaveLength(1);
+        expect(errors[0].property).toBe('status');
+        expect(errors[0].constraints).toHaveProperty('isEnum');
+      }
     });
   });
 });
