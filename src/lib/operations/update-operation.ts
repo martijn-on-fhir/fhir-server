@@ -4,6 +4,10 @@ import {FhirResourceDocument} from '../../schema/fhir-resource-schema';
 import {ConflictException, NotFoundException} from '@nestjs/common';
 import {FhirResponse} from '../fhir-response';
 
+/**
+ * Handles FHIR Update operations with version conflict detection.
+ * Extends the base Operation class to provide resource update functionality.
+ */
 export class UpdateOperation extends Operation {
 
     /**

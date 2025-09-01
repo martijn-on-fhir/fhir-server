@@ -29,7 +29,7 @@ export class SecurityGuard implements CanActivate {
         /onload|onerror|onclick|onmouseover|onmouseout|onfocus|onblur/i,
 
         // Command injection
-        /(nc |netcat |wget |curl |bash |sh |cmd |powershell |exec)/i,
+        /(\bnc\s+|netcat\s+|wget\s+|curl\s+|bash\s+|\/bin\/sh|cmd\.exe|powershell\.exe|\bexec\s*\()/i,
 
         // Path traversal
         /(\.\.\/|\.\.\\)/,
@@ -44,7 +44,7 @@ export class SecurityGuard implements CanActivate {
         /<!DOCTYPE.*PUBLIC/i,
 
         // NoSQL injection
-        /(\$where|\$ne|\$in|\$nin|\$or|\$and|\$not|\$nor|\$exists|\$type|\$mod|\$regex|\$text|\$search)/i
+        /\\b(\\$where|\\$ne|\\$in|\\$nin|\\$or|\\$and|\\$not|\\$nor|\\$exists|\\$type|\\$mod|\\$regex|\\$text|\\$search)\\b/i
     ]
 
     /**
@@ -291,6 +291,14 @@ export class SecurityGuard implements CanActivate {
 
         if (!input) return false
 
-        return this.suspiciousPatterns.some(pattern => pattern.test(input))
+        for (const pattern of this.suspiciousPatterns) {
+            if (pattern.test(input)) {
+                console.log(`Pattern matched: ${pattern.source}`)
+                console.log(`Input excerpt: ${input.substring(0, 200)}...`)
+                return true
+            }
+        }
+
+        return false
     }
 }

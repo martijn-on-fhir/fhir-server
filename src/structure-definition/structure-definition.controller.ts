@@ -5,6 +5,10 @@ import {StructureDefinitionService} from '../services/structure-definition/struc
 import {CreateStructureDefinitionDto} from '../dto/create-structure-definition-dto';
 import {UpdateStructureDefinitionDto} from '../dto/update-structure-definition-dto';
 
+/**
+ * Controller handling FHIR StructureDefinition resource operations.
+ * Manages structure definitions that define constraints and extensions for FHIR resources.
+ */
 @UseGuards(AuthorizerGuard)
 @ApiTags('Structure Definitions')
 @Controller('structure-definition')

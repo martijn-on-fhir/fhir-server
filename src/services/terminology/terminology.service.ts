@@ -4,7 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { get } from 'lodash-es';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ValueSetDocument, ValueSetSchema } from '../../schema/value-set-schema';
+import {ValueSetDocument, ValueSetSchema} from "../../schema/value-set.schema";
+import {v4 as uuidv4} from 'uuid'
 
 /**
  * Service for interacting with the terminology server
@@ -55,7 +56,7 @@ export class TerminologyService {
     const document = await this._find(valueSet)
     
     if (document) {
-      return document.toObject().expansion
+      return document.expansion
     }
     
     if (this.enabled) {
@@ -78,11 +79,9 @@ export class TerminologyService {
         if (!document) {
           
           this._model.create({
-            url: response.data.url,
-            version: '1.0.0',
-            resourceType: response.data.resourceType,
-            expansion: response.data.expansion.contains,
-            value: response.data,
+              id: uuidv4(),
+              status: 'active',
+           ...response.data
           });
         }
         
@@ -100,7 +99,7 @@ export class TerminologyService {
    * @returns Promise resolving to the found value set document or null if not found
    */
   private async _find(valueSet: string): Promise<ValueSetDocument | null> {
-    return await this._model.findOne({ url: valueSet })
+    return await this._model.findOne({ url: valueSet }, {_id: 0}).lean().exec();
   }
   
   /**

@@ -8,7 +8,7 @@ import {StructureDefinitionSchema, structureDefinitionSchema} from './schema/str
 import {ValidationService} from './services/validation/validation.service';
 import {ThrottlerModule} from '@nestjs/throttler';
 import {ConfigModule} from '@nestjs/config';
-import {valueSetSchema, ValueSetSchema} from './schema/value-set-schema';
+
 import {TerminologyService} from './services/terminology/terminology.service';
 import configuration from './config/configuration'
 import {EventEmitterModule} from '@nestjs/event-emitter'
@@ -34,6 +34,7 @@ import {StructureDefinitionController} from "./structure-definition/structure-de
 import {StructureDefinitionService} from "./services/structure-definition/structure-definition.service";
 import {ValueSetController} from "./value-set/value-set.controller";
 import {ValueSetService} from "./services/value-set/value-set.service";
+import {valueSetSchema, ValueSetSchema} from "./schema/value-set.schema";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.

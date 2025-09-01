@@ -6,7 +6,12 @@ import { UpdateValueSetDto } from '../dto/update-value-set-dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthorizerGuard } from '../guards/authorizer/authorizer.guard';
+import { ValueSetStatus } from '../schema/value-set.schema';
 
+/**
+ * Tests ValueSetController REST API endpoints for FHIR ValueSet operations
+ * Covers HTTP operations, query filtering, error handling, and FHIR-specific operations like expand and validateCode
+ */
 describe('ValueSetController', () => {
   let controller: ValueSetController;
   let service: ValueSetService;
@@ -14,34 +19,33 @@ describe('ValueSetController', () => {
   const mockValueSetService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findByStatus: jest.fn(),
     findByUrl: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    expand: jest.fn(),
+    validateCode: jest.fn(),
   };
 
+  const mockValueSetId = '123e4567-e89b-12d3-a456-426614174000';
   const mockValueSet = {
-    _id: '507f1f77bcf86cd799439011',
+    _id: mockValueSetId,
+    id: mockValueSetId,
     url: 'http://hl7.org/fhir/ValueSet/administrative-gender',
+    name: 'AdministrativeGender',
+    title: 'Administrative Gender',
+    status: ValueSetStatus.ACTIVE,
+    description: 'The gender of a person used for administrative purposes',
     resourceType: 'ValueSet',
-    expansion: [
-      {
+    compose: {
+      include: [{
         system: 'http://hl7.org/fhir/administrative-gender',
-        code: 'male',
-        display: 'Male'
-      },
-      {
-        system: 'http://hl7.org/fhir/administrative-gender',
-        code: 'female',
-        display: 'Female'
-      }
-    ],
-    value: {
-      resourceType: 'ValueSet',
-      id: 'administrative-gender',
-      url: 'http://hl7.org/fhir/ValueSet/administrative-gender',
-      name: 'AdministrativeGender',
-      status: 'active'
+        concept: [
+          { code: 'male', display: 'Male' },
+          { code: 'female', display: 'Female' }
+        ]
+      }]
     },
     meta: {
       versionId: '1',
@@ -92,19 +96,15 @@ describe('ValueSetController', () => {
     it('should create a value set', async () => {
       const createDto: CreateValueSetDto = {
         url: 'http://hl7.org/fhir/ValueSet/administrative-gender',
-        resourceType: 'ValueSet',
-        expansion: [
-          {
+        name: 'AdministrativeGender',
+        title: 'Administrative Gender',
+        status: ValueSetStatus.ACTIVE,
+        description: 'Test value set',
+        compose: {
+          include: [{
             system: 'http://hl7.org/fhir/administrative-gender',
-            code: 'male',
-            display: 'Male'
-          }
-        ],
-        value: {
-          resourceType: 'ValueSet',
-          id: 'administrative-gender',
-          name: 'AdministrativeGender',
-          status: 'active'
+            concept: [{ code: 'male', display: 'Male' }]
+          }]
         }
       };
 
@@ -119,8 +119,8 @@ describe('ValueSetController', () => {
     it('should handle service errors during creation', async () => {
       const createDto: CreateValueSetDto = {
         url: 'http://hl7.org/fhir/ValueSet/test',
-        expansion: [],
-        value: { resourceType: 'ValueSet' }
+        status: ValueSetStatus.ACTIVE,
+        description: 'Test'
       };
 
       mockValueSetService.create.mockRejectedValue(
@@ -143,13 +143,25 @@ describe('ValueSetController', () => {
       expect(result).toEqual(mockValueSets);
     });
 
-    it('should return filtered value sets by resourceType', async () => {
+    it('should return filtered value sets by status', async () => {
       const mockValueSets = [mockValueSet];
       mockValueSetService.findAll.mockResolvedValue(mockValueSets);
 
-      const result = await controller.findAll('ValueSet');
+      const result = await controller.findAll(ValueSetStatus.ACTIVE);
 
-      expect(service.findAll).toHaveBeenCalledWith({ resourceType: 'ValueSet' });
+      expect(service.findAll).toHaveBeenCalledWith({ status: ValueSetStatus.ACTIVE });
+      expect(result).toEqual(mockValueSets);
+    });
+
+    it('should return filtered value sets by name pattern', async () => {
+      const mockValueSets = [mockValueSet];
+      mockValueSetService.findAll.mockResolvedValue(mockValueSets);
+
+      const result = await controller.findAll(undefined, 'Gender');
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        name: expect.any(RegExp)
+      });
       expect(result).toEqual(mockValueSets);
     });
 
@@ -157,7 +169,7 @@ describe('ValueSetController', () => {
       const mockValueSets = [mockValueSet];
       mockValueSetService.findAll.mockResolvedValue(mockValueSets);
 
-      const result = await controller.findAll(undefined, 'gender');
+      const result = await controller.findAll(undefined, undefined, 'administrative');
 
       expect(service.findAll).toHaveBeenCalledWith({
         url: expect.any(RegExp)
@@ -165,15 +177,29 @@ describe('ValueSetController', () => {
       expect(result).toEqual(mockValueSets);
     });
 
-    it('should return filtered value sets by both resourceType and URL', async () => {
+    it('should return filtered value sets by publisher', async () => {
       const mockValueSets = [mockValueSet];
       mockValueSetService.findAll.mockResolvedValue(mockValueSets);
 
-      const result = await controller.findAll('ValueSet', 'gender');
+      const result = await controller.findAll(undefined, undefined, undefined, 'HL7');
 
       expect(service.findAll).toHaveBeenCalledWith({
-        resourceType: 'ValueSet',
-        url: expect.any(RegExp)
+        publisher: expect.any(RegExp)
+      });
+      expect(result).toEqual(mockValueSets);
+    });
+
+    it('should return filtered value sets with multiple filters', async () => {
+      const mockValueSets = [mockValueSet];
+      mockValueSetService.findAll.mockResolvedValue(mockValueSets);
+
+      const result = await controller.findAll(ValueSetStatus.ACTIVE, 'Gender', 'administrative', 'HL7');
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        status: ValueSetStatus.ACTIVE,
+        name: expect.any(RegExp),
+        url: expect.any(RegExp),
+        publisher: expect.any(RegExp)
       });
       expect(result).toEqual(mockValueSets);
     });
@@ -187,17 +213,42 @@ describe('ValueSetController', () => {
       expect(result).toEqual([]);
     });
 
-    it('should escape regex characters in URL filter', async () => {
+    it('should escape regex characters in filters', async () => {
       const mockValueSets = [mockValueSet];
       mockValueSetService.findAll.mockResolvedValue(mockValueSets);
 
-      await controller.findAll(undefined, 'test.*special');
+      await controller.findAll(undefined, 'test.*special', 'test+special');
 
-      const expectedFilter = { url: expect.any(RegExp) };
+      const expectedFilter = {
+        name: expect.any(RegExp),
+        url: expect.any(RegExp)
+      };
       expect(service.findAll).toHaveBeenCalledWith(expectedFilter);
 
       const actualCall = mockValueSetService.findAll.mock.calls[0][0];
-      expect(actualCall.url.source).toBe('test\\.\\*special');
+      expect(actualCall.name.source).toBe('test\\.\\*special');
+      expect(actualCall.url.source).toBe('test\\+special');
+    });
+  });
+
+  describe('findByStatus', () => {
+    it('should return value sets by status', async () => {
+      const mockValueSets = [mockValueSet];
+      mockValueSetService.findByStatus.mockResolvedValue(mockValueSets);
+
+      const result = await controller.findByStatus(ValueSetStatus.ACTIVE);
+
+      expect(service.findByStatus).toHaveBeenCalledWith(ValueSetStatus.ACTIVE);
+      expect(result).toEqual(mockValueSets);
+    });
+
+    it('should handle empty results for status', async () => {
+      mockValueSetService.findByStatus.mockResolvedValue([]);
+
+      const result = await controller.findByStatus(ValueSetStatus.RETIRED);
+
+      expect(service.findByStatus).toHaveBeenCalledWith(ValueSetStatus.RETIRED);
+      expect(result).toEqual([]);
     });
   });
 
@@ -225,17 +276,16 @@ describe('ValueSetController', () => {
 
   describe('findOne', () => {
     it('should return value set by ID', async () => {
-      const id = '507f1f77bcf86cd799439011';
       mockValueSetService.findOne.mockResolvedValue(mockValueSet);
 
-      const result = await controller.findOne(id);
+      const result = await controller.findOne(mockValueSetId);
 
-      expect(service.findOne).toHaveBeenCalledWith(id);
+      expect(service.findOne).toHaveBeenCalledWith(mockValueSetId);
       expect(result).toEqual(mockValueSet);
     });
 
     it('should handle invalid ID error', async () => {
-      const invalidId = 'invalid-id';
+      const invalidId = '';
       mockValueSetService.findOne.mockRejectedValue(
         new BadRequestException('Invalid ValueSet ID')
       );
@@ -245,7 +295,7 @@ describe('ValueSetController', () => {
     });
 
     it('should handle not found error', async () => {
-      const id = '507f1f77bcf86cd799439012';
+      const id = '123e4567-e89b-12d3-a456-426614174001';
       mockValueSetService.findOne.mockRejectedValue(
         new NotFoundException('ValueSet not found')
       );
@@ -257,16 +307,9 @@ describe('ValueSetController', () => {
 
   describe('update', () => {
     it('should update value set', async () => {
-      const id = '507f1f77bcf86cd799439011';
       const updateDto: UpdateValueSetDto = {
-        url: 'http://hl7.org/fhir/ValueSet/updated-gender',
-        expansion: [
-          {
-            system: 'http://hl7.org/fhir/administrative-gender',
-            code: 'unknown',
-            display: 'Unknown'
-          }
-        ]
+        description: 'Updated description',
+        status: ValueSetStatus.DRAFT
       };
 
       const updatedValueSet = {
@@ -280,28 +323,26 @@ describe('ValueSetController', () => {
 
       mockValueSetService.update.mockResolvedValue(updatedValueSet);
 
-      const result = await controller.update(id, updateDto);
+      const result = await controller.update(mockValueSetId, updateDto);
 
-      expect(service.update).toHaveBeenCalledWith(id, updateDto);
+      expect(service.update).toHaveBeenCalledWith(mockValueSetId, updateDto);
       expect(result).toEqual(updatedValueSet);
     });
 
     it('should handle not found error during update', async () => {
-      const id = '507f1f77bcf86cd799439012';
       const updateDto: UpdateValueSetDto = {
-        url: 'http://hl7.org/fhir/ValueSet/updated'
+        description: 'Updated'
       };
 
       mockValueSetService.update.mockRejectedValue(
         new NotFoundException('ValueSet not found')
       );
 
-      await expect(controller.update(id, updateDto)).rejects.toThrow(NotFoundException);
-      expect(service.update).toHaveBeenCalledWith(id, updateDto);
+      await expect(controller.update(mockValueSetId, updateDto)).rejects.toThrow(NotFoundException);
+      expect(service.update).toHaveBeenCalledWith(mockValueSetId, updateDto);
     });
 
     it('should handle URL conflict error during update', async () => {
-      const id = '507f1f77bcf86cd799439011';
       const updateDto: UpdateValueSetDto = {
         url: 'http://hl7.org/fhir/ValueSet/existing-url'
       };
@@ -310,32 +351,112 @@ describe('ValueSetController', () => {
         new BadRequestException('ValueSet with URL already exists')
       );
 
-      await expect(controller.update(id, updateDto)).rejects.toThrow(BadRequestException);
-      expect(service.update).toHaveBeenCalledWith(id, updateDto);
+      await expect(controller.update(mockValueSetId, updateDto)).rejects.toThrow(BadRequestException);
+      expect(service.update).toHaveBeenCalledWith(mockValueSetId, updateDto);
     });
   });
 
   describe('remove', () => {
     it('should delete value set', async () => {
-      const id = '507f1f77bcf86cd799439011';
       mockValueSetService.delete.mockResolvedValue(undefined);
 
-      await controller.remove(id);
+      await controller.remove(mockValueSetId);
 
-      expect(service.delete).toHaveBeenCalledWith(id);
+      expect(service.delete).toHaveBeenCalledWith(mockValueSetId);
     });
 
     it('should handle not found error during deletion', async () => {
-      const id = '507f1f77bcf86cd799439012';
       mockValueSetService.delete.mockRejectedValue(
         new NotFoundException('ValueSet not found')
       );
 
-      await expect(controller.remove(id)).rejects.toThrow(NotFoundException);
-      expect(service.delete).toHaveBeenCalledWith(id);
+      await expect(controller.remove(mockValueSetId)).rejects.toThrow(NotFoundException);
+      expect(service.delete).toHaveBeenCalledWith(mockValueSetId);
     });
   });
 
+  /** Tests FHIR ValueSet $expand operation endpoint */
+  describe('expand', () => {
+    it('should expand value set', async () => {
+      const expandedValueSet = {
+        ...mockValueSet,
+        expansion: {
+          timestamp: new Date(),
+          contains: [
+            { system: 'http://hl7.org/fhir/administrative-gender', code: 'male', display: 'Male' },
+            { system: 'http://hl7.org/fhir/administrative-gender', code: 'female', display: 'Female' }
+          ]
+        }
+      };
+
+      mockValueSetService.expand.mockResolvedValue(expandedValueSet);
+
+      const result = await controller.expand(mockValueSetId);
+
+      expect(service.expand).toHaveBeenCalledWith(mockValueSetId);
+      expect(result).toEqual(expandedValueSet);
+    });
+
+    it('should handle not found error during expand', async () => {
+      mockValueSetService.expand.mockRejectedValue(
+        new NotFoundException('ValueSet not found')
+      );
+
+      await expect(controller.expand(mockValueSetId)).rejects.toThrow(NotFoundException);
+      expect(service.expand).toHaveBeenCalledWith(mockValueSetId);
+    });
+  });
+
+  /** Tests FHIR ValueSet $validate-code operation endpoint */
+  describe('validateCode', () => {
+    it('should validate code successfully', async () => {
+      mockValueSetService.validateCode.mockResolvedValue(true);
+
+      const result = await controller.validateCode(
+        mockValueSetId,
+        'http://hl7.org/fhir/administrative-gender',
+        'male'
+      );
+
+      expect(service.validateCode).toHaveBeenCalledWith(
+        mockValueSetId,
+        'http://hl7.org/fhir/administrative-gender',
+        'male'
+      );
+      expect(result).toEqual({ result: true });
+    });
+
+    it('should return false for invalid code', async () => {
+      mockValueSetService.validateCode.mockResolvedValue(false);
+
+      const result = await controller.validateCode(
+        mockValueSetId,
+        'http://hl7.org/fhir/administrative-gender',
+        'invalid'
+      );
+
+      expect(service.validateCode).toHaveBeenCalledWith(
+        mockValueSetId,
+        'http://hl7.org/fhir/administrative-gender',
+        'invalid'
+      );
+      expect(result).toEqual({ result: false });
+    });
+
+    it('should handle not found error during validation', async () => {
+      mockValueSetService.validateCode.mockRejectedValue(
+        new NotFoundException('ValueSet not found')
+      );
+
+      await expect(controller.validateCode(
+        mockValueSetId,
+        'http://hl7.org/fhir/administrative-gender',
+        'male'
+      )).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  /** Tests regex escaping for search parameter safety */
   describe('escapeRegexCharacters', () => {
     it('should escape regex characters correctly', () => {
       expect((controller as any).escapeRegexCharacters('test')).toBe('test');
@@ -349,7 +470,7 @@ describe('ValueSetController', () => {
     it('should handle empty string filters', async () => {
       mockValueSetService.findAll.mockResolvedValue([]);
 
-      const result = await controller.findAll('', '');
+      const result = await controller.findAll(undefined, '', '', '');
 
       expect(service.findAll).toHaveBeenCalledWith({});
       expect(result).toEqual([]);
@@ -358,7 +479,7 @@ describe('ValueSetController', () => {
     it('should handle null/undefined filters', async () => {
       mockValueSetService.findAll.mockResolvedValue([mockValueSet]);
 
-      const result = await controller.findAll(undefined, undefined);
+      const result = await controller.findAll(undefined, undefined, undefined, undefined);
 
       expect(service.findAll).toHaveBeenCalledWith({});
       expect(result).toEqual([mockValueSet]);
@@ -367,8 +488,8 @@ describe('ValueSetController', () => {
     it('should handle service throwing unexpected errors', async () => {
       const createDto: CreateValueSetDto = {
         url: 'http://hl7.org/fhir/ValueSet/test',
-        expansion: [],
-        value: { resourceType: 'ValueSet' }
+        status: ValueSetStatus.ACTIVE,
+        description: 'Test'
       };
 
       mockValueSetService.create.mockRejectedValue(new Error('Unexpected error'));
@@ -376,40 +497,23 @@ describe('ValueSetController', () => {
       await expect(controller.create(createDto)).rejects.toThrow('Unexpected error');
     });
 
-    it('should handle complex expansion objects in create', async () => {
+    it('should handle complex compose objects in create', async () => {
       const createDto: CreateValueSetDto = {
         url: 'http://hl7.org/fhir/ValueSet/complex',
-        expansion: [
-          {
-            system: 'http://snomed.info/sct',
-            code: '271649006',
-            display: 'Systolic blood pressure',
-            contains: [
-              {
-                system: 'http://loinc.org',
-                code: '8480-6',
-                display: 'Systolic blood pressure'
-              }
-            ]
-          }
-        ],
-        value: {
-          resourceType: 'ValueSet',
-          id: 'complex',
-          name: 'ComplexValueSet',
-          compose: {
-            include: [
-              {
-                system: 'http://snomed.info/sct',
-                concept: [
-                  {
-                    code: '271649006',
-                    display: 'Systolic blood pressure'
-                  }
-                ]
-              }
-            ]
-          }
+        status: ValueSetStatus.ACTIVE,
+        name: 'ComplexValueSet',
+        compose: {
+          include: [
+            {
+              system: 'http://snomed.info/sct',
+              concept: [
+                {
+                  code: '271649006',
+                  display: 'Systolic blood pressure'
+                }
+              ]
+            }
+          ]
         }
       };
 
@@ -422,46 +526,56 @@ describe('ValueSetController', () => {
       expect(result).toEqual(complexValueSet);
     });
 
-    it('should handle special characters in URL filters', async () => {
+    it('should handle special characters in filters', async () => {
       mockValueSetService.findAll.mockResolvedValue([mockValueSet]);
 
-      await controller.findAll(undefined, 'http://test.com/ValueSet/special&chars');
+      await controller.findAll(undefined, 'test&special', 'http://test.com/ValueSet/special&chars');
 
       const actualCall = mockValueSetService.findAll.mock.calls[0][0];
+      expect(actualCall.name.source).toBe('test&special');
       expect(actualCall.url.source).toBe('http:\\/\\/test\\.com\\/ValueSet\\/special&chars');
     });
 
-    it('should handle case insensitive URL matching', async () => {
+    it('should handle case insensitive matching', async () => {
       mockValueSetService.findAll.mockResolvedValue([mockValueSet]);
 
       await controller.findAll(undefined, 'Gender');
 
       const actualCall = mockValueSetService.findAll.mock.calls[0][0];
-      expect(actualCall.url.flags).toBe('i');
+      expect(actualCall.name.flags).toBe('i');
     });
 
     it('should handle mixed parameter combinations', async () => {
       const testCases = [
-        { resourceType: 'ValueSet', url: undefined },
-        { resourceType: undefined, url: 'test' },
-        { resourceType: 'CustomValueSet', url: 'custom' },
-        { resourceType: '', url: '' }
+        { status: ValueSetStatus.ACTIVE, name: undefined, url: undefined, publisher: undefined },
+        { status: undefined, name: 'test', url: undefined, publisher: undefined },
+        { status: undefined, name: undefined, url: 'test', publisher: undefined },
+        { status: undefined, name: undefined, url: undefined, publisher: 'test' },
+        { status: ValueSetStatus.DRAFT, name: 'custom', url: 'custom', publisher: 'custom' }
       ];
 
       for (const testCase of testCases) {
         mockValueSetService.findAll.mockClear();
         mockValueSetService.findAll.mockResolvedValue([mockValueSet]);
 
-        await controller.findAll(testCase.resourceType, testCase.url);
+        await controller.findAll(testCase.status, testCase.name, testCase.url, testCase.publisher);
 
         const expectedFilter: any = {};
 
-        if (testCase.resourceType) {
-          expectedFilter.resourceType = testCase.resourceType;
+        if (testCase.status) {
+          expectedFilter.status = testCase.status;
+        }
+
+        if (testCase.name) {
+          expectedFilter.name = expect.any(RegExp);
         }
 
         if (testCase.url) {
           expectedFilter.url = expect.any(RegExp);
+        }
+
+        if (testCase.publisher) {
+          expectedFilter.publisher = expect.any(RegExp);
         }
 
         expect(service.findAll).toHaveBeenCalledWith(expectedFilter);

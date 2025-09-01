@@ -1,8 +1,17 @@
+/**
+ * Generates FHIR CapabilityStatement metadata for the server.
+ * Provides information about supported resources and operations.
+ */
 export class Metadata {
   
   constructor() {
   }
   
+  /**
+   * Builds a FHIR CapabilityStatement based on available structure definitions.
+   * @param structures - Array of FHIR resource types supported by the server
+   * @returns FHIR CapabilityStatement with supported resources and operations
+   */
   get(structures: string[]): object {
     
     const response = {

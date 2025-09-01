@@ -4,6 +4,9 @@ import {v4 as uuidv4} from "uuid";
 
 export type SearchParameterDocument = SearchParameterSchema & Document;
 
+/**
+ * Status values for SearchParameter resources according to FHIR specification.
+ */
 export enum SearchParameterStatus {
     DRAFT = 'draft',
     ACTIVE = 'active',
