@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { SearchParameterDocument, SearchParameterSchema } from '../../schema/search-parameter.schema';
 import { CreateSearchParameterDto } from '../../dto/create-search-parameter-dto';
 import { UpdateSearchParameterDto } from '../../dto/update-search-parameter-dto';
+import {v4 as uuidv4} from "uuid";
 
 /**
  * Service for managing FHIR SearchParameter resources.
@@ -31,6 +32,7 @@ export class SearchParameterService {
     this.validateBaseResourceTypes(createDto.base);
     
     const properties = {
+        id: uuidv4(),
       ...createDto,
       date: createDto.date ? new Date(createDto.date) : new Date(),
       meta: {
@@ -89,11 +91,11 @@ export class SearchParameterService {
    */
   async findOne(id: string): Promise<SearchParameterDocument> {
     
-    if (!Types.ObjectId.isValid(id)) {
+    if (typeof id !== 'string' || id.length === 0) {
       throw new BadRequestException('Invalid SearchParameter ID');
     }
 
-    const searchParameter = await this.searchParameterModel.findById(id).exec();
+    const searchParameter = await this.searchParameterModel.findOne({ id }).exec();
     
     if (!searchParameter) {
       throw new NotFoundException('SearchParameter not found');
@@ -138,7 +140,7 @@ export class SearchParameterService {
    */
   async delete(id: string): Promise<void> {
     
-    const result = await this.searchParameterModel.findByIdAndDelete(id).exec();
+    const result = await this.searchParameterModel.findOneAndDelete({ id }).exec();
     
     if (!result) {
       throw new NotFoundException('SearchParameter not found');
