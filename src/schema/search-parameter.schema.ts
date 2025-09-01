@@ -1,230 +1,235 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import {Document} from 'mongoose';
+import {v4 as uuidv4} from "uuid";
 
 export type SearchParameterDocument = SearchParameterSchema & Document;
 
 export enum SearchParameterStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  RETIRED = 'retired',
-  UNKNOWN = 'unknown'
+    DRAFT = 'draft',
+    ACTIVE = 'active',
+    RETIRED = 'retired',
+    UNKNOWN = 'unknown'
 }
 
 export enum SearchParameterType {
-  NUMBER = 'number',
-  DATE = 'date',
-  STRING = 'string',
-  TOKEN = 'token',
-  REFERENCE = 'reference',
-  COMPOSITE = 'composite',
-  QUANTITY = 'quantity',
-  URI = 'uri',
-  SPECIAL = 'special'
+    NUMBER = 'number',
+    DATE = 'date',
+    STRING = 'string',
+    TOKEN = 'token',
+    REFERENCE = 'reference',
+    COMPOSITE = 'composite',
+    QUANTITY = 'quantity',
+    URI = 'uri',
+    SPECIAL = 'special'
 }
 
 export enum XPathUsage {
-  NORMAL = 'normal',
-  PHONETIC = 'phonetic',
-  NEARBY = 'nearby',
-  DISTANCE = 'distance',
-  OTHER = 'other'
+    NORMAL = 'normal',
+    PHONETIC = 'phonetic',
+    NEARBY = 'nearby',
+    DISTANCE = 'distance',
+    OTHER = 'other'
 }
 
 export enum SearchComparator {
-  EQ = 'eq',
-  NE = 'ne',
-  GT = 'gt',
-  LT = 'lt',
-  GE = 'ge',
-  LE = 'le',
-  SA = 'sa',
-  EB = 'eb',
-  AP = 'ap'
+    EQ = 'eq',
+    NE = 'ne',
+    GT = 'gt',
+    LT = 'lt',
+    GE = 'ge',
+    LE = 'le',
+    SA = 'sa',
+    EB = 'eb',
+    AP = 'ap'
 }
 
 export enum SearchModifier {
-  MISSING = 'missing',
-  EXACT = 'exact',
-  CONTAINS = 'contains',
-  NOT = 'not',
-  TEXT = 'text',
-  IN = 'in',
-  NOT_IN = 'not-in',
-  BELOW = 'below',
-  ABOVE = 'above',
-  TYPE = 'type',
-  IDENTIFIER = 'identifier',
-  OF_TYPE = 'ofType'
+    MISSING = 'missing',
+    EXACT = 'exact',
+    CONTAINS = 'contains',
+    NOT = 'not',
+    TEXT = 'text',
+    IN = 'in',
+    NOT_IN = 'not-in',
+    BELOW = 'below',
+    ABOVE = 'above',
+    TYPE = 'type',
+    IDENTIFIER = 'identifier',
+    OF_TYPE = 'ofType'
 }
 
-@Schema({ _id: false })
+@Schema({_id: false})
 export class SearchParameterComponent {
-  @Prop({ required: true })
-  definition: string;
+    @Prop({required: true})
+    definition: string;
 
-  @Prop({ required: true })
-  expression: string;
+    @Prop({required: true})
+    expression: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const SearchParameterComponentSchema = SchemaFactory.createForClass(SearchParameterComponent);
 
 @Schema({
-  collection: 'search-parameters',
-  timestamps: { createdAt: true, updatedAt: true },
-  versionKey: false
+    collection: 'search-parameters',
+    timestamps: {createdAt: false, updatedAt: false},
+    versionKey: false,
+    strict: false,
+    discriminatorKey: 'name'
 })
 export class SearchParameterSchema {
-  
-  @Prop({ default: 'SearchParameter' })
-  resourceType: string;
 
-  @Prop({ required: true, unique: true, index: true })
-  url: string;
+    @Prop({
+        required: true,
+        index: true,
+        unique: true
+    })
+    id: string
 
-  @Prop()
-  version?: string;
+    @Prop({default: 'SearchParameter'})
+    resourceType: string;
 
-  @Prop({ required: true, index: true })
-  name: string;
+    @Prop({required: true, unique: true, index: true})
+    url: string;
 
-  @Prop()
-  derivedFrom?: string;
+    @Prop()
+    version?: string;
 
-  @Prop({ required: true, enum: SearchParameterStatus, index: true })
-  status: SearchParameterStatus;
+    @Prop({required: true, index: true})
+    name: string;
 
-  @Prop()
-  experimental?: boolean;
+    @Prop()
+    derivedFrom?: string;
 
-  @Prop()
-  date?: Date;
+    @Prop({required: true, enum: SearchParameterStatus, index: true})
+    status: SearchParameterStatus;
 
-  @Prop()
-  publisher?: string;
+    @Prop()
+    experimental?: boolean;
 
-  @Prop([Object])
-  contact?: any[];
+    @Prop()
+    date?: Date;
 
-  @Prop({ required: true })
-  description: string;
+    @Prop()
+    publisher?: string;
 
-  @Prop([Object])
-  useContext?: any[];
+    @Prop([Object])
+    contact?: any[];
 
-  @Prop([Object])
-  jurisdiction?: any[];
+    @Prop({required: true})
+    description: string;
 
-  @Prop()
-  purpose?: string;
+    @Prop([Object])
+    useContext?: any[];
 
-  @Prop({ required: true, index: true })
-  code: string;
+    @Prop([Object])
+    jurisdiction?: any[];
 
-  @Prop({ required: true, type: [String], index: true })
-  base: string[];
+    @Prop()
+    purpose?: string;
 
-  @Prop({ required: true, enum: SearchParameterType, index: true })
-  type: SearchParameterType;
+    @Prop({required: true, index: true})
+    code: string;
 
-  @Prop()
-  expression?: string;
+    @Prop({required: true, type: [String], index: true})
+    base: string[];
 
-  @Prop()
-  xpath?: string;
+    @Prop({required: true, enum: SearchParameterType, index: true})
+    type: SearchParameterType;
 
-  @Prop({ enum: XPathUsage })
-  xpathUsage?: XPathUsage;
+    @Prop()
+    expression?: string;
 
-  @Prop([String])
-  target?: string[];
+    @Prop()
+    xpath?: string;
 
-  @Prop()
-  multipleOr?: boolean;
+    @Prop({enum: XPathUsage})
+    xpathUsage?: XPathUsage;
 
-  @Prop()
-  multipleAnd?: boolean;
+    @Prop([String])
+    target?: string[];
 
-  @Prop({ type: [String], enum: SearchComparator })
-  comparator?: SearchComparator[];
+    @Prop()
+    multipleOr?: boolean;
 
-  @Prop({ type: [String], enum: SearchModifier })
-  modifier?: SearchModifier[];
+    @Prop()
+    multipleAnd?: boolean;
 
-  @Prop([String])
-  chain?: string[];
+    @Prop({type: [String], enum: SearchComparator})
+    comparator?: SearchComparator[];
 
-  @Prop({ type: [SearchParameterComponentSchema] })
-  component?: SearchParameterComponent[];
+    @Prop({type: [String], enum: SearchModifier})
+    modifier?: SearchModifier[];
 
-  // FHIR Meta information
-  @Prop({
-    type: {
-      versionId: String,
-      lastUpdated: { type: Date, default: Date.now },
-      profile: [String],
-      security: [Object],
-      tag: [Object],
-      source: String
-    }
-  })
-  meta?: {
-    versionId?: string;
-    lastUpdated?: Date;
-    profile?: string[];
-    security?: any[];
-    tag?: any[];
-    source?: string;
-  };
+    @Prop([String])
+    chain?: string[];
 
-  // FHIR base elements
-  @Prop()
-  implicitRules?: string;
+    @Prop({type: [SearchParameterComponentSchema]})
+    component?: SearchParameterComponent[];
 
-  @Prop()
-  language?: string;
+    // FHIR Meta information
+    @Prop({
+        type: {
+            versionId: String,
+            lastUpdated: {type: Date, default: Date.now},
+            profile: [String],
+            security: [Object],
+            tag: [Object],
+            source: String
+        }
+    })
+    meta?: {
+        versionId?: string;
+        lastUpdated?: Date;
+        profile?: string[];
+        security?: any[];
+        tag?: any[];
+        source?: string;
+    };
 
-  @Prop({ type: Object })
-  text?: {
-    status: 'generated' | 'extensions' | 'additional' | 'empty';
-    div: string;
-  };
+    // FHIR base elements
+    @Prop()
+    implicitRules?: string;
 
-  @Prop([Object])
-  contained?: any[];
+    @Prop()
+    language?: string;
 
-  @Prop([Object])
-  extension?: any[];
+    @Prop({type: Object})
+    text?: {
+        status: 'generated' | 'extensions' | 'additional' | 'empty';
+        div: string;
+    };
 
-  @Prop([Object])
-  modifierExtension?: any[];
+    @Prop([Object])
+    contained?: any[];
 
-  // Automatic timestamps
-  createdAt?: Date;
-  updatedAt?: Date;
+    @Prop([Object])
+    extension?: any[];
+
+    @Prop([Object])
+    modifierExtension?: any[];
 }
 
 export const searchParameterSchema = SchemaFactory.createForClass(SearchParameterSchema);
 
 // Indexes for performance
-searchParameterSchema.index({ resourceType: 1 });
-searchParameterSchema.index({ url: 1, version: 1 });
-searchParameterSchema.index({ base: 1, code: 1 });
-searchParameterSchema.index({ status: 1, type: 1 });
+searchParameterSchema.index({resourceType: 1});
+searchParameterSchema.index({url: 1, version: 1});
+searchParameterSchema.index({base: 1, code: 1});
+searchParameterSchema.index({status: 1, type: 1});
 
-searchParameterSchema.pre('save', function(next) {
-  if (!this.meta) {
-    this.meta = {};
-  }
-  
-  this.meta.lastUpdated = new Date();
-  
-  // Generate versionId if not exists
-  if (!this.meta.versionId) {
-    this.meta.versionId = '1';
-  } else if (this.isModified() && !this.isNew) {
-    this.meta.versionId = String(Number(this.meta.versionId) + 1);
-  }
-  
-  next();
+searchParameterSchema.pre('save', function (next) {
+
+    if (!this.id) {
+        this.id = uuidv4()
+    }
+
+    this.meta = this.meta || {}
+    this.meta.lastUpdated = new Date()
+
+    if (!this.meta.versionId) {
+        this.meta.versionId = '1'
+    }
+
+    next();
 });

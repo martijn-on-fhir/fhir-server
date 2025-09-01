@@ -1,7 +1,7 @@
 import {Test, TestingModule} from '@nestjs/testing';
 import {getModelToken} from '@nestjs/mongoose';
 import {BadRequestException, NotFoundException} from '@nestjs/common';
-import {Model, Types} from 'mongoose';
+import {Model} from 'mongoose';
 import {SearchParameterService} from './search-parameter.service';
 import {
     SearchParameterDocument,
@@ -16,9 +16,10 @@ describe('SearchParameterService', () => {
     let service: SearchParameterService;
     let mockModel: jest.Mocked<Model<SearchParameterDocument>>;
 
-    const mockSearchParameterId = '507f1f77bcf86cd799439011';
+    const mockSearchParameterId = '123e4567-e89b-12d3-a456-426614174000';
     const mockSearchParameter = {
         _id: mockSearchParameterId,
+        id: mockSearchParameterId,
         resourceType: 'SearchParameter',
         url: 'http://hl7.org/fhir/SearchParameter/Patient-name',
         name: 'name',
@@ -47,8 +48,7 @@ describe('SearchParameterService', () => {
         mockModel = {
             find: jest.fn(() => mockQuery),
             findOne: jest.fn(() => ({exec: jest.fn()})),
-            findById: jest.fn(() => ({exec: jest.fn()})),
-            findByIdAndDelete: jest.fn(() => ({exec: jest.fn()})),
+            findOneAndDelete: jest.fn(() => ({exec: jest.fn()})),
             create: jest.fn(),
             save: jest.fn(),
             exec: jest.fn()
@@ -274,29 +274,25 @@ describe('SearchParameterService', () => {
     });
 
     describe('findOne', () => {
+
         it('should return SearchParameter by valid ID', async () => {
-            jest.spyOn(Types.ObjectId, 'isValid').mockReturnValue(true);
-            mockModel.findById = jest.fn().mockReturnValue({
+            mockModel.findOne = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockSearchParameter)
             });
 
             const result = await service.findOne(mockSearchParameterId);
 
-            expect(Types.ObjectId.isValid).toHaveBeenCalledWith(mockSearchParameterId);
-            expect(mockModel.findById).toHaveBeenCalledWith(mockSearchParameterId);
+            expect(mockModel.findOne).toHaveBeenCalledWith({ id: mockSearchParameterId });
             expect(result).toEqual(mockSearchParameter);
         });
 
         it('should throw BadRequestException for invalid ID', async () => {
-            jest.spyOn(Types.ObjectId, 'isValid').mockReturnValue(false);
-
-            await expect(service.findOne('invalid-id')).rejects.toThrow(BadRequestException);
-            await expect(service.findOne('invalid-id')).rejects.toThrow('Invalid SearchParameter ID');
+            await expect(service.findOne('')).rejects.toThrow(BadRequestException);
+            await expect(service.findOne('')).rejects.toThrow('Invalid SearchParameter ID');
         });
 
         it('should throw NotFoundException when SearchParameter not found by ID', async () => {
-            jest.spyOn(Types.ObjectId, 'isValid').mockReturnValue(true);
-            mockModel.findById = jest.fn().mockReturnValue({
+            mockModel.findOne = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null)
             });
 
@@ -306,6 +302,7 @@ describe('SearchParameterService', () => {
     });
 
     describe('update', () => {
+
         const updateDto: UpdateSearchParameterDto = {
             description: 'Updated description',
             status: SearchParameterStatus.DRAFT
@@ -406,17 +403,17 @@ describe('SearchParameterService', () => {
 
     describe('delete', () => {
         it('should delete SearchParameter', async () => {
-            mockModel.findByIdAndDelete = jest.fn().mockReturnValue({
+            mockModel.findOneAndDelete = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockSearchParameter)
             });
 
             await service.delete(mockSearchParameterId);
 
-            expect(mockModel.findByIdAndDelete).toHaveBeenCalledWith(mockSearchParameterId);
+            expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ id: mockSearchParameterId });
         });
 
         it('should throw NotFoundException when SearchParameter to delete not found', async () => {
-            mockModel.findByIdAndDelete = jest.fn().mockReturnValue({
+            mockModel.findOneAndDelete = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null)
             });
 
@@ -444,7 +441,7 @@ describe('SearchParameterService', () => {
         });
 
         it('should exclude specified ID from uniqueness check', async () => {
-            const excludeId = '507f1f77bcf86cd799439012';
+            const excludeId = '123e4567-e89b-12d3-a456-426614174001';
             mockModel.findOne = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null)
             });
@@ -531,8 +528,7 @@ describe('SearchParameterService', () => {
             expect(created).toBeDefined();
 
             // Read
-            jest.spyOn(Types.ObjectId, 'isValid').mockReturnValue(true);
-            mockModel.findById = jest.fn().mockReturnValue({
+            mockModel.findOne = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockSearchParameter)
             });
 
@@ -548,12 +544,12 @@ describe('SearchParameterService', () => {
             expect(updated).toEqual(updatedSearchParameter);
 
             // Delete
-            mockModel.findByIdAndDelete = jest.fn().mockReturnValue({
+            mockModel.findOneAndDelete = jest.fn().mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockSearchParameter)
             });
 
             await service.delete(mockSearchParameterId);
-            expect(mockModel.findByIdAndDelete).toHaveBeenCalledWith(mockSearchParameterId);
+            expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ id: mockSearchParameterId });
         });
 
         it('should handle complex search scenarios', async () => {
