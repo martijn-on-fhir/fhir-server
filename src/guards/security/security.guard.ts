@@ -57,7 +57,7 @@ export class SecurityGuard implements CanActivate {
     ]
 
     /** Maximum allowed request size in bytes (10MB) */
-    private readonly maxRequestSize = 10 * 1024 * 1024 // 10MB
+    private readonly maxRequestSize = 10 * 1024 * 1024 // 50MB
 
     /** Maximum allowed header size in bytes (8KB) */
     private readonly maxHeaderSize = 8 * 1024 // 8KB
@@ -293,8 +293,6 @@ export class SecurityGuard implements CanActivate {
 
         for (const pattern of this.suspiciousPatterns) {
             if (pattern.test(input)) {
-                console.log(`Pattern matched: ${pattern.source}`)
-                console.log(`Input excerpt: ${input.substring(0, 200)}...`)
                 return true
             }
         }

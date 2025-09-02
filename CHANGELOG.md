@@ -1,3 +1,12 @@
+## [0.13.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.1...v0.13.2) (2025-09-02)
+
+
+### Bug Fixes
+
+* Update SearchParameterService findOne method and fix test ([0db1c54](https://github.com/martijn-on-fhir/fhir-server/commit/0db1c547bfb1c451c3ec60b8282800ac11730bb5))
+
+## [0.13.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.0...v0.13.1) (2025-09-02)
+
 # [0.13.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.12.1...v0.13.0) (2025-09-02)
 
 

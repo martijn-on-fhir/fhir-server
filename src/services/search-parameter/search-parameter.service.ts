@@ -95,7 +95,7 @@ export class SearchParameterService {
       throw new BadRequestException('Invalid SearchParameter ID');
     }
 
-    const searchParameter = await this.searchParameterModel.findOne({ id }).exec();
+    const searchParameter = await this.searchParameterModel.findOne({ id }, {_id: 0}).exec();
     
     if (!searchParameter) {
       throw new NotFoundException('SearchParameter not found');
