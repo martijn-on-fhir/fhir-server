@@ -293,8 +293,6 @@ export class SecurityGuard implements CanActivate {
 
         for (const pattern of this.suspiciousPatterns) {
             if (pattern.test(input)) {
-                console.log(`Pattern matched: ${pattern.source}`)
-                console.log(`Input excerpt: ${input.substring(0, 200)}...`)
                 return true
             }
         }

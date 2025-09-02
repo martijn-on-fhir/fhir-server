@@ -282,7 +282,7 @@ describe('SearchParameterService', () => {
 
             const result = await service.findOne(mockSearchParameterId);
 
-            expect(mockModel.findOne).toHaveBeenCalledWith({ id: mockSearchParameterId });
+            expect(mockModel.findOne).toHaveBeenCalledWith({ id: mockSearchParameterId }, {_id: 0});
             expect(result).toEqual(mockSearchParameter);
         });
 
