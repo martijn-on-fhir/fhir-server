@@ -76,8 +76,8 @@ export class ValidationService {
       }
     }
     
-    this.structureDefinition = await this.getStructureDefinition(this.resourceType, this.resource?.profile).then((response) => {
-      return response?.definition as StructureDefinition ?? null
+    this.structureDefinition = await this.getStructureDefinition(this.resourceType, this.resource?.meta?.profile).then((response) => {
+      return response as StructureDefinition ?? null
     })
     
     if (!this.structureDefinition) {
@@ -257,7 +257,7 @@ export class ValidationService {
     }
     
     const filter = {
-      resourceType: resourceType
+      type: resourceType
     }
     
     if (profile) {
@@ -267,7 +267,7 @@ export class ValidationService {
       })
     }
     
-    return this.structureDefinitionModel.findOne(filter).exec()
+    return this.structureDefinitionModel.findOne(filter, {_id: 0}).lean().exec()
   }
   
   /**

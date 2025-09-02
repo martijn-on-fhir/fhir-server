@@ -25,13 +25,16 @@ export class StructureDefinitionService {
   async create(createDto: CreateStructureDefinitionDto): Promise<StructureDefinitionDocument> {
     
     await this.validateUrlUniqueness(createDto.url);
+    await this.validateRequiredFields(createDto);
     
     const properties = {
       ...createDto,
       meta: {
         versionId: '1',
-        lastUpdated: new Date()
-      }
+        lastUpdated: new Date(),
+        ...createDto.meta
+      },
+      date: createDto.date ? new Date(createDto.date) : new Date()
     };
 
     const structureDefinition = new this.structureDefinitionModel(properties);
@@ -99,7 +102,21 @@ export class StructureDefinitionService {
       await this.validateUrlUniqueness(updateDto.url);
     }
 
-    Object.assign(structureDefinition, updateDto);
+    const updateData = {
+      ...updateDto,
+      meta: {
+        ...structureDefinition.meta,
+        versionId: String(parseInt(structureDefinition.meta?.versionId || '1') + 1),
+        lastUpdated: new Date(),
+        ...updateDto.meta
+      }
+    };
+
+    if (updateDto.date) {
+      updateData.date = (new Date(updateDto.date)).toISOString();
+    }
+
+    Object.assign(structureDefinition, updateData);
 
     return structureDefinition.save();
   }
@@ -136,5 +153,83 @@ export class StructureDefinitionService {
     if (existing) {
       throw new BadRequestException(`StructureDefinition with URL '${url}' already exists`);
     }
+  }
+
+  /**
+   * Validates required fields for StructureDefinition based on FHIR R4 specification.
+   * @param dto - Structure definition data
+   * @throws BadRequestException if validation fails
+   */
+  private async validateRequiredFields(dto: CreateStructureDefinitionDto): Promise<void> {
+    const errors: string[] = [];
+
+    if (!dto.url) {
+      errors.push('url is required');
+    }
+
+    if (!dto.name) {
+      errors.push('name is required');
+    }
+
+    if (!dto.status) {
+      errors.push('status is required');
+    }
+
+    if (!dto.kind) {
+      errors.push('kind is required');
+    }
+
+    if (dto.abstract === undefined || dto.abstract === null) {
+      errors.push('abstract is required');
+    }
+
+    if (!dto.type) {
+      errors.push('type is required');
+    }
+
+    if (dto.kind === 'resource' && !dto.baseDefinition && dto.type !== 'Resource') {
+      errors.push('baseDefinition is required for resource types (except base Resource)');
+    }
+
+    if (dto.derivation && !['specialization', 'constraint'].includes(dto.derivation)) {
+      errors.push('derivation must be either "specialization" or "constraint"');
+    }
+
+    if (dto.context && dto.context.length > 0 && dto.kind !== 'complex-type') {
+      errors.push('context can only be specified for complex-type (extensions)');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(`Validation failed: ${errors.join(', ')}`);
+    }
+  }
+
+  /**
+   * Finds structure definitions by version and URL pattern.
+   * @param version - FHIR version
+   * @param urlPattern - URL pattern to match
+   * @returns Array of matching StructureDefinition documents
+   */
+  async findByVersionAndPattern(version?: string, urlPattern?: string): Promise<StructureDefinitionDocument[]> {
+    const filter: any = {};
+    
+    if (version) {
+      filter.fhirVersion = version;
+    }
+    
+    if (urlPattern) {
+      filter.url = { $regex: urlPattern, $options: 'i' };
+    }
+    
+    return this.structureDefinitionModel.find(filter).sort({ name: 1 }).exec();
+  }
+
+  /**
+   * Finds all StructureDefinitions that derive from a base definition.
+   * @param baseDefinition - Base definition URL
+   * @returns Array of derived StructureDefinition documents
+   */
+  async findDerivedStructures(baseDefinition: string): Promise<StructureDefinitionDocument[]> {
+    return this.structureDefinitionModel.find({ baseDefinition }).sort({ name: 1 }).exec();
   }
 }

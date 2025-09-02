@@ -337,7 +337,6 @@ export class ValueSetSchema {
 export const valueSetSchema = SchemaFactory.createForClass(ValueSetSchema);
 
 // Indexes for performance
-valueSetSchema.index({ id: 1 });
 valueSetSchema.index({ status: 1 });
 valueSetSchema.index({ name: 1 });
 valueSetSchema.index({ 'compose.include.system': 1 });

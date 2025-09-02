@@ -62,6 +62,44 @@ export class StructureDefinitionController {
         required: false,
         description: 'Filter by FHIR release version'
     })
+    @ApiQuery({
+        name: 'name',
+        type: String,
+        required: false,
+        description: 'Filter by structure definition name'
+    })
+    @ApiQuery({
+        name: 'status',
+        type: String,
+        required: false,
+        enum: ['draft', 'active', 'retired', 'unknown'],
+        description: 'Filter by status'
+    })
+    @ApiQuery({
+        name: 'kind',
+        type: String,
+        required: false,
+        enum: ['primitive-type', 'complex-type', 'resource', 'logical'],
+        description: 'Filter by kind'
+    })
+    @ApiQuery({
+        name: 'type',
+        type: String,
+        required: false,
+        description: 'Filter by type defined or constrained by this structure'
+    })
+    @ApiQuery({
+        name: 'abstract',
+        type: Boolean,
+        required: false,
+        description: 'Filter by abstract flag'
+    })
+    @ApiQuery({
+        name: 'publisher',
+        type: String,
+        required: false,
+        description: 'Filter by publisher'
+    })
     @ApiResponse({
         status: 200,
         description: 'List of StructureDefinition resources',
@@ -74,7 +112,13 @@ export class StructureDefinitionController {
     })
     findAll(
         @Query('resourceType') resourceType?: string,
-        @Query('release') release?: number
+        @Query('release') release?: number,
+        @Query('name') name?: string,
+        @Query('status') status?: string,
+        @Query('kind') kind?: string,
+        @Query('type') type?: string,
+        @Query('abstract') abstract?: boolean,
+        @Query('publisher') publisher?: string
     ): Promise<any[]> {
 
         const filter: any = {};
@@ -85,6 +129,30 @@ export class StructureDefinitionController {
 
         if (release) {
             filter.release = release;
+        }
+
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+
+        if (status) {
+            filter.status = status;
+        }
+
+        if (kind) {
+            filter.kind = kind;
+        }
+
+        if (type) {
+            filter.type = type;
+        }
+
+        if (abstract !== undefined) {
+            filter.abstract = abstract;
+        }
+
+        if (publisher) {
+            filter.publisher = { $regex: publisher, $options: 'i' };
         }
 
         return this.structureDefinitionService.findAll(filter);
@@ -186,5 +254,54 @@ export class StructureDefinitionController {
     })
     remove(@Param('id') id: string): Promise<void> {
         return this.structureDefinitionService.delete(id);
+    }
+
+    @Get('search/pattern')
+    @ApiOperation({
+        summary: 'Search StructureDefinitions by version and URL pattern',
+        description: 'Finds StructureDefinitions by FHIR version and URL pattern matching'
+    })
+    @ApiQuery({
+        name: 'version',
+        type: String,
+        required: false,
+        description: 'FHIR version to filter by',
+        example: '4.0.1'
+    })
+    @ApiQuery({
+        name: 'urlPattern',
+        type: String,
+        required: false,
+        description: 'URL pattern to search for',
+        example: 'Patient'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'List of matching StructureDefinition resources'
+    })
+    searchByPattern(
+        @Query('version') version?: string,
+        @Query('urlPattern') urlPattern?: string
+    ): Promise<any[]> {
+        return this.structureDefinitionService.findByVersionAndPattern(version, urlPattern);
+    }
+
+    @Get('derived/:baseDefinition')
+    @ApiOperation({
+        summary: 'Find derived StructureDefinitions',
+        description: 'Finds all StructureDefinitions that derive from a specific base definition'
+    })
+    @ApiParam({
+        name: 'baseDefinition',
+        description: 'Base definition URL to find derived structures for',
+        example: 'http://hl7.org/fhir/StructureDefinition/DomainResource'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'List of derived StructureDefinition resources'
+    })
+    findDerived(@Param('baseDefinition') baseDefinition: string): Promise<any[]> {
+        const decodedBase = decodeURIComponent(baseDefinition);
+        return this.structureDefinitionService.findDerivedStructures(decodedBase);
     }
 }

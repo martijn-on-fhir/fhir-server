@@ -31,6 +31,9 @@ describe('ValidationService', () => {
     id: 'Patient',
     url: 'http://hl7.org/fhir/StructureDefinition/Patient',
     name: 'Patient',
+    status: 'active',
+    kind: 'resource',
+    abstract: false,
     type: 'Patient',
     baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
     snapshot: {
@@ -148,6 +151,7 @@ describe('ValidationService', () => {
     // Create mock model with simplified approach
     mockStructureDefinitionModel = {
       findOne: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
       exec: jest.fn()
     };
 
@@ -181,10 +185,8 @@ describe('ValidationService', () => {
     mockTerminologyService = module.get(TerminologyService);
     mockEventEmitter = module.get(EventEmitter2);
 
-    // Setup default mocks
-    mockStructureDefinitionModel.exec.mockResolvedValue({
-      definition: mockStructureDefinition
-    });
+    // Setup default mocks - the service expects the structure definition directly, not wrapped in a definition property
+    mockStructureDefinitionModel.exec.mockResolvedValue(mockStructureDefinition);
 
     (fhirPath.evaluate as jest.Mock).mockReturnValue([true]);
 
@@ -215,8 +217,9 @@ describe('ValidationService', () => {
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
       expect(mockStructureDefinitionModel.findOne).toHaveBeenCalledWith({
-        resourceType: 'Patient'
-      });
+        type: 'Patient',
+        url: 'http://hl7.org/fhir/StructureDefinition/Patient'
+      }, { _id: 0 });
     });
 
     it('should return error when resource has no resourceType', async () => {
@@ -251,7 +254,7 @@ describe('ValidationService', () => {
     });
 
     it('should handle structure definition without definition property', async () => {
-      mockStructureDefinitionModel.exec.mockResolvedValue({});
+      mockStructureDefinitionModel.exec.mockResolvedValue(null);
 
       const resource = { resourceType: 'Patient' };
       const result = await service.validateResource(resource);
@@ -390,9 +393,7 @@ describe('ValidationService', () => {
         snapshot: undefined
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithoutSnapshot
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithoutSnapshot);
 
       const resource = { resourceType: 'Patient' };
 
@@ -419,9 +420,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithSlices
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithSlices);
 
       const result = await service.validateResource(mockValidPatient);
 
@@ -434,15 +433,17 @@ describe('ValidationService', () => {
     it('should handle profile parameter correctly', async () => {
       const resourceWithProfile = {
         resourceType: 'Patient',
-        profile: ['http://example.com/profile']
+        meta: {
+          profile: ['http://example.com/profile']
+        }
       };
 
       await service.validateResource(resourceWithProfile);
 
       expect(mockStructureDefinitionModel.findOne).toHaveBeenCalledWith({
-        resourceType: 'Patient',
+        type: 'Patient',
         url: 'http://example.com/profile'
-      });
+      }, { _id: 0 });
     });
   });
 
@@ -460,9 +461,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithRequiredElement
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithRequiredElement);
 
       const resourceMissingBirthDate = {
         ...mockValidPatient,
@@ -536,9 +535,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: observationStructureDef
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(observationStructureDef);
 
       (fhirPath.evaluate as jest.Mock).mockReturnValue([false]);
 
@@ -688,9 +685,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithPattern
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithPattern);
 
       (fhirPath.evaluate as jest.Mock).mockReturnValue([false]);
 
@@ -724,9 +719,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithFixedUri
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithFixedUri);
 
       const resourceWithWrongFixedUri = {
         ...mockValidPatient,
@@ -748,9 +741,7 @@ describe('ValidationService', () => {
         snapshot: null as any
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefThatCausesError
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefThatCausesError);
 
       await expect(service.validateResource(mockValidPatient)).rejects.toThrow(
         'Structure definition does not have a snapshot'
@@ -792,9 +783,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithLowercaseTypes
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithLowercaseTypes);
 
       const result = await service.validateResource(mockValidPatient);
 
@@ -822,9 +811,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithChoice
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithChoice);
 
       (fhirPath.evaluate as jest.Mock).mockImplementation((resource, expression) => {
         if (expression.includes('deceasedBoolean')) {
@@ -896,9 +883,7 @@ describe('ValidationService', () => {
         }
       };
 
-      mockStructureDefinitionModel.exec.mockResolvedValue({
-        definition: structureDefWithWarnings
-      });
+      mockStructureDefinitionModel.exec.mockResolvedValue(structureDefWithWarnings);
 
       (fhirPath.evaluate as jest.Mock).mockImplementation((resource, expression) => {
         if (expression.includes('family.exists() and given.exists()')) {

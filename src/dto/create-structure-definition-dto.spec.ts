@@ -20,6 +20,12 @@ describe('CreateStructureDefinitionDto', () => {
     describe('validation', () => {
         it('should pass validation with valid data', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
+            dto.baseDefinition = 'http://hl7.org/fhir/StructureDefinition/DomainResource';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -32,6 +38,11 @@ describe('CreateStructureDefinitionDto', () => {
         });
 
         it('should fail validation when url is missing', async () => {
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -46,6 +57,11 @@ describe('CreateStructureDefinitionDto', () => {
 
         it('should fail validation when url is not a string', async () => {
             (dto as any).url = 123;
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -60,6 +76,11 @@ describe('CreateStructureDefinitionDto', () => {
 
         it('should fail validation when definition is missing', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
 
             const errors = await validate(dto);
             expect(errors).toHaveLength(1);
@@ -69,6 +90,11 @@ describe('CreateStructureDefinitionDto', () => {
 
         it('should fail validation when definition is not an object', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
             (dto as any).definition = 'invalid';
 
             const errors = await validate(dto);
@@ -80,6 +106,11 @@ describe('CreateStructureDefinitionDto', () => {
         it('should fail validation when resourceType is not a string', async () => {
             (dto as any).resourceType = 123;
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -92,8 +123,88 @@ describe('CreateStructureDefinitionDto', () => {
             expect(errors[0].constraints).toHaveProperty('isString');
         });
 
+        it('should fail validation when name is missing', async () => {
+            dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
+            dto.definition = { kind: 'resource', abstract: false, type: 'Patient' };
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(1);
+            expect(errors[0].property).toBe('name');
+            expect(errors[0].constraints).toHaveProperty('isString');
+        });
+
+        it('should fail validation when status is invalid', async () => {
+            dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            (dto as any).status = 'invalid-status';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
+            dto.definition = { kind: 'resource', abstract: false, type: 'Patient' };
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(1);
+            expect(errors[0].property).toBe('status');
+            expect(errors[0].constraints).toHaveProperty('isEnum');
+        });
+
+        it('should fail validation when kind is invalid', async () => {
+            dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            (dto as any).kind = 'invalid-kind';
+            dto.abstract = false;
+            dto.type = 'Patient';
+            dto.definition = { kind: 'resource', abstract: false, type: 'Patient' };
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(1);
+            expect(errors[0].property).toBe('kind');
+            expect(errors[0].constraints).toHaveProperty('isEnum');
+        });
+
+        it('should fail validation when abstract is not boolean', async () => {
+            dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            (dto as any).abstract = 'not-boolean';
+            dto.type = 'Patient';
+            dto.definition = { kind: 'resource', abstract: false, type: 'Patient' };
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(1);
+            expect(errors[0].property).toBe('abstract');
+            expect(errors[0].constraints).toHaveProperty('isBoolean');
+        });
+
+        it('should fail validation when type is missing', async () => {
+            dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.definition = { kind: 'resource', abstract: false, type: 'Patient' };
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(1);
+            expect(errors[0].property).toBe('type');
+            expect(errors[0].constraints).toHaveProperty('isString');
+        });
+
         it('should pass validation with complex definition object', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Patient';
+            dto.name = 'Patient';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Patient';
+            dto.baseDefinition = 'http://hl7.org/fhir/StructureDefinition/DomainResource';
+            dto.derivation = 'specialization';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -125,6 +236,12 @@ describe('CreateStructureDefinitionDto', () => {
 
         it('should pass validation with nested objects in definition', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/CustomResource';
+            dto.name = 'CustomResource';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'CustomResource';
+            dto.baseDefinition = 'http://hl7.org/fhir/StructureDefinition/DomainResource';
             dto.definition = {
                 kind: 'resource',
                 abstract: false,
@@ -163,6 +280,11 @@ describe('CreateStructureDefinitionDto', () => {
 
             for (const url of validUrls) {
                 dto.url = url;
+                dto.name = 'Test';
+                dto.status = 'active';
+                dto.kind = 'resource';
+                dto.abstract = false;
+                dto.type = 'Test';
                 dto.definition = {kind: 'resource', abstract: false, type: 'Test'};
 
                 const errors = await validate(dto);
@@ -180,6 +302,11 @@ describe('CreateStructureDefinitionDto', () => {
 
         it('should accept empty definition object', async () => {
             dto.url = 'http://hl7.org/fhir/StructureDefinition/Test';
+            dto.name = 'Test';
+            dto.status = 'active';
+            dto.kind = 'resource';
+            dto.abstract = false;
+            dto.type = 'Test';
             dto.definition = {};
 
             const errors = await validate(dto);
