@@ -14,6 +14,12 @@ describe('StructureDefinitionService', () => {
     _id: new Types.ObjectId('507f1f77bcf86cd799439011'),
     resourceType: 'StructureDefinition',
     url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+    name: 'Patient',
+    status: 'active',
+    kind: 'resource',
+    abstract: false,
+    type: 'Patient',
+    baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
     release: 4,
     definition: {
       kind: 'resource',
@@ -69,6 +75,12 @@ describe('StructureDefinitionService', () => {
       const createDto: CreateStructureDefinitionDto = {
         resourceType: 'StructureDefinition',
         url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        name: 'Patient',
+        status: 'active',
+        kind: 'resource',
+        abstract: false,
+        type: 'Patient',
+        baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
         release: 4,
         definition: {
           kind: 'resource',
@@ -103,7 +115,8 @@ describe('StructureDefinitionService', () => {
         meta: {
           versionId: '1',
           lastUpdated: expect.any(Date)
-        }
+        },
+        date: expect.any(Date)
       }));
       expect(mockSave).toHaveBeenCalled();
       expect(result).toEqual(mockSavedStructureDefinition);
@@ -113,6 +126,12 @@ describe('StructureDefinitionService', () => {
       const createDto: CreateStructureDefinitionDto = {
         resourceType: 'StructureDefinition',
         url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        name: 'Patient',
+        status: 'active',
+        kind: 'resource',
+        abstract: false,
+        type: 'Patient',
+        baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
         release: 4,
         definition: { kind: 'resource' }
       };
@@ -130,6 +149,12 @@ describe('StructureDefinitionService', () => {
       const createDto: CreateStructureDefinitionDto = {
         resourceType: 'StructureDefinition',
         url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        name: 'Patient',
+        status: 'active',
+        kind: 'resource',
+        abstract: false,
+        type: 'Patient',
+        baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
         release: 4,
         definition: { kind: 'resource' }
       };

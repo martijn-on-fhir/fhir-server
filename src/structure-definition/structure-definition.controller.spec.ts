@@ -24,6 +24,12 @@ describe('StructureDefinitionController', () => {
         _id: '507f1f77bcf86cd799439011',
         resourceType: 'StructureDefinition',
         url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        name: 'Patient',
+        status: 'active',
+        kind: 'resource',
+        abstract: false,
+        type: 'Patient',
+        baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
         release: 4,
         definition: {
             kind: 'resource',
@@ -81,6 +87,12 @@ describe('StructureDefinitionController', () => {
             const createDto: CreateStructureDefinitionDto = {
                 resourceType: 'StructureDefinition',
                 url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+                name: 'Patient',
+                status: 'active',
+                kind: 'resource',
+                abstract: false,
+                type: 'Patient',
+                baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
                 release: 4,
                 definition: {
                     kind: 'resource',
@@ -102,6 +114,12 @@ describe('StructureDefinitionController', () => {
             const createDto: CreateStructureDefinitionDto = {
                 resourceType: 'StructureDefinition',
                 url: 'http://hl7.org/fhir/StructureDefinition/Patient',
+                name: 'Patient',
+                status: 'active',
+                kind: 'resource',
+                abstract: false,
+                type: 'Patient',
+                baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
                 release: 4,
                 definition: {
                     kind: 'resource',
@@ -329,6 +347,12 @@ describe('StructureDefinitionController', () => {
             const createDto: CreateStructureDefinitionDto = {
                 resourceType: 'StructureDefinition',
                 url: 'http://hl7.org/fhir/StructureDefinition/Test',
+                name: 'Test',
+                status: 'active',
+                kind: 'resource',
+                abstract: false,
+                type: 'Test',
+                baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
                 release: 4,
                 definition: {kind: 'resource'}
             };
@@ -342,6 +366,12 @@ describe('StructureDefinitionController', () => {
             const createDto: CreateStructureDefinitionDto = {
                 resourceType: 'StructureDefinition',
                 url: 'http://hl7.org/fhir/StructureDefinition/Complex',
+                name: 'Complex',
+                status: 'active',
+                kind: 'resource',
+                abstract: false,
+                type: 'Complex',
+                baseDefinition: 'http://hl7.org/fhir/StructureDefinition/DomainResource',
                 release: 4,
                 definition: {
                     kind: 'resource',
