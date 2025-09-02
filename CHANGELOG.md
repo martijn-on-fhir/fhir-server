@@ -1,3 +1,10 @@
+# [0.13.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.12.1...v0.13.0) (2025-09-02)
+
+
+### Features
+
+* Update StructureDefinition schema and services to FHIR R4 specification ([84282d5](https://github.com/martijn-on-fhir/fhir-server/commit/84282d5bbc16a553a74caa74f40d7546839d8448))
+
 ## [0.12.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.12.0...v0.12.1) (2025-09-01)
 
 # [0.12.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.11.1...v0.12.0) (2025-09-01)
