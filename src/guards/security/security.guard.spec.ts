@@ -3,6 +3,7 @@ import { ExecutionContext, ForbiddenException, BadRequestException } from '@nest
 import { SecurityGuard } from './security.guard';
 import { Request } from 'express';
 import { RateLimitingService } from '../../services/rate-limiting/rate-limiting.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('SecurityGuard', () => {
   let guard: SecurityGuard;
@@ -23,8 +24,21 @@ describe('SecurityGuard', () => {
       }
     };
 
+    // Create mock ConfigService
+    const mockConfigServiceProvider = {
+      provide: ConfigService,
+      useValue: {
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'security.maxRequestSize') {
+            return 50 * 1024 * 1024 // 50MB for tests
+          }
+          return undefined
+        })
+      }
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SecurityGuard, mockRateLimitingServiceProvider]
+      providers: [SecurityGuard, mockRateLimitingServiceProvider, mockConfigServiceProvider]
     }).compile();
 
     guard = module.get<SecurityGuard>(SecurityGuard);

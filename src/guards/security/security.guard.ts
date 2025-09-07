@@ -1,6 +1,7 @@
 import {CanActivate, ExecutionContext, Injectable, ForbiddenException, BadRequestException} from '@nestjs/common'
 import {Request} from 'express'
 import {RateLimitingService} from '../../services/rate-limiting/rate-limiting.service'
+import {ConfigService} from '@nestjs/config'
 
 /**
  * Security guard that implements various security checks and validations for incoming HTTP requests.
@@ -10,7 +11,10 @@ import {RateLimitingService} from '../../services/rate-limiting/rate-limiting.se
 @Injectable()
 export class SecurityGuard implements CanActivate {
 
-    constructor(private readonly rateLimitingService: RateLimitingService) {}
+    constructor(
+        private readonly rateLimitingService: RateLimitingService,
+        private readonly configService: ConfigService
+    ) {}
 
     /**
      * Regular expression patterns to detect various types of malicious content
@@ -58,8 +62,11 @@ export class SecurityGuard implements CanActivate {
         'x-rewrite-url'
     ]
 
-    /** Maximum allowed request size in bytes (10MB) */
-    private readonly maxRequestSize = 10 * 1024 * 1024 // 10MB
+    /** Get maximum allowed request size from configuration or default to 50MB */
+    private get maxRequestSize(): number {
+        const configSize = this.configService.get('security.maxRequestSize')
+        return configSize || 50 * 1024 * 1024 // 50MB default
+    }
 
     /** Maximum allowed header size in bytes (8KB) */
     private readonly maxHeaderSize = 8 * 1024 // 8KB

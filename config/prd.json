@@ -23,6 +23,7 @@
     "password": ""
   },
   "security": {
+    "maxRequestSize": 104857600,
     "ipWhitelist": {
       "enabled": true,
       "allowedIPs": [
