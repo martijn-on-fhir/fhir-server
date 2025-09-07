@@ -1,3 +1,10 @@
+## [0.14.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.14.0...v0.14.1) (2025-09-07)
+
+
+### Bug Fixes
+
+* Add missing newline to rate limiting service test file ([4b57d97](https://github.com/martijn-on-fhir/fhir-server/commit/4b57d97a979d0a55a10a0972bc2892c96977156b))
+
 # [0.14.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.3...v0.14.0) (2025-09-07)
 
 
