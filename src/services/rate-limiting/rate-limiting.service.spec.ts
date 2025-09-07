@@ -221,7 +221,7 @@ describe('RateLimitingService', () => {
             }
             
             const customService = new RateLimitingService(
-                mockCustomConfigService as any, 
+                mockCustomConfigService as any,
                 mockCustomLoggerService as any
             )
             expect(customService).toBeDefined()
