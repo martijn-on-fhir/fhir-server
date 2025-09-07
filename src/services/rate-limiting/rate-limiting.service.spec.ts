@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { RateLimitingService } from './rate-limiting.service'
+import { FsLoggerService } from '../logger/fs-logger.service'
 
 // Mock Redis
 jest.mock('ioredis', () => {
@@ -45,10 +46,20 @@ describe('RateLimitingService', () => {
             })
         }
 
+        // Create mock FsLoggerService
+        const mockLoggerService = {
+            setContext: jest.fn(),
+            log: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+            debug: jest.fn()
+        }
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 RateLimitingService,
-                { provide: ConfigService, useValue: mockConfigService }
+                { provide: ConfigService, useValue: mockConfigService },
+                { provide: FsLoggerService, useValue: mockLoggerService }
             ],
         }).compile()
 
@@ -201,7 +212,18 @@ describe('RateLimitingService', () => {
                 })
             }
             
-            const customService = new RateLimitingService(mockCustomConfigService as any)
+            const mockCustomLoggerService = {
+                setContext: jest.fn(),
+                log: jest.fn(),
+                warn: jest.fn(),
+                error: jest.fn(),
+                debug: jest.fn()
+            }
+            
+            const customService = new RateLimitingService(
+                mockCustomConfigService as any, 
+                mockCustomLoggerService as any
+            )
             expect(customService).toBeDefined()
         })
     })
