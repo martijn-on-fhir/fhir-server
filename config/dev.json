@@ -38,6 +38,13 @@
       "logBlockedAttempts": true
     }
   },
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "db": 0
+  },
   "cron": {
     "metrics": {
       "enabled": true

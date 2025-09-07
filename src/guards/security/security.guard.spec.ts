@@ -2,18 +2,33 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { SecurityGuard } from './security.guard';
 import { Request } from 'express';
+import { RateLimitingService } from '../../services/rate-limiting/rate-limiting.service';
 
 describe('SecurityGuard', () => {
   let guard: SecurityGuard;
   let mockExecutionContext: jest.Mocked<ExecutionContext>;
   let mockRequest: Partial<Request>;
+  let mockRateLimitingService: jest.Mocked<RateLimitingService>;
 
   beforeEach(async () => {
+    // Create mock RateLimitingService
+    const mockRateLimitingServiceProvider = {
+      provide: RateLimitingService,
+      useValue: {
+        isRateLimited: jest.fn(),
+        getRateLimitStatus: jest.fn(),
+        resetRateLimit: jest.fn(),
+        isHealthy: jest.fn(),
+        onModuleDestroy: jest.fn()
+      }
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SecurityGuard]
+      providers: [SecurityGuard, mockRateLimitingServiceProvider]
     }).compile();
 
     guard = module.get<SecurityGuard>(SecurityGuard);
+    mockRateLimitingService = module.get<RateLimitingService>(RateLimitingService) as jest.Mocked<RateLimitingService>;
 
     // Create mock ExecutionContext
     mockExecutionContext = {
@@ -41,8 +56,8 @@ describe('SecurityGuard', () => {
 
     (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue(mockRequest);
 
-    // Reset rate limit store
-    global.rateLimitStore = new Map();
+    // Setup default rate limiting mock (can be overridden in individual tests)
+    mockRateLimitingService.isRateLimited.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -437,87 +452,78 @@ describe('SecurityGuard', () => {
 
   describe('Rate Limiting', () => {
     beforeEach(() => {
-      global.rateLimitStore = new Map();
+      // Reset mock functions
+      mockRateLimitingService.isRateLimited.mockClear();
+      mockRateLimitingService.getRateLimitStatus.mockClear();
+      mockRateLimitingService.resetRateLimit.mockClear();
     });
 
-    it('should allow requests within rate limit', () => {
-      for (let i = 0; i < 50; i++) {
-        const result = guard.canActivate(mockExecutionContext);
-        expect(result).toBe(true);
-      }
+    it('should allow requests when not rate limited', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
+
+      const result = await guard.canActivate(mockExecutionContext);
+      expect(result).toBe(true);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('127.0.0.1', 900000, 100);
     });
 
-    it('should throw ForbiddenException when rate limit exceeded', () => {
-      // Make 100 requests (at the limit)
-      for (let i = 0; i < 100; i++) {
-        guard.canActivate(mockExecutionContext);
-      }
+    it('should throw ForbiddenException when rate limit exceeded', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(true);
 
-      // 101st request should fail
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow(ForbiddenException);
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow('Rate limit exceeded');
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(ForbiddenException);
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow('Rate limit exceeded');
     });
 
-    it('should handle different IP addresses separately', () => {
+    it('should handle different IP addresses with correct parameters', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
+
       // First IP
       mockRequest.connection = { remoteAddress: '192.168.1.1' } as any;
+      await guard.canActivate(mockExecutionContext);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('192.168.1.1', 900000, 100);
 
-      for (let i = 0; i < 100; i++) {
-        guard.canActivate(mockExecutionContext);
-      }
-
-      // Second IP should still be allowed
+      // Second IP
       mockRequest.connection = { remoteAddress: '192.168.1.2' } as any;
-      const result = guard.canActivate(mockExecutionContext);
-      expect(result).toBe(true);
+      await guard.canActivate(mockExecutionContext);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('192.168.1.2', 900000, 100);
     });
 
-    it('should clean up old entries', () => {
-      const now = Date.now();
-      const windowMs = 15 * 60 * 1000; // 15 minutes
-      const oldWindow = Math.floor((now - 20 * 60 * 1000) / windowMs); // 20 minutes ago
-      const currentWindow = Math.floor(now / windowMs);
-      
-      // Only add old entry if it's actually old enough to be cleaned up
-      if (oldWindow < currentWindow - 1) {
-        global.rateLimitStore.set(`192.168.1.1:${oldWindow}`, 50);
-        
-        guard.canActivate(mockExecutionContext);
-        
-        expect(global.rateLimitStore.has(`192.168.1.1:${oldWindow}`)).toBe(false);
-      } else {
-        // If the window calculation doesn't work as expected, just pass the test
-        expect(true).toBe(true);
-      }
-    });
-
-    it('should extract IP from x-forwarded-for header', () => {
+    it('should extract IP from x-forwarded-for header', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
       mockRequest.headers = {
         'x-forwarded-for': '203.0.113.1, 192.168.1.1'
       };
       delete mockRequest.connection;
 
-      const result = guard.canActivate(mockExecutionContext);
-      expect(result).toBe(true);
+      await guard.canActivate(mockExecutionContext);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('203.0.113.1', 900000, 100);
     });
 
-    it('should extract IP from x-real-ip header', () => {
+    it('should extract IP from x-real-ip header', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
       mockRequest.headers = {
         'x-real-ip': '203.0.113.1'
       };
       delete mockRequest.connection;
 
-      const result = guard.canActivate(mockExecutionContext);
-      expect(result).toBe(true);
+      await guard.canActivate(mockExecutionContext);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('203.0.113.1', 900000, 100);
     });
 
-    it('should fallback to default IP when none found', () => {
+    it('should fallback to default IP when none found', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
       delete mockRequest.connection;
       delete mockRequest.socket;
       mockRequest.headers = {};
 
-      const result = guard.canActivate(mockExecutionContext);
-      expect(result).toBe(true);
+      await guard.canActivate(mockExecutionContext);
+      expect(mockRateLimitingService.isRateLimited).toHaveBeenCalledWith('127.0.0.1', 900000, 100);
+    });
+
+    it('should handle rate limiting service errors gracefully', async () => {
+      mockRateLimitingService.isRateLimited.mockRejectedValue(new Error('Redis connection failed'));
+
+      // Should fail open - throw security check failed error
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -552,7 +558,9 @@ describe('SecurityGuard', () => {
   });
 
   describe('Integration Scenarios', () => {
-    it('should handle a typical FHIR request', () => {
+    it('should handle a typical FHIR request', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
+      
       mockRequest = {
         method: 'GET',
         originalUrl: '/fhir/Patient?count=10',
@@ -572,11 +580,13 @@ describe('SecurityGuard', () => {
 
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue(mockRequest);
 
-      const result = guard.canActivate(mockExecutionContext);
+      const result = await guard.canActivate(mockExecutionContext);
       expect(result).toBe(true);
     });
 
-    it('should handle a POST request with FHIR resource', () => {
+    it('should handle a POST request with FHIR resource', async () => {
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
+      
       mockRequest = {
         method: 'POST',
         originalUrl: '/fhir/Patient',
@@ -598,11 +608,14 @@ describe('SecurityGuard', () => {
 
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue(mockRequest);
 
-      const result = guard.canActivate(mockExecutionContext);
+      const result = await guard.canActivate(mockExecutionContext);
       expect(result).toBe(true);
     });
 
-    it('should block obviously malicious requests', () => {
+    it('should block obviously malicious requests', async () => {
+      // Rate limiting won't be reached due to other security checks failing first
+      mockRateLimitingService.isRateLimited.mockResolvedValue(false);
+      
       mockRequest = {
         method: 'POST',
         originalUrl: '/fhir/Patient?search=\'; DROP TABLE patients; --',
@@ -621,7 +634,7 @@ describe('SecurityGuard', () => {
 
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue(mockRequest);
 
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow(ForbiddenException);
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(ForbiddenException);
     });
   });
 });

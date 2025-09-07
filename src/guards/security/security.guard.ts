@@ -1,6 +1,6 @@
 import {CanActivate, ExecutionContext, Injectable, ForbiddenException, BadRequestException} from '@nestjs/common'
-import {Observable} from 'rxjs'
 import {Request} from 'express'
+import {RateLimitingService} from '../../services/rate-limiting/rate-limiting.service'
 
 /**
  * Security guard that implements various security checks and validations for incoming HTTP requests.
@@ -9,6 +9,8 @@ import {Request} from 'express'
  */
 @Injectable()
 export class SecurityGuard implements CanActivate {
+
+    constructor(private readonly rateLimitingService: RateLimitingService) {}
 
     /**
      * Regular expression patterns to detect various types of malicious content
@@ -71,9 +73,9 @@ export class SecurityGuard implements CanActivate {
     /**
      * Implements the CanActivate interface to perform security checks on incoming requests
      * @param context - The execution context containing the request
-     * @returns True if all security checks pass, false otherwise
+     * @returns Promise resolving to true if all security checks pass, false otherwise
      */
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
 
         const request: Request = context.switchToHttp().getRequest()
 
@@ -85,7 +87,7 @@ export class SecurityGuard implements CanActivate {
             this.validateUserAgent(request)
             this.checkForSuspiciousPatterns(request)
             this.validateContentType(request)
-            this.checkRateLimiting(request)
+            await this.checkRateLimiting(request)
 
             return true
 
@@ -233,38 +235,22 @@ export class SecurityGuard implements CanActivate {
     }
 
     /**
-     * Implements basic in-memory rate limiting per client IP
+     * Implements Redis-based rate limiting per client IP to prevent abuse and DoS attacks
+     * Uses a sliding window approach with a 15-minute window and maximum of 100 requests per IP
+     * Falls back to in-memory storage if Redis is unavailable
      * @param request - The incoming HTTP request
      * @throws {ForbiddenException} If rate limit is exceeded
      */
-    private checkRateLimiting(request: Request): void {
+    private async checkRateLimiting(request: Request): Promise<void> {
 
         const clientIp = this.getClientIp(request)
-        const now = Date.now()
         const windowMs = 15 * 60 * 1000 // 15 minutes
         const maxRequests = 100
 
-        if (!global.rateLimitStore) {
-            global.rateLimitStore = new Map()
-        }
-
-        const key = `${clientIp}:${Math.floor(now / windowMs)}`
-        const current = global.rateLimitStore.get(key) || 0
-
-        if (current >= maxRequests) {
+        const isLimited = await this.rateLimitingService.isRateLimited(clientIp, windowMs, maxRequests)
+        
+        if (isLimited) {
             throw new ForbiddenException('Rate limit exceeded')
-        }
-
-        global.rateLimitStore.set(key, current + 1)
-
-        const currentWindow = Math.floor(now / windowMs)
-
-        for (const [storeKey] of global.rateLimitStore) {
-            const keyWindow = parseInt(storeKey.split(':')[1])
-
-            if (keyWindow < currentWindow - 1) {
-                global.rateLimitStore.delete(storeKey)
-            }
         }
     }
 

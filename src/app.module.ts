@@ -35,6 +35,7 @@ import {StructureDefinitionService} from "./services/structure-definition/struct
 import {ValueSetController} from "./value-set/value-set.controller";
 import {ValueSetService} from "./services/value-set/value-set.service";
 import {valueSetSchema, ValueSetSchema} from "./schema/value-set.schema";
+import {RateLimitingService} from "./services/rate-limiting/rate-limiting.service";
 
 /**
  * Generates a MongoDB connection string based on the provided configuration object.
@@ -93,7 +94,7 @@ const getConnectionString = (): string => {
     controllers: [AppController, FhirController, SubscriptionController, SearchParameterController, StructureDefinitionController, ValueSetController],
     providers: [
         FhirService, ValidationService, TerminologyService, FhirEventListener, SubscriptionEventListener,
-        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory, StructureDefinitionService, ValueSetService,
+        SubscriptionService, SearchParameterService, CronJobsService, FsLoggerService, MatchesFactory, StructureDefinitionService, ValueSetService, RateLimitingService,
         {
             provide: APP_GUARD,
             useClass: IpWhitelistGuard,
