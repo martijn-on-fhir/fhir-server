@@ -1,3 +1,10 @@
+## [0.13.3](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.2...v0.13.3) (2025-09-07)
+
+
+### Bug Fixes
+
+* Enhance security configuration and code quality ([c9bbe18](https://github.com/martijn-on-fhir/fhir-server/commit/c9bbe18d829be5253f1f9e428e7a219a3ef76ddb))
+
 ## [0.13.2](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.1...v0.13.2) (2025-09-02)
 
 
