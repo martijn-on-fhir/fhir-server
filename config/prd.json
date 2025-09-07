@@ -23,6 +23,7 @@
     "password": ""
   },
   "security": {
+    "maxRequestSize": 104857600,
     "ipWhitelist": {
       "enabled": true,
       "allowedIPs": [
@@ -32,6 +33,13 @@
       "allowLocalhost": false,
       "logBlockedAttempts": true
     }
+  },
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "db": 0
   },
   "cron": {
     "metrics": {
