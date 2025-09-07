@@ -57,7 +57,7 @@ export class SecurityGuard implements CanActivate {
     ]
 
     /** Maximum allowed request size in bytes (10MB) */
-    private readonly maxRequestSize = 10 * 1024 * 1024 // 50MB
+    private readonly maxRequestSize = 10 * 1024 * 1024 // 10MB
 
     /** Maximum allowed header size in bytes (8KB) */
     private readonly maxHeaderSize = 8 * 1024 // 8KB
@@ -138,7 +138,7 @@ export class SecurityGuard implements CanActivate {
         }
     }
 
-    /**`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+    /**
      * Validates the request URL for length, suspicious patterns, and path traversal attempts
      * @param request - The incoming HTTP request
      * @throws {BadRequestException} If URL is too long
@@ -276,10 +276,7 @@ export class SecurityGuard implements CanActivate {
     private getClientIp(request: Request): string {
 
         return (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-            (request.headers['x-real-ip'] as string) ||
-            request.connection?.remoteAddress ||
-            request.socket?.remoteAddress ||
-            '127.0.0.1'
+            (request.headers['x-real-ip'] as string) || request.connection?.remoteAddress || request.socket?.remoteAddress || '127.0.0.1'
     }
 
     /**
