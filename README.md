@@ -1,6 +1,6 @@
 # FHIR Server
 
-Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resource validation, terminology services, subscription support, IP whitelisting, automated backups, and scalable MongoDB storage for healthcare interoperability.
+Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resource validation, terminology services, subscription support, IP whitelisting, Redis-powered distributed rate limiting, automated backups, and scalable MongoDB storage for healthcare interoperability.
 
 ## 🚀 Features
 
@@ -23,7 +23,11 @@ Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resou
   - XSS protection
   - Command injection prevention
   - Path traversal blocking
-  - Rate limiting
+- **Redis-powered Distributed Rate Limiting** with production scalability:
+  - Atomic Redis operations preventing race conditions
+  - Automatic fallback to in-memory storage when Redis unavailable
+  - Configurable rate limits per IP (default: 100 requests per 15 minutes)
+  - Cross-server instance synchronization for load-balanced environments
 - **OAuth2 Integration** with token introspection
 - **SMART on FHIR** support for healthcare applications
 
@@ -79,7 +83,9 @@ Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resou
 ### Prerequisites
 - Node.js 18+
 - MongoDB 4.4+
+- Redis 6.0+ (optional, falls back to in-memory rate limiting)
 - npm or yarn
+- Docker (recommended for Redis setup)
 
 ### Installation
 
@@ -94,13 +100,24 @@ Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resou
    npm install
    ```
 
-3. **Configure environment**
+3. **Set up Redis (recommended for production)**
+   ```bash
+   # Using Docker (recommended)
+   docker run -d --name fhir-redis -p 6379:6379 redis:alpine
+   
+   # Or install Redis locally
+   # Windows: choco install redis-64
+   # macOS: brew install redis
+   # Ubuntu: sudo apt install redis-server
+   ```
+
+4. **Configure environment**
    ```bash
    cp config/dev.json.example config/dev.json
    # Edit configuration as needed
    ```
 
-4. **Start the server**
+5. **Start the server**
    ```bash
    # Development mode
    npm run start:dev
@@ -144,6 +161,13 @@ Configure via environment-specific JSON files in the `config/` directory:
     "port": 27017,
     "database": "fhir-server"
   },
+  "redis": {
+    "enabled": true,
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "db": 0
+  },
   "security": {
     "ipWhitelist": {
       "enabled": true,
@@ -157,6 +181,60 @@ Configure via environment-specific JSON files in the `config/` directory:
   }
 }
 ```
+
+### Redis Configuration
+
+Redis powers the distributed rate limiting system:
+
+- **Development**: Set `redis.enabled: false` to use in-memory fallback
+- **Production**: Set `redis.enabled: true` for distributed rate limiting
+- **Environment Variables**: Override config with `REDIS_HOST`, `REDIS_PORT`, etc.
+- **Automatic Fallback**: If Redis is unavailable, seamlessly falls back to in-memory storage
+
+**Rate Limiting Defaults:**
+- 100 requests per 15-minute window per IP address
+- Atomic operations prevent race conditions
+- Cross-instance synchronization in clustered deployments
+
+## 🛡️ Rate Limiting
+
+The server includes sophisticated rate limiting to protect against abuse and ensure fair resource allocation:
+
+### Features
+- **Distributed Architecture**: Redis-backed rate limiting works across multiple server instances
+- **Intelligent Fallback**: Automatically switches to in-memory storage if Redis becomes unavailable
+- **Per-IP Tracking**: Individual rate limits for each client IP address
+- **Configurable Windows**: Customizable time windows and request limits
+- **Production Ready**: Atomic operations prevent race conditions in high-concurrency environments
+
+### Configuration Options
+```json
+{
+  "redis": {
+    "enabled": true,        // Enable Redis-based rate limiting
+    "host": "localhost",    // Redis server host
+    "port": 6379,          // Redis server port
+    "password": "",        // Redis authentication (optional)
+    "db": 0               // Redis database number
+  }
+}
+```
+
+### Environment Variables
+```bash
+REDIS_ENABLED=true
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your_password
+REDIS_DB=0
+```
+
+### Monitoring Rate Limits
+The rate limiting service provides health checks and monitoring:
+- Redis connection status monitoring
+- Automatic failover logging
+- Rate limit violation tracking
+- Performance metrics collection
 
 ## 🔧 CLI Tools
 
@@ -200,10 +278,25 @@ docker run -p 3000:3000 -e ENV_NAME=production fhir-server
 
 ### Production Considerations
 - Configure MongoDB connection with authentication
+- Set up Redis for distributed rate limiting
 - Set up SSL/TLS termination
 - Configure IP whitelisting for security
 - Set up monitoring and logging
 - Configure automated backups
+
+### Redis for Production
+```bash
+# Production Redis with persistence
+docker run -d --name fhir-redis \
+  -p 6379:6379 \
+  -v redis-data:/data \
+  redis:alpine redis-server --appendonly yes
+
+# Redis Cluster for high availability
+docker run -d --name fhir-redis-cluster \
+  -p 7000-7005:7000-7005 \
+  redis:alpine redis-server --cluster-enabled yes
+```
 
 ## 🤝 Contributing
 
