@@ -1,3 +1,24 @@
+## [0.14.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.14.0...v0.14.1) (2025-09-07)
+
+
+### Bug Fixes
+
+* Add missing newline to rate limiting service test file ([4b57d97](https://github.com/martijn-on-fhir/fhir-server/commit/4b57d97a979d0a55a10a0972bc2892c96977156b))
+
+# [0.14.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.3...v0.14.0) (2025-09-07)
+
+
+### Bug Fixes
+
+* Increase request size limits and make them configurable for FHIR resources ([c5164c6](https://github.com/martijn-on-fhir/fhir-server/commit/c5164c6c8b84abc0f9ccd03519bab64d9ab061d3))
+* Resolve Jest worker process exceptions and test failures ([0db12e5](https://github.com/martijn-on-fhir/fhir-server/commit/0db12e5fe1761904e558194f9d357491868c47d3))
+* Update rate limiting service tests for logger dependency injection ([adcf25c](https://github.com/martijn-on-fhir/fhir-server/commit/adcf25cb28121a7d654e5a0a360ed47ddebd5d75))
+
+
+### Features
+
+* Implement Redis-based distributed rate limiting for production scalability ([acd4cf9](https://github.com/martijn-on-fhir/fhir-server/commit/acd4cf9a8b8ec439e8aef37873e5086e145a839f))
+
 ## [0.13.3](https://github.com/martijn-on-fhir/fhir-server/compare/v0.13.2...v0.13.3) (2025-09-07)
 
 

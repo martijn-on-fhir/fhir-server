@@ -132,7 +132,7 @@ describe('SecurityGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('should throw ForbiddenException for too many headers', () => {
+    it('should throw ForbiddenException for too many headers', async () => {
       const manyHeaders: any = {};
 
       for (let i = 0; i < 60; i++) {
@@ -141,8 +141,8 @@ describe('SecurityGuard', () => {
 
       mockRequest.headers = manyHeaders;
 
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow(ForbiddenException);
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow('Too many headers');
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(ForbiddenException);
+      await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow('Too many headers');
     });
 
     it('should throw ForbiddenException for oversized header values', () => {
