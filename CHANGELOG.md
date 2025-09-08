@@ -1,3 +1,15 @@
+# [0.15.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.14.1...v0.15.0) (2025-09-08)
+
+
+### Bug Fixes
+
+* Fix FhirEventListener unit tests with ConfigService dependency and conditional behavior ([f33e4cd](https://github.com/martijn-on-fhir/fhir-server/commit/f33e4cd79db8e7924bf380bcfd60e4a387cfff42))
+
+
+### Features
+
+* Add provenance tracking configuration and conditional FHIR event handling ([25d86fe](https://github.com/martijn-on-fhir/fhir-server/commit/25d86fedd3387841be77ff115138e019a7019e15))
+
 ## [0.14.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.14.0...v0.14.1) (2025-09-07)
 
 
