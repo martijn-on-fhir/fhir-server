@@ -2,17 +2,16 @@ import {Test, TestingModule} from '@nestjs/testing';
 import {getModelToken} from '@nestjs/mongoose';
 import {ConfigService} from '@nestjs/config';
 import {FhirEventListener} from "./fhir-event-listener";
-import {ProvenanceBuilder} from "../lib/provenance-builder/provenance-builder";
 import {ProvenanceResource} from "../schema/provenance-schema";
 
 describe('FhirEventListener', () => {
 
     let service: FhirEventListener;
     let mockProvenanceModel: any;
-    let mockProvenanceBuilder: jest.Mocked<ProvenanceBuilder>;
     let mockConfigService: jest.Mocked<ConfigService>;
+    let module: TestingModule;
 
-    beforeEach(async () => {
+    const createTestModule = async (provenanceEnabled: boolean = false): Promise<TestingModule> => {
         // Create mock for the Mongoose model
         mockProvenanceModel = {
             save: jest.fn(),
@@ -23,17 +22,12 @@ describe('FhirEventListener', () => {
             updateOne: jest.fn(),
         };
 
-        // Create mock ProvenanceBuilder
-        mockProvenanceBuilder = {
-            register: jest.fn()
-        } as any;
-
         // Create mock ConfigService
         mockConfigService = {
-            get: jest.fn()
+            get: jest.fn().mockReturnValue(provenanceEnabled)
         } as any;
 
-        const module: TestingModule = await Test.createTestingModule({
+        const testModule: TestingModule = await Test.createTestingModule({
             providers: [
                 FhirEventListener,
                 {provide: getModelToken(ProvenanceResource.name), useValue: mockProvenanceModel},
@@ -41,50 +35,67 @@ describe('FhirEventListener', () => {
             ],
         }).compile();
 
-        service = module.get<FhirEventListener>(FhirEventListener);
-    });
+        return testModule;
+    };
 
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     describe('Service Initialization', () => {
-        it('should be defined', () => {
-            expect(service).toBeDefined();
-        });
-
         describe('when provenance is enabled', () => {
+            beforeEach(async () => {
+                module = await createTestModule(true);
+                service = module.get<FhirEventListener>(FhirEventListener);
+            });
+
+            it('should be defined', () => {
+                expect(service).toBeDefined();
+            });
+
             it('should create ProvenanceBuilder instance', () => {
-                mockConfigService.get.mockReturnValue(true);
-                const testService = new FhirEventListener(mockProvenanceModel, mockConfigService);
-                expect(testService.provenanceBuilder).toBeDefined();
+                expect(service.provenanceBuilder).toBeDefined();
+                expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
+            });
+
+            it('should call configService.get during initialization', () => {
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
             });
         });
 
         describe('when provenance is disabled', () => {
+            beforeEach(async () => {
+                module = await createTestModule(false);
+                service = module.get<FhirEventListener>(FhirEventListener);
+            });
+
+            it('should be defined', () => {
+                expect(service).toBeDefined();
+            });
+
             it('should not create ProvenanceBuilder instance', () => {
-                mockConfigService.get.mockReturnValue(false);
-                const testService = new FhirEventListener(mockProvenanceModel, mockConfigService);
-                expect(testService.provenanceBuilder).toBeUndefined();
+                expect(service.provenanceBuilder).toBeUndefined();
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
             });
         });
     });
 
     describe('Event Handlers - Provenance Enabled', () => {
-        beforeEach(() => {
-            mockConfigService.get.mockReturnValue(true);
-            service = new FhirEventListener(mockProvenanceModel, mockConfigService);
-            service.provenanceBuilder = mockProvenanceBuilder;
+        beforeEach(async () => {
+            module = await createTestModule(true);
+            service = module.get<FhirEventListener>(FhirEventListener);
         });
 
         describe('handleFhirCreatedEvent', () => {
+            beforeEach(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
+            });
+
             it('should call register with "create" for basic payload', () => {
                 const payload = {id: '123', resourceType: 'Patient'};
                 service.handleFhirCreatedEvent(payload);
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'create');
             });
 
             it('should call register with "create" for complex payload', () => {
@@ -101,21 +112,25 @@ describe('FhirEventListener', () => {
                     user: {id: 'user-456'}
                 };
                 service.handleFhirCreatedEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'create');
             });
 
             it('should handle null payload gracefully', () => {
                 expect(() => service.handleFhirCreatedEvent(null)).not.toThrow();
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(null, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(null, 'create');
             });
         });
 
         describe('handleFhirUpdatedEvent', () => {
+            beforeEach(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
+            });
+
             it('should call register with "update" for basic payload', () => {
                 const payload = {id: '456', resourceType: 'Observation'};
                 service.handleFhirUpdatedEvent(payload);
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'update');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'update');
             });
 
             it('should call register with "update" for payload with previous resource', () => {
@@ -134,16 +149,20 @@ describe('FhirEventListener', () => {
                     }
                 };
                 service.handleFhirUpdatedEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'update');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'update');
             });
         });
 
         describe('handleFhirDeletedEvent', () => {
+            beforeEach(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
+            });
+
             it('should call register with "delete" for basic payload', () => {
                 const payload = {id: '789', resourceType: 'Encounter'};
                 service.handleFhirDeletedEvent(payload);
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'delete');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'delete');
             });
 
             it('should call register with "delete" for complete payload', () => {
@@ -158,16 +177,20 @@ describe('FhirEventListener', () => {
                     request: {method: 'DELETE', url: '/Encounter/enc-789'}
                 };
                 service.handleFhirDeletedEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'delete');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'delete');
             });
         });
 
         describe('handleFhirReadEvent', () => {
+            beforeEach(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
+            });
+
             it('should call register with "read" for basic payload', () => {
                 const payload = {id: '101', resourceType: 'Condition'};
                 service.handleFhirReadEvent(payload);
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'read');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'read');
             });
 
             it('should call register with "read" for detailed payload', () => {
@@ -183,16 +206,20 @@ describe('FhirEventListener', () => {
                     user: {id: 'practitioner-123'}
                 };
                 service.handleFhirReadEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'read');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'read');
             });
         });
 
         describe('handleFhirSearchEvent', () => {
+            beforeEach(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
+            });
+
             it('should call register with "execute" for basic search', () => {
                 const payload = {resourceType: 'MedicationRequest'};
                 service.handleFhirSearchEvent(payload);
                 expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
             });
 
             it('should call register with "execute" for complex search', () => {
@@ -210,20 +237,19 @@ describe('FhirEventListener', () => {
                     request: {method: 'GET', url: '/MedicationRequest?patient=Patient/123&status=active'}
                 };
                 service.handleFhirSearchEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
             });
 
             it('should handle empty search payload', () => {
                 const payload = {};
                 service.handleFhirSearchEvent(payload);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(payload, 'execute');
             });
         });
 
         describe('Error Handling', () => {
             beforeEach(() => {
-                // Setup ProvenanceBuilder to throw errors
-                mockProvenanceBuilder.register.mockImplementation(() => {
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation(() => {
                     throw new Error('ProvenanceBuilder error');
                 });
             });
@@ -256,11 +282,7 @@ describe('FhirEventListener', () => {
 
         describe('Integration Scenarios', () => {
             beforeEach(() => {
-                // Reset mocks for integration tests - restore normal behavior
-                mockProvenanceBuilder.register.mockClear();
-                mockProvenanceBuilder.register.mockImplementation(() => {
-                    // Normal behavior - no-op for testing
-                });
+                jest.spyOn(service.provenanceBuilder, 'register').mockImplementation();
             });
 
             it('should handle multiple events in sequence', () => {
@@ -274,11 +296,11 @@ describe('FhirEventListener', () => {
                 service.handleFhirReadEvent(readPayload);
                 service.handleFhirDeletedEvent(deletePayload);
 
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledTimes(4);
-                expect(mockProvenanceBuilder.register).toHaveBeenNthCalledWith(1, createPayload, 'create');
-                expect(mockProvenanceBuilder.register).toHaveBeenNthCalledWith(2, updatePayload, 'update');
-                expect(mockProvenanceBuilder.register).toHaveBeenNthCalledWith(3, readPayload, 'read');
-                expect(mockProvenanceBuilder.register).toHaveBeenNthCalledWith(4, deletePayload, 'delete');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledTimes(4);
+                expect(service.provenanceBuilder.register).toHaveBeenNthCalledWith(1, createPayload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenNthCalledWith(2, updatePayload, 'update');
+                expect(service.provenanceBuilder.register).toHaveBeenNthCalledWith(3, readPayload, 'read');
+                expect(service.provenanceBuilder.register).toHaveBeenNthCalledWith(4, deletePayload, 'delete');
             });
 
             it('should handle different resource types', () => {
@@ -290,53 +312,68 @@ describe('FhirEventListener', () => {
                 service.handleFhirCreatedEvent(observationPayload);
                 service.handleFhirCreatedEvent(encounterPayload);
 
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledTimes(3);
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(patientPayload, 'create');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(observationPayload, 'create');
-                expect(mockProvenanceBuilder.register).toHaveBeenCalledWith(encounterPayload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledTimes(3);
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(patientPayload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(observationPayload, 'create');
+                expect(service.provenanceBuilder.register).toHaveBeenCalledWith(encounterPayload, 'create');
             });
         });
     });
 
     describe('Event Handlers - Provenance Disabled', () => {
-        beforeEach(() => {
-            mockConfigService.get.mockReturnValue(false);
-            service = new FhirEventListener(mockProvenanceModel, mockConfigService);
+        beforeEach(async () => {
+            module = await createTestModule(false);
+            service = module.get<FhirEventListener>(FhirEventListener);
         });
 
         it('should not call register when handling created event and provenance is disabled', () => {
             const payload = {id: '123', resourceType: 'Patient'};
-            service.handleFhirCreatedEvent(payload);
+            expect(() => service.handleFhirCreatedEvent(payload)).not.toThrow();
             expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-            expect(mockProvenanceBuilder.register).not.toHaveBeenCalled();
         });
 
         it('should not call register when handling updated event and provenance is disabled', () => {
             const payload = {id: '456', resourceType: 'Observation'};
-            service.handleFhirUpdatedEvent(payload);
+            expect(() => service.handleFhirUpdatedEvent(payload)).not.toThrow();
             expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-            expect(mockProvenanceBuilder.register).not.toHaveBeenCalled();
         });
 
         it('should not call register when handling deleted event and provenance is disabled', () => {
             const payload = {id: '789', resourceType: 'Encounter'};
-            service.handleFhirDeletedEvent(payload);
+            expect(() => service.handleFhirDeletedEvent(payload)).not.toThrow();
             expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-            expect(mockProvenanceBuilder.register).not.toHaveBeenCalled();
         });
 
         it('should not call register when handling read event and provenance is disabled', () => {
             const payload = {id: '101', resourceType: 'Condition'};
-            service.handleFhirReadEvent(payload);
+            expect(() => service.handleFhirReadEvent(payload)).not.toThrow();
             expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-            expect(mockProvenanceBuilder.register).not.toHaveBeenCalled();
         });
 
         it('should not call register when handling search event and provenance is disabled', () => {
             const payload = {resourceType: 'MedicationRequest'};
-            service.handleFhirSearchEvent(payload);
+            expect(() => service.handleFhirSearchEvent(payload)).not.toThrow();
             expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
-            expect(mockProvenanceBuilder.register).not.toHaveBeenCalled();
+        });
+
+        it('should handle all events when provenance disabled without errors', () => {
+            const payloads = [
+                {id: '1', resourceType: 'Patient'},
+                {id: '2', resourceType: 'Observation'},
+                {id: '3', resourceType: 'Encounter'}
+            ];
+
+            expect(() => {
+                payloads.forEach(payload => {
+                    service.handleFhirCreatedEvent(payload);
+                    service.handleFhirUpdatedEvent(payload);
+                    service.handleFhirReadEvent(payload);
+                    service.handleFhirDeletedEvent(payload);
+                    service.handleFhirSearchEvent(payload);
+                });
+            }).not.toThrow();
+
+            expect(mockConfigService.get).toHaveBeenCalledWith('authorization.provenance.enabled');
         });
     });
 });
