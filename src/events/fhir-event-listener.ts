@@ -84,6 +84,17 @@ export class FhirEventListener {
     }
 
     /**
+     * Determines if the provenance feature is enabled based on the configuration settings.
+     * This method checks the 'authorization.provenance.enabled' configuration value
+     * and returns true if it is explicitly set to true.
+     *
+     * @return {boolean} True if provenance is enabled, otherwise false.
+     */
+    private isProvenanceEnabled(): boolean {
+        return this._config.get('authorization.provenance.enabled') === true;
+    }
+
+    /**
      * Handles FHIR resource creation events.
      *
      * This method is automatically invoked when a 'fhir.created' event is emitted.
@@ -104,7 +115,7 @@ export class FhirEventListener {
     @OnEvent('fhir.created')
     handleFhirCreatedEvent(payload: any): void {
 
-        if (this._config.get('authorization.provenance.enabled') === true) {
+        if (this.isProvenanceEnabled()) {
             this.provenanceBuilder.register(payload, 'create')
         }
     }
@@ -131,7 +142,7 @@ export class FhirEventListener {
     @OnEvent('fhir.updated')
     handleFhirUpdatedEvent(payload: any): void {
 
-        if (this._config.get('authorization.provenance.enabled') === true) {
+        if (this.isProvenanceEnabled()) {
             this.provenanceBuilder.register(payload, 'update')
         }
     }
@@ -157,7 +168,7 @@ export class FhirEventListener {
     @OnEvent('fhir.deleted')
     handleFhirDeletedEvent(payload: any): void {
 
-        if (this._config.get('authorization.provenance.enabled') === true) {
+        if (this.isProvenanceEnabled()) {
             this.provenanceBuilder.register(payload, 'delete')
         }
     }
@@ -183,7 +194,7 @@ export class FhirEventListener {
     @OnEvent('fhir.read')
     handleFhirReadEvent(payload: any): void {
 
-        if (this._config.get('authorization.provenance.enabled') === true) {
+        if (this.isProvenanceEnabled()) {
             this.provenanceBuilder.register(payload, 'read')
         }
     }
@@ -209,7 +220,7 @@ export class FhirEventListener {
     @OnEvent('fhir.search')
     handleFhirSearchEvent(payload: any): void {
 
-        if (this._config.get('authorization.provenance.enabled') === true) {
+        if (this.isProvenanceEnabled()) {
             this.provenanceBuilder.register(payload, 'execute')
         }
     }
