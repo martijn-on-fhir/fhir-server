@@ -19,6 +19,7 @@ import {ProvenanceBuilder} from "../lib/provenance-builder/provenance-builder";
 import {InjectModel} from "@nestjs/mongoose";
 import {ProvenanceDocument, ProvenanceResource} from "../schema/provenance-schema";
 import {Model} from "mongoose";
+import {ConfigService} from '@nestjs/config'
 
 /**
  * Enumeration of FHIR events that can trigger provenance tracking.
@@ -70,12 +71,16 @@ export class FhirEventListener {
      * Creates a new FhirEventListener instance.
      *
      * @param {Model<ProvenanceDocument>} provenanceModel - Mongoose model for provenance documents
+     * @param _configService
      * @since 1.0.0
      * @see {@link ProvenanceDocument} for document schema
      * @see {@link ProvenanceResource} for resource schema
      */
-    constructor(@InjectModel(ProvenanceResource.name) private provenanceModel: Model<ProvenanceDocument>) {
-        this.provenanceBuilder = new ProvenanceBuilder(provenanceModel)
+    constructor(@InjectModel(ProvenanceResource.name) private provenanceModel: Model<ProvenanceDocument>, private readonly _config: ConfigService) {
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder = new ProvenanceBuilder(provenanceModel)
+        }
     }
 
     /**
@@ -98,7 +103,10 @@ export class FhirEventListener {
      */
     @OnEvent('fhir.created')
     handleFhirCreatedEvent(payload: any): void {
-        this.provenanceBuilder.register(payload, 'create')
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder.register(payload, 'create')
+        }
     }
 
     /**
@@ -122,7 +130,10 @@ export class FhirEventListener {
      */
     @OnEvent('fhir.updated')
     handleFhirUpdatedEvent(payload: any): void {
-        this.provenanceBuilder.register(payload,'update')
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder.register(payload, 'update')
+        }
     }
 
     /**
@@ -145,7 +156,10 @@ export class FhirEventListener {
      */
     @OnEvent('fhir.deleted')
     handleFhirDeletedEvent(payload: any): void {
-        this.provenanceBuilder.register(payload, 'delete')
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder.register(payload, 'delete')
+        }
     }
 
     /**
@@ -168,7 +182,10 @@ export class FhirEventListener {
      */
     @OnEvent('fhir.read')
     handleFhirReadEvent(payload: any): void {
-        this.provenanceBuilder.register(payload, 'read')
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder.register(payload, 'read')
+        }
     }
 
     /**
@@ -191,6 +208,9 @@ export class FhirEventListener {
      */
     @OnEvent('fhir.search')
     handleFhirSearchEvent(payload: any): void {
-        this.provenanceBuilder.register(payload, 'execute')
+
+        if (this._config.get('authorization.provenance.enabled') === true) {
+            this.provenanceBuilder.register(payload, 'execute')
+        }
     }
 }

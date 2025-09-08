@@ -13,6 +13,9 @@
     },
     "smartOnFhir": {
       "enabled": true
+    },
+    "provenance": {
+      "enabled": true
     }
   },
   "terminology": {
