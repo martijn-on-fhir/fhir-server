@@ -1,3 +1,11 @@
+## [0.16.1](https://github.com/martijn-on-fhir/fhir-server/compare/v0.16.0...v0.16.1) (2025-09-14)
+
+
+### Bug Fixes
+
+* Correct metadata retrieval and clean up minor inconsistencies ([732f933](https://github.com/martijn-on-fhir/fhir-server/commit/732f9337d07ee37d5f7212d8b17147a954829eb3))
+* Correct test assertion for getMetaData distinct call ([81fd976](https://github.com/martijn-on-fhir/fhir-server/commit/81fd976f8e2f853b1716260a0a327348c91ba4f1))
+
 # [0.16.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.15.0...v0.16.0) (2025-09-08)
 
 # [0.15.0](https://github.com/martijn-on-fhir/fhir-server/compare/v0.14.1...v0.15.0) (2025-09-08)
