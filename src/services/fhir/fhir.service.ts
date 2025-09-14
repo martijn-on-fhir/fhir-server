@@ -258,7 +258,7 @@ export class FhirService {
      */
     public async getMetaData(): Promise<any> {
 
-        const structures = await this.structureDefinitonModel.distinct('resourceType').exec()
+        const structures = await this.structureDefinitonModel.distinct('type').exec()
         return (new Metadata()).get(structures)
     }
 

@@ -69,3 +69,4 @@ NUL
 backup/
 *.bson
 *.metadata.json
+/.mcp.json

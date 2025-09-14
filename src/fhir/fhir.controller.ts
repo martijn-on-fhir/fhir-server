@@ -50,7 +50,7 @@ export class FhirController {
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Get(':resourceType')
   async searchResources(@Param('resourceType') resourceType: string, @Query() searchParams?: SearchParameters): Promise<SearchResult> {
-    return await this._service.find(resourceType, searchParams ?? {});
+      return await this._service.find(resourceType, searchParams ?? {});
   }
   
   @ApiOperation({ summary: 'Get FHIR resource by ID', description: 'Retrieve a specific FHIR resource by its type and ID' })
@@ -59,6 +59,7 @@ export class FhirController {
   @Get(':resourceType/:id')
   async getResource(@Param('resourceType') resourceType: string, @Param('id') id: string,
                     @Query() searchParams?: SearchParameters): Promise<any> {
+
     return await this._service.findById(resourceType, id, searchParams);
   }
   
@@ -66,7 +67,7 @@ export class FhirController {
   @ApiParam({ name: 'resourceType', description: 'Type of FHIR resource' })
   @Post(':resourceType')
   async createResource(@Param('resourceType') resourceType: string, @Body() resource: CreateResourceDto): Promise<any> {
-    
+
     await this._service.checkPreRequest('POST', resourceType, resource)
     return await this._service.create(resourceType, resource);
   }

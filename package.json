@@ -1,6 +1,6 @@
 {
   "name": "fhir-server",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Enterprise-ready FHIR R4 server built with NestJS, featuring comprehensive resource validation, terminology services, subscription support, IP whitelisting, automated backups, and scalable MongoDB storage for healthcare interoperability",
   "author": "Martijn Schimmel",
   "private": false,
@@ -25,6 +25,7 @@
     "start:prod": "node dist/main",
     "export:resource": "npx ts-node cli/export.ts",
     "import:resource": "npx ts-node cli/import.js",
+    "setup:dutch-profiles": "npx ts-node cli/setup-dutch-profiles.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
