@@ -364,7 +364,7 @@ describe('FhirService', () => {
       const result = await service.getMetaData();
 
       expect(result).toEqual(mockMetadata);
-      expect(mockStructureDefinitionModel.distinct).toHaveBeenCalledWith('resourceType');
+      expect(mockStructureDefinitionModel.distinct).toHaveBeenCalledWith('type');
       expect(mockMetadataInstance.get).toHaveBeenCalledWith(['Patient', 'Observation']);
     });
   });
