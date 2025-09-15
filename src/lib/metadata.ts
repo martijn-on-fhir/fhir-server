@@ -12,7 +12,7 @@ export class Metadata {
    * @param structures - Array of FHIR resource types supported by the server
    * @returns FHIR CapabilityStatement with supported resources and operations
    */
-  get(structures: string[]): object {
+  get(structures: any[]): object {
     
     const response = {
       resourceType: 'CapabilityStatement',
@@ -34,10 +34,13 @@ export class Metadata {
       }],
     };
     
-    structures.forEach((name: string) => {
+    structures.forEach((struct: {type: string, url: string}) => {
       
       const entity = {
-        type: `${name}`, interaction: [{ code: 'read' }, { code: 'create' }, { code: 'update' }, { code: 'delete' }, { code: 'search-type' }]
+        type: `${struct.type}`,
+          profile: `http://hl7.org/fhir/StructureDefinition/${struct.type}`,
+          supportedProfile: [struct.url],
+          interaction: [{ code: 'read' }, { code: 'create' }, { code: 'update' }, { code: 'delete' }, { code: 'search-type' }]
       }
       
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
