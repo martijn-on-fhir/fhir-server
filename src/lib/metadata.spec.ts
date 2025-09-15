@@ -16,7 +16,7 @@ describe('Metadata', () => {
 
   describe('get', () => {
     it('should return a valid FHIR CapabilityStatement with empty structures array', () => {
-      const structures: string[] = [];
+      const structures: any[] = [];
       const result = metadata.get(structures);
 
       expect(result).toEqual({
@@ -41,12 +41,14 @@ describe('Metadata', () => {
     });
 
     it('should include resource interactions for single structure', () => {
-      const structures = ['Patient'];
+      const structures = [{ type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' }];
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource).toHaveLength(1);
       expect(result.rest[0].resource[0]).toEqual({
         type: 'Patient',
+        profile: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        supportedProfile: ['http://hl7.org/fhir/StructureDefinition/Patient'],
         interaction: [
           { code: 'read' },
           { code: 'create' },
@@ -58,13 +60,19 @@ describe('Metadata', () => {
     });
 
     it('should include resource interactions for multiple structures', () => {
-      const structures = ['Patient', 'Observation', 'Practitioner'];
+      const structures = [
+        { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' },
+        { type: 'Observation', url: 'http://hl7.org/fhir/StructureDefinition/Observation' },
+        { type: 'Practitioner', url: 'http://hl7.org/fhir/StructureDefinition/Practitioner' }
+      ];
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource).toHaveLength(3);
-      
+
       expect(result.rest[0].resource[0]).toEqual({
         type: 'Patient',
+        profile: 'http://hl7.org/fhir/StructureDefinition/Patient',
+        supportedProfile: ['http://hl7.org/fhir/StructureDefinition/Patient'],
         interaction: [
           { code: 'read' },
           { code: 'create' },
@@ -76,6 +84,8 @@ describe('Metadata', () => {
 
       expect(result.rest[0].resource[1]).toEqual({
         type: 'Observation',
+        profile: 'http://hl7.org/fhir/StructureDefinition/Observation',
+        supportedProfile: ['http://hl7.org/fhir/StructureDefinition/Observation'],
         interaction: [
           { code: 'read' },
           { code: 'create' },
@@ -87,6 +97,8 @@ describe('Metadata', () => {
 
       expect(result.rest[0].resource[2]).toEqual({
         type: 'Practitioner',
+        profile: 'http://hl7.org/fhir/StructureDefinition/Practitioner',
+        supportedProfile: ['http://hl7.org/fhir/StructureDefinition/Practitioner'],
         interaction: [
           { code: 'read' },
           { code: 'create' },
@@ -111,7 +123,11 @@ describe('Metadata', () => {
     });
 
     it('should maintain consistent structure with different resource types', () => {
-      const structures = ['Bundle', 'StructureDefinition', 'ValueSet'];
+      const structures = [
+        { type: 'Bundle', url: 'http://hl7.org/fhir/StructureDefinition/Bundle' },
+        { type: 'StructureDefinition', url: 'http://hl7.org/fhir/StructureDefinition/StructureDefinition' },
+        { type: 'ValueSet', url: 'http://hl7.org/fhir/StructureDefinition/ValueSet' }
+      ];
       const result = metadata.get(structures) as any;
 
       expect(result.resourceType).toBe('CapabilityStatement');
@@ -125,18 +141,23 @@ describe('Metadata', () => {
     });
 
     it('should handle large numbers of structures', () => {
-      const structures = Array.from({ length: 50 }, (_, i) => `Resource${i + 1}`);
+      const structures = Array.from({ length: 50 }, (_, i) => ({
+        type: `Resource${i + 1}`,
+        url: `http://hl7.org/fhir/StructureDefinition/Resource${i + 1}`
+      }));
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource).toHaveLength(50);
-      
+
       // Check first and last resources
       expect(result.rest[0].resource[0].type).toBe('Resource1');
       expect(result.rest[0].resource[49].type).toBe('Resource50');
-      
+
       // Verify all have the same interaction pattern
       result.rest[0].resource.forEach((resource: any, index: number) => {
         expect(resource.type).toBe(`Resource${index + 1}`);
+        expect(resource.profile).toBe(`http://hl7.org/fhir/StructureDefinition/Resource${index + 1}`);
+        expect(resource.supportedProfile).toEqual([`http://hl7.org/fhir/StructureDefinition/Resource${index + 1}`]);
         expect(resource.interaction).toEqual([
           { code: 'read' },
           { code: 'create' },
@@ -148,18 +169,25 @@ describe('Metadata', () => {
     });
 
     it('should handle duplicate structure names', () => {
-      const structures = ['Patient', 'Patient', 'Observation', 'Patient'];
+      const structures = [
+        { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' },
+        { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' },
+        { type: 'Observation', url: 'http://hl7.org/fhir/StructureDefinition/Observation' },
+        { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' }
+      ];
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource).toHaveLength(4);
-      
+
       // All Patient resources should be identical
       const patientResources = result.rest[0].resource.filter((r: any) => r.type === 'Patient');
       expect(patientResources).toHaveLength(3);
-      
+
       patientResources.forEach((resource: any) => {
         expect(resource).toEqual({
           type: 'Patient',
+          profile: 'http://hl7.org/fhir/StructureDefinition/Patient',
+          supportedProfile: ['http://hl7.org/fhir/StructureDefinition/Patient'],
           interaction: [
             { code: 'read' },
             { code: 'create' },
@@ -172,7 +200,11 @@ describe('Metadata', () => {
     });
 
     it('should handle special characters in structure names', () => {
-      const structures = ['Patient-Test', 'Observation_V2', 'Custom$Resource'];
+      const structures = [
+        { type: 'Patient-Test', url: 'http://example.com/StructureDefinition/Patient-Test' },
+        { type: 'Observation_V2', url: 'http://example.com/StructureDefinition/Observation_V2' },
+        { type: 'Custom$Resource', url: 'http://example.com/StructureDefinition/Custom$Resource' }
+      ];
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource[0].type).toBe('Patient-Test');
@@ -181,13 +213,13 @@ describe('Metadata', () => {
     });
 
     it('should preserve object structure integrity', () => {
-      const structures = ['Patient'];
+      const structures = [{ type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' }];
       const result1 = metadata.get(structures);
       const result2 = metadata.get(structures);
 
       // Results should be separate objects (not the same reference)
       expect(result1).not.toBe(result2);
-      
+
       // But should have the same structure (excluding date which will differ)
       expect((result1 as any).resourceType).toBe((result2 as any).resourceType);
       expect((result1 as any).status).toBe((result2 as any).status);
@@ -195,7 +227,7 @@ describe('Metadata', () => {
     });
 
     it('should include all required FHIR CapabilityStatement fields', () => {
-      const result = metadata.get(['Patient']) as any;
+      const result = metadata.get([{ type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' }]) as any;
 
       // Check for required fields according to FHIR spec
       expect(result.resourceType).toBe('CapabilityStatement');
@@ -240,12 +272,12 @@ describe('Metadata', () => {
     });
 
     it('should support all CRUD operations plus search', () => {
-      const structures = ['TestResource'];
+      const structures = [{ type: 'TestResource', url: 'http://example.com/StructureDefinition/TestResource' }];
       const result = metadata.get(structures) as any;
 
       const resource = result.rest[0].resource[0];
       const interactionCodes = resource.interaction.map((i: any) => i.code);
-      
+
       expect(interactionCodes).toContain('read');
       expect(interactionCodes).toContain('create');
       expect(interactionCodes).toContain('update');
@@ -263,7 +295,11 @@ describe('Metadata', () => {
     });
 
     it('should handle empty string structure names', () => {
-      const structures = ['', '  ', 'ValidResource'];
+      const structures = [
+        { type: '', url: '' },
+        { type: '  ', url: '  ' },
+        { type: 'ValidResource', url: 'http://example.com/StructureDefinition/ValidResource' }
+      ];
       const result = metadata.get(structures) as any;
 
       expect(result.rest[0].resource).toHaveLength(3);

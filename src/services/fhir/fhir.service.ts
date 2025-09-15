@@ -257,8 +257,7 @@ export class FhirService {
      * @returns Promise containing the FHIR server capability statement with supported resources and operations
      */
     public async getMetaData(): Promise<any> {
-
-        const structures = await this.structureDefinitonModel.distinct('type').exec()
+        const structures = await this.structureDefinitonModel.find({}, {type: 1, url: 1, _id: 0}).lean().exec()
         return (new Metadata()).get(structures)
     }
 

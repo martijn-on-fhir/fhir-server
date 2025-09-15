@@ -57,6 +57,14 @@ describe('FhirService', () => {
     mockStructureDefinitionModel = {
       distinct: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue(['Patient', 'Observation'])
+      }),
+      find: jest.fn().mockReturnValue({
+        lean: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([
+            { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' },
+            { type: 'Observation', url: 'http://hl7.org/fhir/StructureDefinition/Observation' }
+          ])
+        })
       })
     };
 
@@ -364,8 +372,11 @@ describe('FhirService', () => {
       const result = await service.getMetaData();
 
       expect(result).toEqual(mockMetadata);
-      expect(mockStructureDefinitionModel.distinct).toHaveBeenCalledWith('type');
-      expect(mockMetadataInstance.get).toHaveBeenCalledWith(['Patient', 'Observation']);
+      expect(mockStructureDefinitionModel.find).toHaveBeenCalledWith({}, {type: 1, url: 1, _id: 0});
+      expect(mockMetadataInstance.get).toHaveBeenCalledWith([
+        { type: 'Patient', url: 'http://hl7.org/fhir/StructureDefinition/Patient' },
+        { type: 'Observation', url: 'http://hl7.org/fhir/StructureDefinition/Observation' }
+      ]);
     });
   });
 
